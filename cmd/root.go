@@ -27,18 +27,20 @@ import (
 	"github.com/spf13/cobra"
 )
 
-
-
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "otgen",
-	Short: "A brief description of your application",
-	Long: `A longer description that spans multiple lines and likely contains
-examples and usage of using your application. For example:
+	Short: "Open Traffic Generator CLI Tool",
+	Long: `Open Traffic Generator CLI Tool. Usage:
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+otgen run 
+   --api https://otg-api-endpoint     # OTG server API endpoint. Required
+  [--yaml otg.yml | --json otg.json]  # OTG model file. If not provided, will use stdin
+  [--timeout 60]                      # Timeout for API communication with OTG server
+  [--insecure]                        # Ignore X.509 certificate validation
+
+  For more information, go to https://github.com/open-traffic-generator/otgen
+`,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	// Run: func(cmd *cobra.Command, args []string) { },
@@ -64,5 +66,3 @@ func init() {
 	// when this action is called directly.
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
-
-
