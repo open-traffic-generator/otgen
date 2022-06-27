@@ -59,6 +59,10 @@ For more information, go to https://github.com/open-traffic-generator/otgen
 		}
 		if otgJson != "" {
 			otgFile = otgJson
+			log.Fatal("JSON import is not implemented yet")
+		}
+		if otgFile == "" {
+			log.Fatal("Stdin for OTG input is not implemented yet")
 		}
 		api, config := initOTG(otgFile)
 		flowMetrics := runTraffic(api, config)
