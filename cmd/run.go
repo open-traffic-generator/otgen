@@ -31,8 +31,6 @@ import (
 	"github.com/open-traffic-generator/snappi/gosnappi"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"github.com/vbauerster/mpb/v7"
-	"github.com/vbauerster/mpb/v7/decor"
 )
 
 // URL of OTG server API endpoint
@@ -162,25 +160,11 @@ func runTraffic(api gosnappi.GosnappiApi, config gosnappi.Config) gosnappi.Metri
 	// use a waitGroup to track progress of each individual flow
 	var wg sync.WaitGroup
 	// progress bar indicator
-	p := mpb.New(mpb.WithWaitGroup(&wg))
 	wg.Add(len(config.Flows().Items()))
 
 	// wait for traffic to stop on each flow or run beyond ETA
 	start := time.Now()
 	for _, f := range config.Flows().Items() {
-		// decorate progress bars
-		barname := fmt.Sprintf("%s:", f.Name())
-		bar := p.AddBar(int64(f.Duration().FixedPackets().Packets()),
-			mpb.PrependDecorators(
-				// simple name decorator
-				decor.Name(barname, decor.WCSyncSpace),
-				decor.Percentage(decor.WCSyncSpace),
-			),
-			mpb.AppendDecorators(
-				decor.Counters(0, "packets Rx: %d / %d", decor.WCSyncSpaceR),
-			),
-		)
-
 		go func(f gosnappi.Flow) {
 			defer flowMetricsMutex.Unlock()
 			defer wg.Done()
@@ -188,14 +172,11 @@ func runTraffic(api gosnappi.GosnappiApi, config gosnappi.Config) gosnappi.Metri
 				flowMetricsMutex.Lock()
 				for _, fm := range flowMetrics.FlowMetrics().Items() {
 					if fm.Name() == f.Name() {
-						bar.IncrInt64(fm.FramesRx() - bar.Current())
 						checkResponse(fm, err)
 						if fm.Transmit() == gosnappi.FlowMetricTransmit.STOPPED {
-							bar.Abort(false)
 							return
 						}
 						if trafficETA*2 < time.Since(start) {
-							bar.Abort(false)
 							log.Printf("Traffic %s has been running twice longer than ETA, forcing to stop", fm.Name())
 							return
 						}
@@ -206,7 +187,7 @@ func runTraffic(api gosnappi.GosnappiApi, config gosnappi.Config) gosnappi.Metri
 			}
 		}(f)
 	}
-	p.Wait()
+	wg.Wait()
 	keepPulling = false // stop metrics pulling routine
 
 	// stop transmitting traffic
@@ -245,13 +226,13 @@ func checkResponse(res interface{}, err error) {
 	switch v := res.(type) {
 	case gosnappi.MetricsResponse:
 		for _, fm := range v.FlowMetrics().Items() {
-			log.Printf("Traffic stats for %s:\n%s\n", fm.Name(), fm)
+			fmt.Printf("Traffic stats for %s:\n%s\n", fm.Name(), fm)
 		}
 	case gosnappi.FlowMetric:
-		log.Printf("Traffic stats for %s:\n%s\n", v.Name(), v)
+		fmt.Printf("Traffic stats for %s:\n%s\n", v.Name(), v)
 	case gosnappi.ResponseWarning:
 		for _, w := range v.Warnings() {
-			log.Printf("WARNING:", w)
+			fmt.Printf("WARNING:", w)
 		}
 	default:
 		log.Fatal("Unknown response type:", v)
