@@ -24,7 +24,6 @@ package cmd
 import (
 	"fmt"
 	"io/ioutil"
-	"os"
 	"time"
 
 	"github.com/open-traffic-generator/snappi/gosnappi"
@@ -85,14 +84,6 @@ func init() {
 	runCmd.Flags().StringVarP(&otgYaml, "yaml", "y", "", "OTG mode file, in YAML format. Mutually exclusive with --json. If neither is provided, will use stdin")
 	runCmd.Flags().StringVarP(&otgJson, "json", "j", "", "OTG mode file, in JSON format. Mutually exclusive with --yaml. If neither is provided, will use stdin")
 	runCmd.MarkFlagsMutuallyExclusive("json", "yaml")
-
-	// Log to file
-	file, err := os.OpenFile("otgen.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
-	if err == nil {
-		log.Out = file
-	} else {
-		log.Info("Failed to log to file, using default stderr")
-	}
 }
 
 func initOTG(otgfile string) (gosnappi.GosnappiApi, gosnappi.Config) {
@@ -119,20 +110,20 @@ func initOTG(otgfile string) (gosnappi.GosnappiApi, gosnappi.Config) {
 
 func runTraffic(api gosnappi.GosnappiApi, config gosnappi.Config) gosnappi.MetricsResponse {
 	// push traffic configuration to otgHost
-	fmt.Printf("Applying OTG config...")
+	log.Infof("Applying OTG config...")
 	res, err := api.SetConfig(config)
 	checkResponse(res, err)
-	fmt.Printf("ready.\n")
+	log.Infof("ready.\n")
 
 	// start transmitting configured flows
-	fmt.Printf("Starting traffic...")
+	log.Infof("Starting traffic...")
 	ts := api.NewTransmitState().SetState(gosnappi.TransmitStateState.START)
 	res, err = api.SetTransmitState(ts)
 	checkResponse(res, err)
-	fmt.Printf("started...")
+	log.Infof("started...")
 
 	trafficETA := calculateTrafficETA(config)
-	fmt.Printf("ETA is: %s\n", trafficETA)
+	log.Infof("ETA is: %s\n", trafficETA)
 
 	// initialize flow metrics
 	mr := api.NewMetricsRequest()
@@ -169,11 +160,11 @@ func runTraffic(api gosnappi.GosnappiApi, config gosnappi.Config) gosnappi.Metri
 	}
 
 	// stop transmitting traffic
-	fmt.Printf("Stopping traffic...")
+	log.Infof("Stopping traffic...")
 	ts = api.NewTransmitState().SetState(gosnappi.TransmitStateState.STOP)
 	res, err = api.SetTransmitState(ts)
 	checkResponse(res, err)
-	fmt.Printf("stopped.\n")
+	log.Infof("stopped.\n")
 
 	return flowMetrics
 }
