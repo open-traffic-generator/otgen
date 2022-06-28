@@ -43,8 +43,8 @@ var log = logrus.New()
 // runCmd represents the run command
 var runCmd = &cobra.Command{
 	Use:   "run",
-	Short: "Request API endpoint to run OTG model",
-	Long: `Request API endpoint to run OTG model.
+	Short: "Request an OTG API endpoint to run OTG model",
+	Long: `Request an OTG API endpoint to run OTG model.
 
 For more information, go to https://github.com/open-traffic-generator/otgen
 `,
@@ -81,8 +81,8 @@ func init() {
 	// runCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 	runCmd.Flags().StringVarP(&otgURL, "api", "", "", "URL of OTG API endpoint, for example https://otg-api-endpoint")
 	runCmd.MarkFlagRequired("api")
-	runCmd.Flags().StringVarP(&otgYaml, "yaml", "y", "", "OTG mode file, in YAML format. Mutually exclusive with --json. If neither is provided, will use stdin")
-	runCmd.Flags().StringVarP(&otgJson, "json", "j", "", "OTG mode file, in JSON format. Mutually exclusive with --yaml. If neither is provided, will use stdin")
+	runCmd.Flags().StringVarP(&otgYaml, "yaml", "y", "", "OTG model file, in YAML format. Mutually exclusive with --json. If neither is provided, will use stdin")
+	runCmd.Flags().StringVarP(&otgJson, "json", "j", "", "OTG model file, in JSON format. Mutually exclusive with --yaml. If neither is provided, will use stdin")
 	runCmd.MarkFlagsMutuallyExclusive("json", "yaml")
 }
 
