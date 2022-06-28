@@ -25,12 +25,12 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"sync"
 	"time"
 
 	"github.com/open-traffic-generator/snappi/gosnappi"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"google.golang.org/protobuf/encoding/protojson"
 )
 
 // URL of OTG server API endpoint
@@ -142,53 +142,31 @@ func runTraffic(api gosnappi.GosnappiApi, config gosnappi.Config) gosnappi.Metri
 		log.Fatal(err)
 	}
 
-	// launch a routine to periodically pull flow metrics
-	var flowMetricsMutex sync.Mutex
-	keepPulling := true
-	go func() {
-		for keepPulling {
-			flowMetricsMutex.Lock()
-			flowMetrics, err = api.GetMetrics(mr)
-			flowMetricsMutex.Unlock()
-			if err != nil {
-				log.Fatal(err)
-			}
-			time.Sleep(500 * time.Millisecond)
-		}
-	}()
-
-	// use a waitGroup to track progress of each individual flow
-	var wg sync.WaitGroup
-	// progress bar indicator
-	wg.Add(len(config.Flows().Items()))
-
 	// wait for traffic to stop on each flow or run beyond ETA
 	start := time.Now()
-	for _, f := range config.Flows().Items() {
-		go func(f gosnappi.Flow) {
-			defer flowMetricsMutex.Unlock()
-			defer wg.Done()
-			for {
-				flowMetricsMutex.Lock()
-				for _, fm := range flowMetrics.FlowMetrics().Items() {
-					if fm.Name() == f.Name() {
-						checkResponse(fm, err)
-						if fm.Transmit() == gosnappi.FlowMetricTransmit.STOPPED {
-							return
-						}
-						if trafficETA*2 < time.Since(start) {
-							log.Printf("Traffic %s has been running twice longer than ETA, forcing to stop", fm.Name())
-							return
-						}
-					}
-				}
-				flowMetricsMutex.Unlock()
-				time.Sleep(500 * time.Millisecond)
+
+	trafficRunning := true
+	for trafficRunning {
+		trafficRunning = false // we'll check if there are flows still running
+		flowMetrics, err = api.GetMetrics(mr)
+		if err != nil {
+			log.Fatal(err)
+		}
+		checkResponse(flowMetrics, err) // flowMetrics are being updated in the separate thread by a routine
+		for _, fm := range flowMetrics.FlowMetrics().Items() {
+			if !trafficRunning && fm.Transmit() != gosnappi.FlowMetricTransmit.STOPPED {
+				trafficRunning = true
 			}
-		}(f)
+			if trafficETA*2 < time.Since(start) {
+				log.Printf("Traffic %s has been running twice longer than ETA, forcing to stop", fm.Name())
+				break
+			}
+		}
+		if !trafficRunning {
+			break
+		}
+		time.Sleep(500 * time.Millisecond)
 	}
-	wg.Wait()
-	keepPulling = false // stop metrics pulling routine
 
 	// stop transmitting traffic
 	fmt.Printf("Stopping traffic...")
@@ -225,14 +203,12 @@ func checkResponse(res interface{}, err error) {
 	}
 	switch v := res.(type) {
 	case gosnappi.MetricsResponse:
-		for _, fm := range v.FlowMetrics().Items() {
-			fmt.Printf("Traffic stats for %s:\n%s\n", fm.Name(), fm)
-		}
+		printMetricsResponseRawJson(v)
 	case gosnappi.FlowMetric:
-		fmt.Printf("Traffic stats for %s:\n%s\n", v.Name(), v)
+		fmt.Println(v.Msg())
 	case gosnappi.ResponseWarning:
 		for _, w := range v.Warnings() {
-			fmt.Printf("WARNING:", w)
+			log.Infof("WARNING:", w)
 		}
 	default:
 		log.Fatal("Unknown response type:", v)
@@ -256,4 +232,23 @@ func checkPacketLoss(flowMetrics gosnappi.MetricsResponse) {
 			}
 		}
 	}
+}
+
+func printMetricsResponseRawJson(mr gosnappi.MetricsResponse) {
+	j, err := metricsResponseToJson(mr)
+	if err == nil {
+		fmt.Println(string(j))
+	} else {
+		log.Fatal(err)
+	}
+}
+
+func metricsResponseToJson(mr gosnappi.MetricsResponse) ([]byte, error) {
+	opts := protojson.MarshalOptions{
+		UseProtoNames:   true,
+		AllowPartial:    true,
+		EmitUnpopulated: false,
+		Indent:          "",
+	}
+	return opts.Marshal(mr.Msg())
 }

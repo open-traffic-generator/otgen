@@ -6,6 +6,7 @@ require (
 	github.com/open-traffic-generator/snappi/gosnappi v0.7.18
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cobra v1.5.0
+	google.golang.org/protobuf v1.28.0
 )
 
 require (
@@ -19,6 +20,5 @@ require (
 	golang.org/x/text v0.3.3 // indirect
 	google.golang.org/genproto v0.0.0-20200526211855-cb27e3aa2013 // indirect
 	google.golang.org/grpc v1.47.0 // indirect
-	google.golang.org/protobuf v1.28.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
