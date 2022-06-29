@@ -61,9 +61,7 @@ For more information, go to https://github.com/open-traffic-generator/otgen
 		if otgFile == "" {
 			log.Fatal("Stdin for OTG input is not implemented yet")
 		}
-		api, config := initOTG(otgFile)
-		flowMetrics := runTraffic(api, config)
-		checkPacketLoss(flowMetrics)
+		runTraffic(initOTG(otgFile))
 	},
 }
 
@@ -203,25 +201,6 @@ func checkResponse(res interface{}, err error) {
 		}
 	default:
 		log.Fatal("Unknown response type:", v)
-	}
-}
-
-// check for packet loss
-func checkPacketLoss(flowMetrics gosnappi.MetricsResponse) {
-	for _, fm := range flowMetrics.FlowMetrics().Items() {
-		if fm.FramesTx() > 0 {
-			loss := float32(fm.FramesTx()-fm.FramesRx()) / float32(fm.FramesTx())
-			positiveTest := true // default assumption is that we are testing for a flow to succeed
-			if positiveTest {    // we expect the flow to succeed
-				if loss > 0.01 {
-					log.Fatalf("Packet loss was detected for %s! Measured %f per cent", fm.Name(), loss*100)
-				}
-			} else { // we expect the flow to fail
-				if loss < 0.01 {
-					log.Fatalf("Packet loss was expected for %s! Measured %f per cent", fm.Name(), loss*100)
-				}
-			}
-		}
 	}
 }
 
