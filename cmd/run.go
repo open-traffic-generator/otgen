@@ -32,10 +32,10 @@ import (
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
-// URL of OTG server API endpoint
-var otgURL string
-var otgYaml string
-var otgJson string
+var otgURL string       // URL of OTG server API endpoint
+var otgYaml string      // OTG model file, in YAML format. Mutually exclusive with --json
+var otgJson string      // OTG model file, in JSON format. Mutually exclusive with --yaml
+var xeta = float32(2.0) // How long to wait before forcing traffic to stop. In multiples of ETA
 
 // Create a new instance of the logger
 var log = logrus.New()
@@ -77,11 +77,12 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// runCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-	runCmd.Flags().StringVarP(&otgURL, "api", "", "", "URL of OTG API endpoint, for example https://otg-api-endpoint")
+	runCmd.Flags().StringVarP(&otgURL, "api", "", "", "URL of OTG API endpoint. Example: https://otg-api-endpoint")
 	runCmd.MarkFlagRequired("api")
 	runCmd.Flags().StringVarP(&otgYaml, "yaml", "y", "", "OTG model file, in YAML format. Mutually exclusive with --json. If neither is provided, will use stdin")
 	runCmd.Flags().StringVarP(&otgJson, "json", "j", "", "OTG model file, in JSON format. Mutually exclusive with --yaml. If neither is provided, will use stdin")
 	runCmd.MarkFlagsMutuallyExclusive("json", "yaml")
+	runCmd.Flags().Float32VarP(&xeta, "xeta", "x", float32(2.0), "How long to wait before forcing traffic to stop. In multiples of ETA. Example: 1.5")
 }
 
 func initOTG(otgfile string) (gosnappi.GosnappiApi, gosnappi.Config) {
@@ -146,8 +147,9 @@ func runTraffic(api gosnappi.GosnappiApi, config gosnappi.Config) gosnappi.Metri
 			if !trafficRunning && fm.Transmit() != gosnappi.FlowMetricTransmit.STOPPED {
 				trafficRunning = true
 			}
-			if trafficETA*2 < time.Since(start) {
-				log.Printf("Traffic %s has been running twice longer than ETA, forcing to stop", fm.Name())
+			if float32(trafficETA)*xeta < float32(time.Since(start)) {
+				log.Warnf("Traffic %s has been running for %.1fs: %.1f times longer than ETA. Forcing to stop", fm.Name(), float32(time.Since(start).Seconds()), xeta)
+				trafficRunning = false
 				break
 			}
 		}
