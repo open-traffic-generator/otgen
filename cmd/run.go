@@ -35,6 +35,7 @@ import (
 var otgURL string       // URL of OTG server API endpoint
 var otgYaml string      // OTG model file, in YAML format. Mutually exclusive with --json
 var otgJson string      // OTG model file, in JSON format. Mutually exclusive with --yaml
+var otgMetrics string   // Metrics type to report: "port" for PortMetrics, "flow" for FlowMetrics
 var xeta = float32(2.0) // How long to wait before forcing traffic to stop. In multiples of ETA
 
 // Create a new instance of the logger
@@ -49,6 +50,13 @@ var runCmd = &cobra.Command{
 For more information, go to https://github.com/open-traffic-generator/otgen
 `,
 	Run: func(cmd *cobra.Command, args []string) {
+		switch otgMetrics {
+		case "port":
+		case "flow":
+		default:
+			log.Fatalf("Unsupported metrics type requested: %s", otgMetrics)
+		}
+
 		var otgFile string
 		// these are mutually exclusive
 		if otgYaml != "" {
@@ -81,6 +89,7 @@ func init() {
 	runCmd.MarkFlagRequired("api")
 	runCmd.Flags().StringVarP(&otgYaml, "yaml", "y", "", "OTG model file, in YAML format. Mutually exclusive with --json. If neither is provided, will use stdin")
 	runCmd.Flags().StringVarP(&otgJson, "json", "j", "", "OTG model file, in JSON format. Mutually exclusive with --yaml. If neither is provided, will use stdin")
+	runCmd.Flags().StringVarP(&otgMetrics, "metrics", "m", "port", "Metrics type to report:\n  \"port\" for PortMetrics,\n  \"flow\" for FlowMetrics\n ")
 	runCmd.MarkFlagsMutuallyExclusive("json", "yaml")
 	runCmd.Flags().Float32VarP(&xeta, "xeta", "x", float32(2.0), "How long to wait before forcing traffic to stop. In multiples of ETA. Example: 1.5")
 }
@@ -107,7 +116,7 @@ func initOTG(otgfile string) (gosnappi.GosnappiApi, gosnappi.Config) {
 	return api, config
 }
 
-func runTraffic(api gosnappi.GosnappiApi, config gosnappi.Config) gosnappi.MetricsResponse {
+func runTraffic(api gosnappi.GosnappiApi, config gosnappi.Config) {
 	// push traffic configuration to otgHost
 	log.Infof("Applying OTG config...")
 	res, err := api.SetConfig(config)
@@ -121,42 +130,32 @@ func runTraffic(api gosnappi.GosnappiApi, config gosnappi.Config) gosnappi.Metri
 	checkResponse(res, err)
 	log.Infof("started...")
 
-	trafficETA := calculateTrafficETA(config)
-	log.Infof("ETA is: %s\n", trafficETA)
+	targetTx, trafficETA := calculateTrafficTargets(config)
+	log.Infof("Total packets to transmit: %d, ETA is: %s\n", targetTx, trafficETA)
 
 	// initialize flow metrics
-	mr := api.NewMetricsRequest()
-	mr.Flow()
-	flowMetrics, err := api.GetMetrics(mr)
+	req := api.NewMetricsRequest()
+	switch otgMetrics {
+	case "port":
+		req.Port()
+	case "flow":
+		req.Flow()
+	default:
+		req.Port()
+	}
+	metrics, err := api.GetMetrics(req)
 	if err != nil {
 		log.Fatal(err)
 	}
+	checkResponse(metrics, err) // flowMetrics are being updated in the separate thread by a routine
 
-	// wait for traffic to stop on each flow or run beyond ETA
 	start := time.Now()
 
-	trafficRunning := true
-	for trafficRunning {
-		trafficRunning = false // we'll check if there are flows still running
-		flowMetrics, err = api.GetMetrics(mr)
-		if err != nil {
-			log.Fatal(err)
-		}
-		checkResponse(flowMetrics, err) // flowMetrics are being updated in the separate thread by a routine
-		for _, fm := range flowMetrics.FlowMetrics().Items() {
-			if !trafficRunning && fm.Transmit() != gosnappi.FlowMetricTransmit.STOPPED {
-				trafficRunning = true
-			}
-			if float32(trafficETA)*xeta < float32(time.Since(start)) {
-				log.Warnf("Traffic %s has been running for %.1fs: %.1f times longer than ETA. Forcing to stop", fm.Name(), float32(time.Since(start).Seconds()), xeta)
-				trafficRunning = false
-				break
-			}
-		}
-		if !trafficRunning {
-			break
-		}
+	// wait for traffic to stop on each flow or run beyond ETA
+	for isTrafficRunning(metrics, start, trafficETA, targetTx) {
 		time.Sleep(500 * time.Millisecond)
+		metrics, err = api.GetMetrics(req)
+		checkResponse(metrics, err)
 	}
 
 	// stop transmitting traffic
@@ -165,16 +164,16 @@ func runTraffic(api gosnappi.GosnappiApi, config gosnappi.Config) gosnappi.Metri
 	res, err = api.SetTransmitState(ts)
 	checkResponse(res, err)
 	log.Infof("stopped.\n")
-
-	return flowMetrics
 }
 
-func calculateTrafficETA(config gosnappi.Config) time.Duration {
+func calculateTrafficTargets(config gosnappi.Config) (int64, time.Duration) {
 	// Initialize packet counts and rates per flow if they were provided as parameters. Calculate ETA
+	pktCountTotal := int64(0)
 	flowETA := time.Duration(0)
 	trafficETA := time.Duration(0)
 	for _, f := range config.Flows().Items() {
 		pktCountFlow := f.Duration().FixedPackets().Packets()
+		pktCountTotal += int64(pktCountFlow)
 		ratePPSFlow := f.Rate().Pps()
 		// Calculate ETA it will take to transmit the flow
 		if ratePPSFlow > 0 {
@@ -184,7 +183,37 @@ func calculateTrafficETA(config gosnappi.Config) time.Duration {
 			trafficETA = flowETA // The longest flow to finish
 		}
 	}
-	return trafficETA
+	return pktCountTotal, trafficETA
+}
+
+func isTrafficRunning(mr gosnappi.MetricsResponse, start time.Time, trafficETA time.Duration, targetTx int64) bool {
+	trafficRunning := false // we'll check if there are flows still running
+
+	switch otgMetrics {
+	case "port":
+		total_tx := int64(0)
+		for _, pm := range mr.PortMetrics().Items() {
+			total_tx += pm.FramesTx()
+		}
+		if total_tx < targetTx {
+			trafficRunning = true
+		}
+	case "flow":
+		for _, fm := range mr.FlowMetrics().Items() {
+			if !trafficRunning && fm.Transmit() != gosnappi.FlowMetricTransmit.STOPPED {
+				trafficRunning = true
+			}
+			if float32(trafficETA)*xeta < float32(time.Since(start)) {
+				log.Warnf("Traffic %s has been running for %.1fs: %.1f times longer than ETA. Forcing to stop", fm.Name(), float32(time.Since(start).Seconds()), xeta)
+				trafficRunning = false
+				break
+			}
+		}
+	default:
+		trafficRunning = false
+	}
+
+	return trafficRunning
 }
 
 // print otg api response content
@@ -195,8 +224,6 @@ func checkResponse(res interface{}, err error) {
 	switch v := res.(type) {
 	case gosnappi.MetricsResponse:
 		printMetricsResponseRawJson(v)
-	case gosnappi.FlowMetric:
-		fmt.Println(v.Msg())
 	case gosnappi.ResponseWarning:
 		for _, w := range v.Warnings() {
 			log.Infof("WARNING:", w)
