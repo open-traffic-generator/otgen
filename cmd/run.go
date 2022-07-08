@@ -36,7 +36,7 @@ var otgURL string       // URL of OTG server API endpoint
 var otgYaml string      // OTG model file, in YAML format. Mutually exclusive with --json
 var otgJson string      // OTG model file, in JSON format. Mutually exclusive with --yaml
 var otgMetrics string   // Metrics type to report: "port" for PortMetrics, "flow" for FlowMetrics
-var xeta = float32(2.0) // How long to wait before forcing traffic to stop. In multiples of ETA
+var xeta = float32(0.0) // How long to wait before forcing traffic to stop. In multiples of ETA
 
 // Create a new instance of the logger
 var log = logrus.New()
@@ -89,9 +89,9 @@ func init() {
 	runCmd.MarkFlagRequired("api")
 	runCmd.Flags().StringVarP(&otgYaml, "yaml", "y", "", "OTG model file, in YAML format. Mutually exclusive with --json. If neither is provided, will use stdin")
 	runCmd.Flags().StringVarP(&otgJson, "json", "j", "", "OTG model file, in JSON format. Mutually exclusive with --yaml. If neither is provided, will use stdin")
-	runCmd.Flags().StringVarP(&otgMetrics, "metrics", "m", "port", "Metrics type to report:\n  \"port\" for PortMetrics,\n  \"flow\" for FlowMetrics\n ")
 	runCmd.MarkFlagsMutuallyExclusive("json", "yaml")
-	runCmd.Flags().Float32VarP(&xeta, "xeta", "x", float32(2.0), "How long to wait before forcing traffic to stop. In multiples of ETA. Example: 1.5")
+	runCmd.Flags().StringVarP(&otgMetrics, "metrics", "m", "port", "Metrics type to report:\n  \"port\" for PortMetrics,\n  \"flow\" for FlowMetrics\n ")
+	runCmd.Flags().Float32VarP(&xeta, "xeta", "x", float32(0.0), "How long to wait before forcing traffic to stop. In multiples of ETA. Example: 1.5 (default is no limit)")
 }
 
 func initOTG(otgfile string) (gosnappi.GosnappiApi, gosnappi.Config) {
@@ -151,8 +151,20 @@ func runTraffic(api gosnappi.GosnappiApi, config gosnappi.Config) {
 
 	start := time.Now()
 
-	// wait for traffic to stop on each flow or run beyond ETA
-	for isTrafficRunning(metrics, start, trafficETA, targetTx) {
+	var trafficRunning func() bool
+	if xeta > 0 {
+		trafficRunning = func() bool {
+			// wait for target number of packets to be transmitted or run beyond ETA
+			return isTrafficRunningWithETA(metrics, targetTx, start, trafficETA)
+		}
+	} else {
+		trafficRunning = func() bool {
+			// wait for target number of packets to be transmitted
+			return isTrafficRunning(metrics, targetTx)
+		}
+	}
+
+	for trafficRunning() {
 		time.Sleep(500 * time.Millisecond)
 		metrics, err = api.GetMetrics(req)
 		checkResponse(metrics, err)
@@ -186,7 +198,7 @@ func calculateTrafficTargets(config gosnappi.Config) (int64, time.Duration) {
 	return pktCountTotal, trafficETA
 }
 
-func isTrafficRunning(mr gosnappi.MetricsResponse, start time.Time, trafficETA time.Duration, targetTx int64) bool {
+func isTrafficRunning(mr gosnappi.MetricsResponse, targetTx int64) bool {
 	trafficRunning := false // we'll check if there are flows still running
 
 	switch otgMetrics {
@@ -197,6 +209,36 @@ func isTrafficRunning(mr gosnappi.MetricsResponse, start time.Time, trafficETA t
 		}
 		if total_tx < targetTx {
 			trafficRunning = true
+		}
+	case "flow":
+		for _, fm := range mr.FlowMetrics().Items() {
+			if !trafficRunning && fm.Transmit() != gosnappi.FlowMetricTransmit.STOPPED {
+				trafficRunning = true
+			}
+		}
+	default:
+		trafficRunning = false
+	}
+
+	return trafficRunning
+}
+
+func isTrafficRunningWithETA(mr gosnappi.MetricsResponse, targetTx int64, start time.Time, trafficETA time.Duration) bool {
+	trafficRunning := false // we'll check if there are flows still running
+
+	switch otgMetrics {
+	case "port":
+		total_tx := int64(0)
+		for _, pm := range mr.PortMetrics().Items() {
+			total_tx += pm.FramesTx()
+		}
+		if total_tx < targetTx {
+			trafficRunning = true
+		}
+		if float32(trafficETA)*xeta < float32(time.Since(start)) {
+			log.Warnf("Traffic has been running for %.1fs: %.1f times longer than ETA. Forcing to stop", float32(time.Since(start).Seconds()), xeta)
+			trafficRunning = false
+			break
 		}
 	case "flow":
 		for _, fm := range mr.FlowMetrics().Items() {
