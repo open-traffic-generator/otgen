@@ -23,7 +23,9 @@ package cmd
 
 import (
 	"fmt"
+	"io"
 	"io/ioutil"
+	"os"
 	"time"
 
 	"github.com/open-traffic-generator/snappi/gosnappi"
@@ -64,10 +66,7 @@ For more information, go to https://github.com/open-traffic-generator/otgen
 		if otgJson {
 			log.Fatal("JSON import is not implemented yet")
 		}
-		if otgFile == "" {
-			log.Fatal("Stdin for OTG input is not implemented yet")
-		}
-		runTraffic(initOTG(otgFile))
+		runTraffic(initOTG())
 	},
 }
 
@@ -93,14 +92,21 @@ func init() {
 	runCmd.Flags().Float32VarP(&xeta, "xeta", "x", float32(0.0), "How long to wait before forcing traffic to stop. In multiples of ETA. Example: 1.5 (default is no limit)")
 }
 
-func initOTG(otgfile string) (gosnappi.GosnappiApi, gosnappi.Config) {
-	// Read OTG config
-	otgbytes, err := ioutil.ReadFile(otgfile)
-	if err != nil {
-		log.Fatal(err)
+func initOTG() (gosnappi.GosnappiApi, gosnappi.Config) {
+	var otg string
+	if otgFile != "" { // Read OTG config from file
+		otgbytes, err := ioutil.ReadFile(otgFile)
+		if err != nil {
+			log.Fatal(err)
+		}
+		otg = string(otgbytes)
+	} else { // Read OTG config from stdin
+		otgbytes, err := io.ReadAll(os.Stdin)
+		if err != nil {
+			log.Fatal(err)
+		}
+		otg = string(otgbytes)
 	}
-
-	otg := string(otgbytes)
 
 	// Create a new API handle to make API calls against a traffic generator
 	api := gosnappi.NewApi()
@@ -110,7 +116,13 @@ func initOTG(otgfile string) (gosnappi.GosnappiApi, gosnappi.Config) {
 
 	// Create a new traffic configuration that will be set on traffic generator
 	config := api.NewConfig()
-	config.FromYaml(otg)
+	// These are mutually exclusive parameters
+	if otgYaml {
+		config.FromYaml(otg)
+	}
+	if otgJson {
+		config.FromJson(otg)
+	}
 
 	return api, config
 }
