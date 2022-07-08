@@ -77,7 +77,10 @@ func init() {
 	// is called directly, e.g.:
 	// runCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 	runCmd.Flags().StringVarP(&otgURL, "api", "", "", "URL of OTG API endpoint. Example: https://otg-api-endpoint")
-	runCmd.MarkFlagRequired("api")
+	err := runCmd.MarkFlagRequired("api")
+	if err != nil {
+		log.Fatal(err)
+	}
 	runCmd.Flags().BoolVarP(&otgYaml, "yaml", "y", false, "Format of OTG input is YAML. Mutually exclusive with --json")
 	runCmd.Flags().BoolVarP(&otgJson, "json", "j", false, "Format of OTG input is JSON. Mutually exclusive with --yaml")
 	runCmd.MarkFlagsMutuallyExclusive("json", "yaml")
@@ -87,20 +90,20 @@ func init() {
 }
 
 func initOTG() (gosnappi.GosnappiApi, gosnappi.Config) {
-	var otg string
+	var otgbytes []byte
+	var err error
 	if otgFile != "" { // Read OTG config from file
-		otgbytes, err := ioutil.ReadFile(otgFile)
+		otgbytes, err = ioutil.ReadFile(otgFile)
 		if err != nil {
 			log.Fatal(err)
 		}
-		otg = string(otgbytes)
 	} else { // Read OTG config from stdin
-		otgbytes, err := io.ReadAll(os.Stdin)
+		otgbytes, err = io.ReadAll(os.Stdin)
 		if err != nil {
 			log.Fatal(err)
 		}
-		otg = string(otgbytes)
 	}
+	otg := string(otgbytes)
 
 	// Create a new API handle to make API calls against a traffic generator
 	api := gosnappi.NewApi()
@@ -112,10 +115,13 @@ func initOTG() (gosnappi.GosnappiApi, gosnappi.Config) {
 	config := api.NewConfig()
 	// These are mutually exclusive parameters
 	if otgYaml {
-		config.FromYaml(otg)
+		err = config.FromYaml(otg)
 	}
 	if otgJson {
-		config.FromJson(otg)
+		err = config.FromJson(otg)
+	}
+	if err != nil {
+		log.Fatal(err)
 	}
 
 	return api, config
@@ -123,17 +129,17 @@ func initOTG() (gosnappi.GosnappiApi, gosnappi.Config) {
 
 func runTraffic(api gosnappi.GosnappiApi, config gosnappi.Config) {
 	// push traffic configuration to otgHost
-	log.Infof("Applying OTG config...")
+	log.Info("Applying OTG config...")
 	res, err := api.SetConfig(config)
 	checkResponse(res, err)
-	log.Infof("ready.\n")
+	log.Info("ready.")
 
 	// start transmitting configured flows
-	log.Infof("Starting traffic...")
+	log.Info("Starting traffic...")
 	ts := api.NewTransmitState().SetState(gosnappi.TransmitStateState.START)
 	res, err = api.SetTransmitState(ts)
 	checkResponse(res, err)
-	log.Infof("started...")
+	log.Info("started...")
 
 	targetTx, trafficETA := calculateTrafficTargets(config)
 	log.Infof("Total packets to transmit: %d, ETA is: %s\n", targetTx, trafficETA)
@@ -176,11 +182,11 @@ func runTraffic(api gosnappi.GosnappiApi, config gosnappi.Config) {
 	}
 
 	// stop transmitting traffic
-	log.Infof("Stopping traffic...")
+	log.Info("Stopping traffic...")
 	ts = api.NewTransmitState().SetState(gosnappi.TransmitStateState.STOP)
 	res, err = api.SetTransmitState(ts)
 	checkResponse(res, err)
-	log.Infof("stopped.\n")
+	log.Info("stopped.")
 }
 
 func calculateTrafficTargets(config gosnappi.Config) (int64, time.Duration) {
@@ -273,7 +279,7 @@ func checkResponse(res interface{}, err error) {
 		printMetricsResponseRawJson(v)
 	case gosnappi.ResponseWarning:
 		for _, w := range v.Warnings() {
-			log.Infof("WARNING:", w)
+			log.Info("WARNING:", w)
 		}
 	default:
 		log.Fatal("Unknown response type:", v)
