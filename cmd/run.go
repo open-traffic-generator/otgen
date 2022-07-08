@@ -60,12 +60,6 @@ For more information, go to https://github.com/open-traffic-generator/otgen
 			log.Fatalf("Unsupported metrics type requested: %s", otgMetrics)
 		}
 
-		// these are mutually exclusive
-		if otgYaml {
-		}
-		if otgJson {
-			log.Fatal("JSON import is not implemented yet")
-		}
 		runTraffic(initOTG())
 	},
 }
