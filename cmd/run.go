@@ -33,8 +33,9 @@ import (
 )
 
 var otgURL string       // URL of OTG server API endpoint
-var otgYaml string      // OTG model file, in YAML format. Mutually exclusive with --json
-var otgJson string      // OTG model file, in JSON format. Mutually exclusive with --yaml
+var otgYaml bool        // Format of OTG input is YAML. Mutually exclusive with --json
+var otgJson bool        // Format of OTG input is JSON. Mutually exclusive with --yaml
+var otgFile string      // OTG model file
 var otgMetrics string   // Metrics type to report: "port" for PortMetrics, "flow" for FlowMetrics
 var xeta = float32(0.0) // How long to wait before forcing traffic to stop. In multiples of ETA
 
@@ -57,13 +58,10 @@ For more information, go to https://github.com/open-traffic-generator/otgen
 			log.Fatalf("Unsupported metrics type requested: %s", otgMetrics)
 		}
 
-		var otgFile string
 		// these are mutually exclusive
-		if otgYaml != "" {
-			otgFile = otgYaml
+		if otgYaml {
 		}
-		if otgJson != "" {
-			otgFile = otgJson
+		if otgJson {
 			log.Fatal("JSON import is not implemented yet")
 		}
 		if otgFile == "" {
@@ -87,9 +85,10 @@ func init() {
 	// runCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 	runCmd.Flags().StringVarP(&otgURL, "api", "", "", "URL of OTG API endpoint. Example: https://otg-api-endpoint")
 	runCmd.MarkFlagRequired("api")
-	runCmd.Flags().StringVarP(&otgYaml, "yaml", "y", "", "OTG model file, in YAML format. Mutually exclusive with --json. If neither is provided, will use stdin")
-	runCmd.Flags().StringVarP(&otgJson, "json", "j", "", "OTG model file, in JSON format. Mutually exclusive with --yaml. If neither is provided, will use stdin")
+	runCmd.Flags().BoolVarP(&otgYaml, "yaml", "y", false, "Format of OTG input is YAML. Mutually exclusive with --json")
+	runCmd.Flags().BoolVarP(&otgJson, "json", "j", false, "Format of OTG input is JSON. Mutually exclusive with --yaml")
 	runCmd.MarkFlagsMutuallyExclusive("json", "yaml")
+	runCmd.Flags().StringVarP(&otgFile, "file", "f", "", "OTG model file. If not provided, will use stdin")
 	runCmd.Flags().StringVarP(&otgMetrics, "metrics", "m", "port", "Metrics type to report:\n  \"port\" for PortMetrics,\n  \"flow\" for FlowMetrics\n ")
 	runCmd.Flags().Float32VarP(&xeta, "xeta", "x", float32(0.0), "How long to wait before forcing traffic to stop. In multiples of ETA. Example: 1.5 (default is no limit)")
 }
