@@ -35,6 +35,7 @@ import (
 )
 
 var otgURL string       // URL of OTG server API endpoint
+var otgIgnoreX509 bool  // Ignore X.509 certificate validation of OTG API endpoint
 var otgYaml bool        // Format of OTG input is YAML. Mutually exclusive with --json
 var otgJson bool        // Format of OTG input is JSON. Mutually exclusive with --yaml
 var otgFile string      // OTG model file
@@ -81,6 +82,7 @@ func init() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	runCmd.Flags().BoolVarP(&otgIgnoreX509, "insecure", "i", false, "Ignore X.509 certificate validation of OTG API endpoint")
 	runCmd.Flags().BoolVarP(&otgYaml, "yaml", "y", false, "Format of OTG input is YAML. Mutually exclusive with --json")
 	runCmd.Flags().BoolVarP(&otgJson, "json", "j", false, "Format of OTG input is JSON. Mutually exclusive with --yaml")
 	runCmd.MarkFlagsMutuallyExclusive("json", "yaml")
@@ -109,7 +111,7 @@ func initOTG() (gosnappi.GosnappiApi, gosnappi.Config) {
 	api := gosnappi.NewApi()
 
 	// Set the transport protocol to either HTTP or GRPC
-	api.NewHttpTransport().SetLocation(otgURL).SetVerify(false)
+	api.NewHttpTransport().SetLocation(otgURL).SetVerify(!otgIgnoreX509)
 
 	// Create a new traffic configuration that will be set on traffic generator
 	config := api.NewConfig()
