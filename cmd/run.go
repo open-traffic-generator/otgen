@@ -34,13 +34,15 @@ import (
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
-var otgURL string       // URL of OTG server API endpoint
-var otgIgnoreX509 bool  // Ignore X.509 certificate validation of OTG API endpoint
-var otgYaml bool        // Format of OTG input is YAML. Mutually exclusive with --json
-var otgJson bool        // Format of OTG input is JSON. Mutually exclusive with --yaml
-var otgFile string      // OTG model file
-var otgMetrics string   // Metrics type to report: "port" for PortMetrics, "flow" for FlowMetrics
-var xeta = float32(0.0) // How long to wait before forcing traffic to stop. In multiples of ETA
+var otgURL string                 // URL of OTG server API endpoint
+var otgIgnoreX509 bool            // Ignore X.509 certificate validation of OTG API endpoint
+var otgYaml bool                  // Format of OTG input is YAML. Mutually exclusive with --json
+var otgJson bool                  // Format of OTG input is JSON. Mutually exclusive with --yaml
+var otgFile string                // OTG model file
+var otgMetrics string             // Metrics type to report: "port" for PortMetrics, "flow" for FlowMetrics
+var otgPullIntervalStr string     // Interval to pull OTG metrics. Example: 1s (default 500ms)
+var otgPullInterval time.Duration // Parsed interval to pull OTG metrics
+var xeta = float32(0.0)           // How long to wait before forcing traffic to stop. In multiples of ETA
 
 // Create a new instance of the logger
 var log = logrus.New()
@@ -59,6 +61,12 @@ For more information, go to https://github.com/open-traffic-generator/otgen
 		case "flow":
 		default:
 			log.Fatalf("Unsupported metrics type requested: %s", otgMetrics)
+		}
+
+		var err error
+		otgPullInterval, err = time.ParseDuration(otgPullIntervalStr)
+		if err != nil {
+			log.Fatal(err)
 		}
 
 		runTraffic(initOTG())
@@ -82,12 +90,13 @@ func init() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	runCmd.Flags().BoolVarP(&otgIgnoreX509, "insecure", "i", false, "Ignore X.509 certificate validation of OTG API endpoint")
+	runCmd.Flags().BoolVarP(&otgIgnoreX509, "insecure", "k", false, "Ignore X.509 certificate validation of OTG API endpoint")
 	runCmd.Flags().BoolVarP(&otgYaml, "yaml", "y", false, "Format of OTG input is YAML. Mutually exclusive with --json")
 	runCmd.Flags().BoolVarP(&otgJson, "json", "j", false, "Format of OTG input is JSON. Mutually exclusive with --yaml")
 	runCmd.MarkFlagsMutuallyExclusive("json", "yaml")
 	runCmd.Flags().StringVarP(&otgFile, "file", "f", "", "OTG model file. If not provided, will use stdin")
 	runCmd.Flags().StringVarP(&otgMetrics, "metrics", "m", "port", "Metrics type to report:\n  \"port\" for PortMetrics,\n  \"flow\" for FlowMetrics\n ")
+	runCmd.Flags().StringVarP(&otgPullIntervalStr, "interval", "i", "0.5s", "Interval to pull OTG metrics. Valid time units are 'ms', 's', 'm', 'h'. Example: 1s")
 	runCmd.Flags().Float32VarP(&xeta, "xeta", "x", float32(0.0), "How long to wait before forcing traffic to stop. In multiples of ETA. Example: 1.5 (default is no limit)")
 }
 
@@ -178,7 +187,7 @@ func runTraffic(api gosnappi.GosnappiApi, config gosnappi.Config) {
 	}
 
 	for trafficRunning() {
-		time.Sleep(500 * time.Millisecond)
+		time.Sleep(otgPullInterval)
 		metrics, err = api.GetMetrics(req)
 		checkResponse(metrics, err)
 	}
