@@ -18,3 +18,9 @@ For built-in help, use
 ```Shell
 otgen run --help
 ````
+
+To check `otgen` version you have, use
+
+```Shell
+otgen version
+````
