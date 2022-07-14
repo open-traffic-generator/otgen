@@ -4,7 +4,7 @@
 
 ```Shell
 otgen run 
-  --api https://otg-api-endpoint      # OTG server API endpoint. Required
+  [--api https://otg-api-endpoint]    # OTG server API endpoint (default is https://localhost)
   [--file otg.yml | --file otg.json]  # OTG model file. If not provided, will use stdin
   [--yaml | --json]                   # Format of OTG input
   [--interval 0.5s]                   # Interval to pull OTG metrics. Valid time units are 'ms', 's', 'm', 'h'. Example: 1s (default 0.5s)

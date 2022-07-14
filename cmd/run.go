@@ -85,13 +85,9 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// runCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-	runCmd.Flags().StringVarP(&otgURL, "api", "", "", "URL of OTG API endpoint. Example: https://otg-api-endpoint")
-	err := runCmd.MarkFlagRequired("api")
-	if err != nil {
-		log.Fatal(err)
-	}
+	runCmd.Flags().StringVarP(&otgURL, "api", "a", "https://localhost", "URL of OTG API endpoint. Example: https://otg-api-endpoint")
 	runCmd.Flags().BoolVarP(&otgIgnoreX509, "insecure", "k", false, "Ignore X.509 certificate validation of OTG API endpoint")
-	runCmd.Flags().BoolVarP(&otgYaml, "yaml", "y", false, "Format of OTG input is YAML. Mutually exclusive with --json")
+	runCmd.Flags().BoolVarP(&otgYaml, "yaml", "y", false, "Format of OTG input is YAML. Mutually exclusive with --json. Assumed format by default")
 	runCmd.Flags().BoolVarP(&otgJson, "json", "j", false, "Format of OTG input is JSON. Mutually exclusive with --yaml")
 	runCmd.MarkFlagsMutuallyExclusive("json", "yaml")
 	runCmd.Flags().StringVarP(&otgFile, "file", "f", "", "OTG model file. If not provided, will use stdin")
@@ -125,11 +121,10 @@ func initOTG() (gosnappi.GosnappiApi, gosnappi.Config) {
 	// Create a new traffic configuration that will be set on traffic generator
 	config := api.NewConfig()
 	// These are mutually exclusive parameters
-	if otgYaml {
-		err = config.FromYaml(otg)
-	}
 	if otgJson {
 		err = config.FromJson(otg)
+	} else {
+		err = config.FromYaml(otg) // Thus YAML is assumed by default, and as a superset of JSON, it actually works for JSON format too
 	}
 	if err != nil {
 		log.Fatal(err)
