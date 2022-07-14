@@ -16,5 +16,5 @@ otgen run
 For built-in help, use
 
 ```Shell
-otgen run --help | -h
+otgen run --help
 ````
