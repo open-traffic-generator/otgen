@@ -28,5 +28,5 @@ goreleaser release --snapshot --rm-dist
 ### Build
 
 ```Shell
-go build
+go build -ldflags="-X 'github.com/open-traffic-generator/otgen/cmd.version=v0.0.0-${USER}'"
 ````
