@@ -11,7 +11,6 @@ otgen run
   [--metrics port|flow]               # Metrics type to report: "port" for PortMetrics, "flow" for FlowMetrics
   [--interval 0.5s]                   # Interval to pull OTG metrics. Valid time units are 'ms', 's', 'm', 'h'. Example: 1s (default 0.5s)
   [--xeta 2]                          # How long to wait before forcing traffic to stop. In multiples of ETA. Example: 1.5 (default 2)
-  [--timeout 60]                      # Timeout for API communication with OTG server
 ````
 
 For built-in help, use
