@@ -164,7 +164,7 @@ func runTraffic(api gosnappi.GosnappiApi, config gosnappi.Config) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	checkResponse(metrics, err) // flowMetrics are being updated in the separate thread by a routine
+	checkResponse(metrics, err)
 
 	start := time.Now()
 
