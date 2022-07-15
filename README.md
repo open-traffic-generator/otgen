@@ -1,3 +1,5 @@
+![CI](https://github.com/open-traffic-generator/otgen/actions/workflows/ci.yml/badge.svg)
+
 # OTGen: Open Traffic Generator CLI Tool
 
 ## How to use
