@@ -15,6 +15,7 @@ go mod init github.com/open-traffic-generator/otgen
 cobra-cli init --license mit --author "Open Traffic Generator"
 cobra-cli add run --license mit --author "Open Traffic Generator"
 cobra-cli add version --license mit --author "Open Traffic Generator"
+cobra-cli add transform --license mit --author "Open Traffic Generator"
 ````
 
 ### GoReleaser
