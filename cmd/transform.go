@@ -36,9 +36,11 @@ import (
 const (
 	otgMetricResponsePassThrough = `{{ otgMetricsResponseToJson . }}
 `
-	otgMetricResponseChoice = `{{ .Choice }}
+	otgPortMetricResponse = `[{{range $i, $p := .PortMetrics}}{{if $i}},{{end}}{"name": "{{ $p.Name }}", "frames_tx": "{{ $p.FramesTx }}", "frames_rx": "{{ $p.FramesRx }}"}{{end}}]
 `
 )
+
+var transformMetrics string // Metrics type to report: "port" for PortMetrics, "flow" for FlowMetrics
 
 // transformCmd represents the transform command
 var transformCmd = &cobra.Command{
@@ -49,6 +51,14 @@ var transformCmd = &cobra.Command{
 For more information, go to https://github.com/open-traffic-generator/otgen
 `,
 	Run: func(cmd *cobra.Command, args []string) {
+		switch transformMetrics {
+		case "port":
+		case "flow":
+		case "":
+		default:
+			log.Fatalf("Unsupported metrics type requested: %s", transformMetrics)
+		}
+
 		readStdIn()
 	},
 }
@@ -65,6 +75,7 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// transformCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	transformCmd.Flags().StringVarP(&transformMetrics, "metrics", "m", "", "Metrics type to transform:\n  \"port\" for PortMetrics,\n  \"flow\" for FlowMetrics\n ")
 }
 
 func readStdIn() {
@@ -78,7 +89,13 @@ func readStdIn() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		transformMetricsResponse(mr, otgMetricResponsePassThrough)
+		switch transformMetrics {
+		case "port":
+			transformMetricsResponse(mr, otgPortMetricResponse)
+		case "flow":
+		default:
+			transformMetricsResponse(mr, otgMetricResponsePassThrough)
+		}
 	}
 }
 

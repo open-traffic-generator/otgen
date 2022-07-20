@@ -33,12 +33,13 @@ otgen run
 
 ### `transform`
 
-Transform raw OTG metrics into a format suitable for further processing. If no parameters is provided, `transform` validates input for a match with OTG MetricsResponse data structure, and if matched, outputs as is.
+Transform raw OTG metrics into a format suitable for further processing. If no parameters is provided, `transform` validates input for a match with OTG MetricsResponse data structure, and if matched, outputs it as is.
 
 ```Shell
 otgen transform 
-  [--tx frames|bytes|rate]            # Tx metrics type to report
-  [--rx frames|bytes|rate]            # Rx metrics type to report
+  [--metrics port|flow]               # Metrics type to transform: "port" for PortMetrics, "flow" for FlowMetrics
+  [--tx frames|bytes|rate]            # Tx metrics counter to transform
+  [--rx frames|bytes|rate]            # Rx metrics counter to transform
   [--file template.tmpl]              # Go template file. If not provided, built-in templates will be used based on provided parameters
 ````
 
