@@ -27,7 +27,17 @@ import (
 	"text/template"
 
 	"github.com/open-traffic-generator/snappi/gosnappi"
+	"github.com/open-traffic-generator/snappi/gosnappi/otg"
 	"github.com/spf13/cobra"
+	"google.golang.org/protobuf/encoding/protojson"
+)
+
+// built-in templates
+const (
+	otgMetricResponsePassThrough = `{{ otgMetricsResponseToJson . }}
+`
+	otgMetricResponseChoice = `{{ .Choice }}
+`
 )
 
 // transformCmd represents the transform command
@@ -68,33 +78,40 @@ func readStdIn() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		transformMetricsResponse(mr)
+		transformMetricsResponse(mr, otgMetricResponsePassThrough)
 	}
 }
 
 // generates and writes topology data file to w using a default built-in template
-func transformMetricsResponse(mr gosnappi.MetricsResponse) {
-	tdef := `{{ metricsResponseToJson . }}
-`
-
+func transformMetricsResponse(mr gosnappi.MetricsResponse, tmpl string) {
 	t, err := template.New("default").
 		Funcs(template.FuncMap{
-			"metricsResponseToJson": func(r gosnappi.MetricsResponse) string {
-				j, err := metricsResponseToJson(r)
+			"otgMetricsResponseToJson": func(r *otg.MetricsResponse) string {
+				j, err := otgMetricsResponseToJson(r)
 				if err != nil {
 					log.Fatal(err)
 				}
 				return string(j)
 			},
 		}).
-		Parse(tdef)
+		Parse(tmpl)
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	err = t.Execute(os.Stdout, mr)
+	err = t.Execute(os.Stdout, mr.Msg())
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+func otgMetricsResponseToJson(r *otg.MetricsResponse) ([]byte, error) {
+	opts := protojson.MarshalOptions{
+		UseProtoNames:   true,
+		AllowPartial:    true,
+		EmitUnpopulated: false,
+		Indent:          "",
+	}
+	return opts.Marshal(r)
 }

@@ -33,3 +33,12 @@ go get
 go mod tidy
 go build -ldflags="-X 'github.com/open-traffic-generator/otgen/cmd.version=v0.0.0-${USER}'"
 ````
+
+
+## Test
+
+1. metricResponsePassThrough
+
+```Shell
+cat test/transform/port_metrics.json | ./otgen transform | diff test/transform/port_metrics.json -
+````

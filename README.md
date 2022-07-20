@@ -33,7 +33,7 @@ otgen run
 
 ### `transform`
 
-Transform raw OTG metrics into a format suitable for further processing.
+Transform raw OTG metrics into a format suitable for further processing. If no parameters is provided, `transform` validates input for a match with OTG MetricsResponse data structure, and if matched, outputs as is.
 
 ```Shell
 otgen transform 
