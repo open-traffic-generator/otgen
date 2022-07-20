@@ -23,8 +23,8 @@ package cmd
 
 import (
 	"bufio"
-	"fmt"
 	"os"
+	"text/template"
 
 	"github.com/open-traffic-generator/snappi/gosnappi"
 	"github.com/spf13/cobra"
@@ -68,6 +68,33 @@ func readStdIn() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		fmt.Println(mr.ToJson())
+		transformMetricsResponse(mr)
+	}
+}
+
+// generates and writes topology data file to w using a default built-in template
+func transformMetricsResponse(mr gosnappi.MetricsResponse) {
+	tdef := `{{ metricsResponseToJson . }}
+`
+
+	t, err := template.New("default").
+		Funcs(template.FuncMap{
+			"metricsResponseToJson": func(r gosnappi.MetricsResponse) string {
+				j, err := metricsResponseToJson(r)
+				if err != nil {
+					log.Fatal(err)
+				}
+				return string(j)
+			},
+		}).
+		Parse(tdef)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = t.Execute(os.Stdout, mr)
+	if err != nil {
+		log.Fatal(err)
 	}
 }
