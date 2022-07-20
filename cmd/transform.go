@@ -99,7 +99,6 @@ func readStdIn() {
 	}
 }
 
-// generates and writes topology data file to w using a default built-in template
 func transformMetricsResponse(mr gosnappi.MetricsResponse, tmpl string) {
 	t, err := template.New("default").
 		Funcs(template.FuncMap{
