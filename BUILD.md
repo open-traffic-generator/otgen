@@ -37,13 +37,25 @@ go build -ldflags="-X 'github.com/open-traffic-generator/otgen/cmd.version=v0.0.
 
 ## Test
 
-1. metricResponsePassThrough
+### `transform`
+
+1. Parameters
 
 ```Shell
-cat test/transform/port_metrics.json | ./otgen transform | diff test/transform/port_metrics.json -
+cat test/transform/port_metrics.json | ./otgen transform | diff test/transform/port_metrics_passthrough.json -
+cat test/transform/port_metrics.json | ./otgen transform -m port | diff test/transform/port_metrics_frames.json -
 ````
 
-2. Full pipe with port metrics
+2. Templates
+
+```Shell
+cat test/transform/port_metrics.json | ./otgen transform -f templates/transformPassThrough.tmpl   | diff test/transform/port_metrics_passthrough.json -
+cat test/transform/port_metrics.json | ./otgen transform -f templates/transformPortFrames.tmpl    | diff test/transform/port_metrics_frames.json -
+cat test/transform/port_metrics.json | ./otgen transform -f templates/transformPortBytes.tmpl     | diff test/transform/port_metrics_bytes.json -
+cat test/transform/port_metrics.json | ./otgen transform -f templates/transformPortFrameRate.tmpl | diff test/transform/port_metrics_rate.json -
+````
+
+3. Full pipe with port metrics
 
 ```Shell
 cat ../otg.b2b.json | ./otgen run -k 2>/dev/null | ./otgen transform -m port

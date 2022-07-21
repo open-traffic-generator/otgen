@@ -23,6 +23,7 @@ package cmd
 
 import (
 	"bufio"
+	"io/ioutil"
 	"os"
 	"text/template"
 
@@ -40,7 +41,8 @@ const (
 `
 )
 
-var transformMetrics string // Metrics type to report: "port" for PortMetrics, "flow" for FlowMetrics
+var transformMetrics string      // Metrics type to report: "port" for PortMetrics, "flow" for FlowMetrics
+var transformTemplateFile string // Go template file for transform
 
 // transformCmd represents the transform command
 var transformCmd = &cobra.Command{
@@ -59,7 +61,27 @@ For more information, go to https://github.com/open-traffic-generator/otgen
 			log.Fatalf("Unsupported metrics type requested: %s", transformMetrics)
 		}
 
-		readStdIn()
+		var templatebytes []byte
+		var template string
+		var err error
+
+		if transformTemplateFile != "" { // Read template from file
+			templatebytes, err = ioutil.ReadFile(transformTemplateFile)
+			if err != nil {
+				log.Fatal(err)
+			}
+			template = string(templatebytes)
+		} else { // Use built-in templates
+			switch transformMetrics {
+			case "port":
+				template = otgPortMetricResponse
+			case "flow":
+			default:
+				template = otgMetricResponsePassThrough
+			}
+		}
+
+		transformStdInWithTemplate(template)
 	},
 }
 
@@ -76,9 +98,11 @@ func init() {
 	// is called directly, e.g.:
 	// transformCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 	transformCmd.Flags().StringVarP(&transformMetrics, "metrics", "m", "", "Metrics type to transform:\n  \"port\" for PortMetrics,\n  \"flow\" for FlowMetrics\n ")
+	transformCmd.Flags().StringVarP(&transformTemplateFile, "file", "f", "", "Go template file for transform")
+	transformCmd.MarkFlagsMutuallyExclusive("metrics", "file") // either use parameters to control transformation, or provide a template file
 }
 
-func readStdIn() {
+func transformStdInWithTemplate(t string) {
 	scanner := bufio.NewScanner(os.Stdin)
 
 	for scanner.Scan() {
@@ -89,13 +113,7 @@ func readStdIn() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		switch transformMetrics {
-		case "port":
-			transformMetricsResponse(mr, otgPortMetricResponse)
-		case "flow":
-		default:
-			transformMetricsResponse(mr, otgMetricResponsePassThrough)
-		}
+		transformMetricsResponse(mr, t)
 	}
 }
 
