@@ -131,6 +131,9 @@ func transformMetricsResponse(mr gosnappi.MetricsResponse, tmpl string) {
 			"counterPrintf": func(f string, c int64) string {
 				return fmt.Sprintf(f, c)
 			},
+			"ratePrintf": func(f string, c float32) string {
+				return fmt.Sprintf(f, c)
+			},
 		}).
 		Parse(tmpl)
 
