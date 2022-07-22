@@ -46,7 +46,7 @@ cat test/transform/port_metrics.json | ./otgen transform | diff test/transform/p
 cat test/transform/port_metrics.json | ./otgen transform -m port | diff test/transform/port_metrics_frames.json -
 ````
 
-2. Templates
+2. Templates - JSON
 
 ```Shell
 cat test/transform/port_metrics.json | ./otgen transform -f templates/transformPassThrough.tmpl   | diff test/transform/port_metrics_passthrough.json -
@@ -55,7 +55,15 @@ cat test/transform/port_metrics.json | ./otgen transform -f templates/transformP
 cat test/transform/port_metrics.json | ./otgen transform -f templates/transformPortFrameRate.tmpl | diff test/transform/port_metrics_rate.json -
 ````
 
-3. Full pipe with port metrics
+3. Templates - Tables
+
+```Shell
+cat test/transform/port_metrics.json | ./otgen transform -f templates/transformPortFramesTable.tmpl | diff test/transform/port_metrics_frames_table.txt -
+cat test/transform/port_metrics.json | ./otgen transform -f templates/transformPortBytesTable.tmpl | diff test/transform/port_metrics_bytes_table.txt -
+cat test/transform/port_metrics.json | ./otgen transform -f templates/transformPortFrameRateTable.tmpl | diff test/transform/port_metrics_rate_table.txt -
+````
+
+4. Full pipe with port metrics
 
 ```Shell
 cat ../otg.b2b.json | ./otgen run -k 2>/dev/null | ./otgen transform -m port
