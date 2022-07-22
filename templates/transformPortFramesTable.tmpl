@@ -1,0 +1,1 @@
+|{{range $i, $p := .PortMetrics}}{{if $i}}|{{end}} {{ $p.Name }} | {{ counterPrintf "%9.1d" $p.FramesTx }} | {{ counterPrintf "%9.1d" $p.FramesRx }} {{end}}|

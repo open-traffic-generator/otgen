@@ -23,6 +23,7 @@ package cmd
 
 import (
 	"bufio"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"text/template"
@@ -126,6 +127,9 @@ func transformMetricsResponse(mr gosnappi.MetricsResponse, tmpl string) {
 					log.Fatal(err)
 				}
 				return string(j)
+			},
+			"counterPrintf": func(f string, c int64) string {
+				return fmt.Sprintf(f, c)
 			},
 		}).
 		Parse(tmpl)
