@@ -42,8 +42,11 @@ go build -ldflags="-X 'github.com/open-traffic-generator/otgen/cmd.version=v0.0.
 1. Parameters
 
 ```Shell
-cat test/transform/port_metrics.json | ./otgen transform | diff test/transform/port_metrics_passthrough.json -
-cat test/transform/port_metrics.json | ./otgen transform -m port | diff test/transform/port_metrics_frames.json -
+cat test/transform/port_metrics.json | ./otgen transform                   | diff test/transform/port_metrics_passthrough.json -
+cat test/transform/port_metrics.json | ./otgen transform -m port           | diff test/transform/port_metrics_frames.json -
+cat test/transform/port_metrics.json | ./otgen transform -m port -c frames | diff test/transform/port_metrics_frames.json -
+cat test/transform/port_metrics.json | ./otgen transform -m port -c bytes  | diff test/transform/port_metrics_bytes.json -
+cat test/transform/port_metrics.json | ./otgen transform -m port -c rate   | diff test/transform/port_metrics_rate.json -
 ````
 
 2. Templates - JSON

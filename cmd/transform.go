@@ -34,15 +34,8 @@ import (
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
-// built-in templates
-const (
-	otgMetricResponsePassThrough = `{{ otgMetricsResponseToJson . }}
-`
-	otgPortMetricResponse = `[{{range $i, $p := .PortMetrics}}{{if $i}},{{end}}{"name": "{{ $p.Name }}", "frames_tx": "{{ $p.FramesTx }}", "frames_rx": "{{ $p.FramesRx }}"}{{end}}]
-`
-)
-
 var transformMetrics string      // Metrics type to report: "port" for PortMetrics, "flow" for FlowMetrics
+var transformCounters string     // Metric counters to transform:  "frames" for frame count,  "bytes" for byte count,  "rate" for frame rate")
 var transformTemplateFile string // Go template file for transform
 
 // transformCmd represents the transform command
@@ -75,10 +68,21 @@ For more information, go to https://github.com/open-traffic-generator/otgen
 		} else { // Use built-in templates
 			switch transformMetrics {
 			case "port":
-				template = otgPortMetricResponse
+				switch transformCounters {
+				case "frames":
+					template = otgTemplatePortMetricFrames
+				case "bytes":
+					template = otgTemplatePortMetricBytes
+				case "rate":
+					template = otgTemplatePortMetricFrameRate
+				case "":
+					template = otgTemplatePortMetricFrames
+				default:
+					template = otgTemplatePortMetricFrames
+				}
 			case "flow":
 			default:
-				template = otgMetricResponsePassThrough
+				template = otgTemplateMetricResponsePassThrough
 			}
 		}
 
@@ -98,9 +102,10 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// transformCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-	transformCmd.Flags().StringVarP(&transformMetrics, "metrics", "m", "", "Metrics type to transform:\n  \"port\" for PortMetrics,\n  \"flow\" for FlowMetrics\n ")
 	transformCmd.Flags().StringVarP(&transformTemplateFile, "file", "f", "", "Go template file for transform")
+	transformCmd.Flags().StringVarP(&transformMetrics, "metrics", "m", "", "Metrics type to transform:\n  \"port\" for PortMetrics,\n  \"flow\" for FlowMetrics\n ")
 	transformCmd.MarkFlagsMutuallyExclusive("metrics", "file") // either use parameters to control transformation, or provide a template file
+	transformCmd.Flags().StringVarP(&transformCounters, "counters", "c", "", "Metric counters to transform:\n  \"frames\" for frame count (default),\n  \"bytes\" for byte count,\n  \"rate\" for frame rate")
 }
 
 func transformStdInWithTemplate(t string) {
@@ -156,3 +161,15 @@ func otgMetricsResponseToJson(r *otg.MetricsResponse) ([]byte, error) {
 	}
 	return opts.Marshal(r)
 }
+
+// built-in templates
+const (
+	otgTemplateMetricResponsePassThrough = `{{ otgMetricsResponseToJson . }}
+`
+	otgTemplatePortMetricFrames = `[{{range $i, $p := .PortMetrics}}{{if $i}},{{end}}{"name": "{{ $p.Name }}", "frames_tx": "{{ $p.FramesTx }}", "frames_rx": "{{ $p.FramesRx }}"}{{end}}]
+`
+	otgTemplatePortMetricBytes = `[{{range $i, $p := .PortMetrics}}{{if $i}},{{end}}{"name": "{{ $p.Name }}", "bytes_tx": "{{ $p.BytesTx }}", "bytes_rx": "{{ $p.BytesRx }}"}{{end}}]
+`
+	otgTemplatePortMetricFrameRate = `[{{range $i, $p := .PortMetrics}}{{if $i}},{{end}}{"name": "{{ $p.Name }}", "frames_tx_rate": "{{ $p.FramesTxRate }}", "frames_rx_rate": "{{ $p.FramesRxRate }}"}{{end}}]
+`
+)

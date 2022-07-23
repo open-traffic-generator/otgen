@@ -11,7 +11,7 @@ The idea behind `otgen` is to leverage shell pipe capabilities to break OTG API 
 The pipe workflow on `otgen` looks the following:
 
 ```Shell
-otgen create tcp -s 1.1.1.1 -d 2.2.2.2 -p 80 --rate 1000pps | otgen run --metrics flow | otgen transform --tx frames --rx frames | otgen report --type table
+otgen create tcp -s 1.1.1.1 -d 2.2.2.2 -p 80 --rate 1000pps | otgen run --metrics flow | otgen transform --metrics flow --counters frames | otgen report --type table
 ````
 
 ## Command reference
@@ -38,8 +38,7 @@ Transform raw OTG metrics into a format suitable for further processing. If no p
 ```Shell
 otgen transform 
   [--metrics port|flow]               # Metrics type to transform: "port" for PortMetrics, "flow" for FlowMetrics
-  [--tx frames|bytes|rate]            # Tx metrics counter to transform
-  [--rx frames|bytes|rate]            # Rx metrics counter to transform
+  [--counters frames|bytes|rate]      # Metric counters to transform
   [--file template.tmpl]              # Go template file. If not provided, built-in templates will be used based on provided parameters
 ````
 
