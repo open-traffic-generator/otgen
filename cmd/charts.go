@@ -50,8 +50,7 @@ func (c *ChartSeries) AddPoint(val float64) error {
 		c.Data = c.Data[1:]
 	}
 	c.Data = append(c.Data, val)
-	c.Chart.Series(c.Name, c.Data, linechart.SeriesCellOpts(cell.FgColor(c.Color)))
-	return nil
+	return c.Chart.Series(c.Name, c.Data, linechart.SeriesCellOpts(cell.FgColor(c.Color)))
 }
 
 func (cp *ChartProcessor) Process(data []DataPoint) error {
@@ -59,19 +58,23 @@ func (cp *ChartProcessor) Process(data []DataPoint) error {
 		for k, v := range p {
 			if k != NAME_FIELD {
 				series_key := fmt.Sprintf("%s.%s", k, p[NAME_FIELD])
+				var err error
 				switch val := v.(type) {
 				case float64:
-					cp.series[series_key].AddPoint(val)
+					err = cp.series[series_key].AddPoint(val)
 				case int:
-					cp.series[series_key].AddPoint(float64(val))
+					err = cp.series[series_key].AddPoint(float64(val))
 				case string:
-					value, err := strconv.ParseFloat(val, 64)
-					if err != nil {
-						return err
+					value, perr := strconv.ParseFloat(val, 64)
+					if perr != nil {
+						return perr
 					}
-					cp.series[series_key].AddPoint(value)
+					err = cp.series[series_key].AddPoint(value)
 				default:
-					cp.series[series_key].AddPoint(math.NaN())
+					err = cp.series[series_key].AddPoint(math.NaN())
+				}
+				if err != nil {
+					return err
 				}
 			}
 		}
@@ -85,7 +88,7 @@ func (cp *ChartProcessor) Layout(data []DataPoint) error {
 	cp.series = map[string]*ChartSeries{}
 	charts := map[string]*ChartSeries{}
 	for _, p := range data {
-		for k, _ := range p {
+		for k := range p {
 			if k != NAME_FIELD {
 				series_key := fmt.Sprintf("%s.%s", k, p[NAME_FIELD])
 				if _, ok := cp.series[series_key]; !ok {

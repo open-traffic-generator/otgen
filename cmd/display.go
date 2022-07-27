@@ -45,9 +45,15 @@ For more information, go to https://github.com/open-traffic-generator/otgen
 	Run: func(cmd *cobra.Command, args []string) {
 		switch displayType {
 		case TYPE_CHARTS:
-			chartsFn(cmd, args)
+			err := chartsFn(cmd, args)
+			if err != nil {
+				log.Fatal(err)
+			}
 		case TYPE_TABLE:
-			tableFn(cmd, args)
+			err := tableFn(cmd, args)
+			if err != nil {
+				log.Fatal(err)
+			}
 		}
 	},
 	PreRunE: func(cmd *cobra.Command, args []string) error {

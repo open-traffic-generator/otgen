@@ -19,7 +19,7 @@ type TableProcessor struct {
 func (tp *TableProcessor) Layout(input []DataPoint) error {
 	fields := map[string]string{}
 	for _, p := range input {
-		for k, _ := range p {
+		for k := range p {
 			if k != NAME_FIELD {
 				fields[k] = k
 			}

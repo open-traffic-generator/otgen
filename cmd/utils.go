@@ -36,10 +36,16 @@ func DataProcessorStart(dp DataProcessor) *sync.WaitGroup {
 			}
 
 			if needLayout {
-				dp.Layout(input)
+				err := dp.Layout(input)
+				if err != nil {
+					log.Fatal(err)
+				}
 				needLayout = false
 			}
-			dp.Process(input)
+			err = dp.Process(input)
+			if err != nil {
+				log.Fatal(err)
+			}
 		}
 
 		wg.Done()
