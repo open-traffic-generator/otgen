@@ -48,7 +48,8 @@ Displays metrics of a running test as charts or a table.
 
 ```Shell
 otgen display
-  [--type charts|table]               # Display type: "charts" to show charts, "table" to show table
+  [--mode chart|table]               # Display type to show metrics as
+  [--type line]                      # Type of the chart displayed. Currently, only line charts are supported.
 ````
 
 ### `help`

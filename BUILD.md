@@ -16,6 +16,7 @@ cobra-cli init --license mit --author "Open Traffic Generator"
 cobra-cli add run --license mit --author "Open Traffic Generator"
 cobra-cli add version --license mit --author "Open Traffic Generator"
 cobra-cli add transform --license mit --author "Open Traffic Generator"
+cobra-cli add display --license mit --author "Open Traffic Generator"
 ````
 
 ### GoReleaser
@@ -79,11 +80,11 @@ Currently, only for visual inspection
 1. Charts
 
 ```Shell
-cat test/transform/port_metrics.json | ./otgen transform -m port -c frames | ./otgen display --type charts
+cat test/transform/port_metrics.json | ./otgen transform -m port -c frames | ./otgen display --mode chart --type line
 ````
 
 2. Table
 
 ```Shell
-cat test/transform/port_metrics.json | ./otgen transform -m port -c frames | ./otgen display --type table
+cat test/transform/port_metrics.json | ./otgen transform -m port -c frames | ./otgen display --mode table
 ````

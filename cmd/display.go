@@ -29,23 +29,24 @@ import (
 )
 
 const (
-	TYPE_TABLE  = "table"
-	TYPE_CHARTS = "charts"
+	TYPE_TABLE = "table"
+	TYPE_CHART = "chart"
 )
 
 var displayType string // type of display to show
+var chartType string   // type of chart to show
 
 // transformCmd represents the transform command
 var displayCmd = &cobra.Command{
-	Use:   "display [--type charts|table]",
-	Short: "Display running test metrics as charts or table",
-	Long: `Display running test metrics as charts or table.
+	Use:   "display",
+	Short: "Display running test metrics as a chart or a table",
+	Long: `Display running test metrics as a chart or a table.
 
 For more information, go to https://github.com/open-traffic-generator/otgen
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 		switch displayType {
-		case TYPE_CHARTS:
+		case TYPE_CHART:
 			err := display.ChartsFn(cmd, args)
 			if err != nil {
 				log.Fatal(err)
@@ -58,8 +59,11 @@ For more information, go to https://github.com/open-traffic-generator/otgen
 		}
 	},
 	PreRunE: func(cmd *cobra.Command, args []string) error {
-		if displayType != TYPE_TABLE && displayType != TYPE_CHARTS {
+		if displayType != TYPE_TABLE && displayType != TYPE_CHART {
 			return fmt.Errorf("unsupported display type: %s", displayType)
+		}
+		if displayType == TYPE_TABLE && chartType != "" {
+			return fmt.Errorf("cannot specify chart type for table display mode")
 		}
 		return nil
 	},
@@ -77,5 +81,6 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// transformCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-	displayCmd.Flags().StringVarP(&displayType, "type", "t", "charts", "charts or table")
+	displayCmd.Flags().StringVarP(&displayType, "mode", "m", TYPE_CHART, fmt.Sprintf("display mode [%s|%s]", TYPE_CHART, TYPE_TABLE))
+	displayCmd.Flags().StringVarP(&chartType, "type", "t", "", "chart type [line] (default line)")
 }
