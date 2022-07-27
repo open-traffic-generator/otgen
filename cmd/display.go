@@ -24,6 +24,7 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/open-traffic-generator/otgen/display"
 	"github.com/spf13/cobra"
 )
 
@@ -45,12 +46,12 @@ For more information, go to https://github.com/open-traffic-generator/otgen
 	Run: func(cmd *cobra.Command, args []string) {
 		switch displayType {
 		case TYPE_CHARTS:
-			err := chartsFn(cmd, args)
+			err := display.ChartsFn(cmd, args)
 			if err != nil {
 				log.Fatal(err)
 			}
 		case TYPE_TABLE:
-			err := tableFn(cmd, args)
+			err := display.TableFn(cmd, args)
 			if err != nil {
 				log.Fatal(err)
 			}

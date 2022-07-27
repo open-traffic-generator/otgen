@@ -1,10 +1,12 @@
-package cmd
+package display
 
 import (
 	"bufio"
 	"encoding/json"
 	"os"
 	"sync"
+
+	log "github.com/sirupsen/logrus"
 )
 
 // TODO: would be nice to make it configurable or automatically determined

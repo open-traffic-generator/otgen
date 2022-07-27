@@ -1,4 +1,4 @@
-package cmd
+package display
 
 import (
 	"fmt"
@@ -71,7 +71,7 @@ func (tp *TableProcessor) Format() string {
 	return tableString.String()
 }
 
-func tableFn(cmd *cobra.Command, args []string) error {
+func TableFn(cmd *cobra.Command, args []string) error {
 	tp := &TableProcessor{
 		headers:  []string{},
 		data:     map[string]map[string]string{},

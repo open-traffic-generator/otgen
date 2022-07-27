@@ -1,4 +1,4 @@
-package cmd
+package display
 
 import (
 	"context"
@@ -121,7 +121,7 @@ func (cp *ChartProcessor) Layout(data []DataPoint) error {
 	return cp.cnt.Update("root", co...)
 }
 
-func chartsFn(cmd *cobra.Command, args []string) error {
+func ChartsFn(cmd *cobra.Command, args []string) error {
 	t, err := tcell.New()
 	if err != nil {
 		panic(err)
