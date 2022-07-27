@@ -42,6 +42,15 @@ otgen transform
   [--file template.tmpl]              # Go template file. If not provided, built-in templates will be used based on provided parameters
 ````
 
+### `display`
+
+Displays metrics of a running test as charts or a table.
+
+```Shell
+otgen display
+  [--type charts|table]               # Display type: "charts" to show charts, "table" to show table
+````
+
 ### `help`
 
 For built-in help, use

@@ -71,3 +71,19 @@ cat test/transform/port_metrics.json | ./otgen transform -f templates/transformP
 ```Shell
 cat ../otg.b2b.json | ./otgen run -k 2>/dev/null | ./otgen transform -m port
 ````
+
+### `display`
+
+Currently, only for visual inspection
+
+1. Charts
+
+```Shell
+cat test/transform/port_metrics.json | ./otgen transform -m port -c frames | ./otgen display --type charts
+````
+
+2. Table
+
+```Shell
+cat test/transform/port_metrics.json | ./otgen transform -m port -c frames | ./otgen display --type table
+````
