@@ -37,8 +37,14 @@ Transform raw OTG metrics into a format suitable for further processing. If no p
 
 ```Shell
 otgen transform 
-  [--metrics port|flow]               # Metrics type to transform: "port" for PortMetrics, "flow" for FlowMetrics
-  [--counters frames|bytes|rate]      # Metric counters to transform
+  [--metrics port|flow]               # Metrics type to transform: 
+                                      #   "port" for PortMetrics
+                                      #   "flow" for FlowMetrics
+  [--counters frames|bytes|pps|tput]  # Metric counters to transform:
+                                      #   "frames" for frame count (default),
+                                      #   "bytes" for byte count,
+                                      #   "pps" for frame rate, in packets per second
+                                      #   "tput" for throughput, in bytes per second
   [--file template.tmpl]              # Go template file. If not provided, built-in templates will be used based on provided parameters
 ````
 

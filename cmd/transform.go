@@ -34,8 +34,17 @@ import (
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
+const (
+	METRIC_PORT    = "port"
+	METRIC_FLOW    = "flow"
+	COUNTER_FRAMES = "frames"
+	COUNTER_BYTES  = "bytes"
+	COUNTER_PPS    = "pps"
+	COUNTER_TPUT   = "tput"
+)
+
 var transformMetrics string      // Metrics type to report: "port" for PortMetrics, "flow" for FlowMetrics
-var transformCounters string     // Metric counters to transform:  "frames" for frame count,  "bytes" for byte count,  "rate" for frame rate")
+var transformCounters string     // Metric counters to transform:  "frames" for frame count,  "bytes" for byte count,  "pps" for frame rate", "tput" for byte rate)
 var transformTemplateFile string // Go template file for transform
 
 // transformCmd represents the transform command
@@ -43,18 +52,12 @@ var transformCmd = &cobra.Command{
 	Use:   "transform",
 	Short: "Transform raw OTG metrics into a format suitable for further processing",
 	Long: `Transform raw OTG metrics into a format suitable for further processing.
+If no parameters is provided, transform validates input for a match with
+OTG MetricsResponse data structure, and if matched, outputs it as is.
 
 For more information, go to https://github.com/open-traffic-generator/otgen
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		switch transformMetrics {
-		case "port":
-		case "flow":
-		case "":
-		default:
-			log.Fatalf("Unsupported metrics type requested: %s", transformMetrics)
-		}
-
 		var templatebytes []byte
 		var template string
 		var err error
@@ -67,26 +70,47 @@ For more information, go to https://github.com/open-traffic-generator/otgen
 			template = string(templatebytes)
 		} else { // Use built-in templates
 			switch transformMetrics {
-			case "port":
+			case METRIC_PORT:
 				switch transformCounters {
-				case "frames":
+				case COUNTER_FRAMES:
 					template = otgTemplatePortMetricFrames
-				case "bytes":
+				case COUNTER_BYTES:
 					template = otgTemplatePortMetricBytes
-				case "rate":
+				case COUNTER_PPS:
 					template = otgTemplatePortMetricFrameRate
+				case COUNTER_TPUT:
+					template = otgTemplatePortMetricByteRate
 				case "":
 					template = otgTemplatePortMetricFrames
 				default:
-					template = otgTemplatePortMetricFrames
+					log.Fatalf("Unsupported metrics counters requested: %s", transformCounters)
 				}
-			case "flow":
+			case METRIC_FLOW:
 			default:
 				template = otgTemplateMetricResponsePassThrough
 			}
 		}
 
 		transformStdInWithTemplate(template)
+	},
+	PreRunE: func(cmd *cobra.Command, args []string) error {
+		switch transformMetrics {
+		case METRIC_PORT:
+		case METRIC_FLOW:
+		case "": // this would mean --metrics was not defined, will use passthrough mode
+		default:
+			log.Fatalf("Unsupported metrics type requested: %s", transformMetrics)
+		}
+		switch transformCounters {
+		case COUNTER_FRAMES:
+		case COUNTER_BYTES:
+		case COUNTER_PPS:
+		case COUNTER_TPUT:
+		case "":
+		default:
+			log.Fatalf("Unsupported metrics counter requested: %s", transformCounters)
+		}
+		return nil
 	},
 }
 
@@ -103,9 +127,10 @@ func init() {
 	// is called directly, e.g.:
 	// transformCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 	transformCmd.Flags().StringVarP(&transformTemplateFile, "file", "f", "", "Go template file for transform")
-	transformCmd.Flags().StringVarP(&transformMetrics, "metrics", "m", "", "Metrics type to transform:\n  \"port\" for PortMetrics,\n  \"flow\" for FlowMetrics\n ")
+	transformCmd.Flags().StringVarP(&transformMetrics, "metrics", "m", "", fmt.Sprintf("Metrics type to transform:\n  \"%s\" for PortMetrics\n  \"%s\" for FlowMetrics\n", METRIC_PORT, METRIC_FLOW))
 	transformCmd.MarkFlagsMutuallyExclusive("metrics", "file") // either use parameters to control transformation, or provide a template file
-	transformCmd.Flags().StringVarP(&transformCounters, "counters", "c", "", "Metric counters to transform:\n  \"frames\" for frame count (default),\n  \"bytes\" for byte count,\n  \"rate\" for frame rate")
+	transformCmd.Flags().StringVarP(&transformCounters, "counters", "c", "", fmt.Sprintf("Metric counters to transform:\n  \"%s\" for frame count (default)\n  \"%s\" for byte count\n  \"%s\" for frame rate, in packets per second\n  \"%s\" for throughput, in bytes per second", COUNTER_FRAMES, COUNTER_BYTES, COUNTER_PPS, COUNTER_TPUT))
+	transformCmd.MarkFlagsMutuallyExclusive("counters", "file") // either use parameters to control transformation, or provide a template file
 }
 
 func transformStdInWithTemplate(t string) {
@@ -171,5 +196,7 @@ const (
 	otgTemplatePortMetricBytes = `[{{range $i, $p := .PortMetrics}}{{if $i}},{{end}}{"name": "{{ $p.Name }}", "bytes_tx": "{{ $p.BytesTx }}", "bytes_rx": "{{ $p.BytesRx }}"}{{end}}]
 `
 	otgTemplatePortMetricFrameRate = `[{{range $i, $p := .PortMetrics}}{{if $i}},{{end}}{"name": "{{ $p.Name }}", "frames_tx_rate": "{{ $p.FramesTxRate }}", "frames_rx_rate": "{{ $p.FramesRxRate }}"}{{end}}]
+`
+	otgTemplatePortMetricByteRate = `[{{range $i, $p := .PortMetrics}}{{if $i}},{{end}}{"name": "{{ $p.Name }}", "bytes_tx_rate": "{{ ratePrintf "%.0f" $p.BytesTxRate }}", "bytes_rx_rate": "{{ ratePrintf "%.0f" $p.BytesRxRate }}"}{{end}}]
 `
 )

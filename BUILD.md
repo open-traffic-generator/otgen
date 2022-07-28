@@ -47,7 +47,8 @@ cat test/transform/port_metrics.json | ./otgen transform                   | dif
 cat test/transform/port_metrics.json | ./otgen transform -m port           | diff test/transform/port_metrics_frames.json -
 cat test/transform/port_metrics.json | ./otgen transform -m port -c frames | diff test/transform/port_metrics_frames.json -
 cat test/transform/port_metrics.json | ./otgen transform -m port -c bytes  | diff test/transform/port_metrics_bytes.json -
-cat test/transform/port_metrics.json | ./otgen transform -m port -c rate   | diff test/transform/port_metrics_rate.json -
+cat test/transform/port_metrics.json | ./otgen transform -m port -c pps    | diff test/transform/port_metrics_frame_rate.json -
+cat test/transform/port_metrics.json | ./otgen transform -m port -c tput   | diff test/transform/port_metrics_byte_rate.json -
 ````
 
 2. Templates - JSON
@@ -56,7 +57,8 @@ cat test/transform/port_metrics.json | ./otgen transform -m port -c rate   | dif
 cat test/transform/port_metrics.json | ./otgen transform -f templates/transformPassThrough.tmpl   | diff test/transform/port_metrics_passthrough.json -
 cat test/transform/port_metrics.json | ./otgen transform -f templates/transformPortFrames.tmpl    | diff test/transform/port_metrics_frames.json -
 cat test/transform/port_metrics.json | ./otgen transform -f templates/transformPortBytes.tmpl     | diff test/transform/port_metrics_bytes.json -
-cat test/transform/port_metrics.json | ./otgen transform -f templates/transformPortFrameRate.tmpl | diff test/transform/port_metrics_rate.json -
+cat test/transform/port_metrics.json | ./otgen transform -f templates/transformPortFrameRate.tmpl | diff test/transform/port_metrics_frame_rate.json -
+cat test/transform/port_metrics.json | ./otgen transform -f templates/transformPortByteRate.tmpl  | diff test/transform/port_metrics_byte_rate.json -
 ````
 
 3. Templates - Tables
@@ -64,7 +66,8 @@ cat test/transform/port_metrics.json | ./otgen transform -f templates/transformP
 ```Shell
 cat test/transform/port_metrics.json | ./otgen transform -f templates/transformPortFramesTable.tmpl | diff test/transform/port_metrics_frames_table.txt -
 cat test/transform/port_metrics.json | ./otgen transform -f templates/transformPortBytesTable.tmpl | diff test/transform/port_metrics_bytes_table.txt -
-cat test/transform/port_metrics.json | ./otgen transform -f templates/transformPortFrameRateTable.tmpl | diff test/transform/port_metrics_rate_table.txt -
+cat test/transform/port_metrics.json | ./otgen transform -f templates/transformPortFrameRateTable.tmpl | diff test/transform/port_metrics_frame_rate_table.txt -
+cat test/transform/port_metrics.json | ./otgen transform -f templates/transformPortByteRateTable.tmpl | diff test/transform/port_metrics_byte_rate_table.txt -
 ````
 
 4. Full pipe with port metrics
