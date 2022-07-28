@@ -83,11 +83,17 @@ Currently, only for visual inspection
 1. Charts
 
 ```Shell
-cat test/transform/port_metrics.json | ./otgen transform -m port -c frames | ./otgen display --mode chart --type line
+cat test/transform/port_metrics.json | ./test/transform/delay.sh 0.5 | ./otgen transform -m port -c frames | ./otgen display --mode chart --type line
+cat test/transform/port_metrics.json | ./test/transform/delay.sh 0.5 | ./otgen transform -m port -c bytes  | ./otgen display --mode chart --type line
+cat test/transform/port_metrics.json | ./test/transform/delay.sh 0.5 | ./otgen transform -m port -c pps    | ./otgen display --mode chart --type line
+cat test/transform/port_metrics.json | ./test/transform/delay.sh 0.5 | ./otgen transform -m port -c tput   | ./otgen display --mode chart --type line
 ````
 
 2. Table
 
 ```Shell
-cat test/transform/port_metrics.json | ./otgen transform -m port -c frames | ./otgen display --mode table
+cat test/transform/port_metrics.json | ./test/transform/delay.sh 0.5 | ./otgen transform -m port -c frames | ./otgen display --mode table
+cat test/transform/port_metrics.json | ./test/transform/delay.sh 0.5 | ./otgen transform -m port -c bytes  | ./otgen display --mode table
+cat test/transform/port_metrics.json | ./test/transform/delay.sh 0.5 | ./otgen transform -m port -c pps    | ./otgen display --mode table
+cat test/transform/port_metrics.json | ./test/transform/delay.sh 0.5 | ./otgen transform -m port -c tput   | ./otgen display --mode table
 ````

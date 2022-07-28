@@ -11,7 +11,7 @@ The idea behind `otgen` is to leverage shell pipe capabilities to break OTG API 
 The pipe workflow on `otgen` looks the following:
 
 ```Shell
-otgen create tcp -s 1.1.1.1 -d 2.2.2.2 -p 80 --rate 1000pps | otgen run --metrics flow | otgen transform --metrics flow --counters frames | otgen report --type table
+otgen create tcp -s 1.1.1.1 -d 2.2.2.2 -p 80 --rate 1000pps | otgen run --metrics flow | otgen transform --metrics flow --counters frames | otgen display --mode table
 ````
 
 ## Command reference
