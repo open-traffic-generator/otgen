@@ -56,9 +56,11 @@ cat test/transform/port_metrics.json | ./otgen transform -m port -c tput   | dif
 1.2 Flow metrics
 
 ```Shell
-cat test/transform/flow_metrics.json | ./otgen transform                   | diff test/transform/flow_metrics.json -
-
+cat test/transform/flow_metrics.json | ./otgen transform                   | diff test/transform/flow_metrics_passthrough.json -
 cat test/transform/flow_metrics.json | ./otgen transform -m flow           | diff test/transform/flow_metrics_frames.json -
+cat test/transform/flow_metrics.json | ./otgen transform -m flow -c frames | diff test/transform/flow_metrics_frames.json -
+cat test/transform/flow_metrics.json | ./otgen transform -m flow -c bytes  | diff test/transform/flow_metrics_bytes.json -
+cat test/transform/flow_metrics.json | ./otgen transform -m flow -c pps    | diff test/transform/flow_metrics_frame_rate.json -
 ````
 
 2. Templates - JSON
@@ -76,7 +78,7 @@ cat test/transform/port_metrics.json | ./otgen transform -f templates/transformP
 1.2 Flow metrics
 
 ```Shell
-cat test/transform/flow_metrics.json | ./otgen transform -f templates/transformPassThrough.tmpl   | diff test/transform/flow_metrics.json -
+cat test/transform/flow_metrics.json | ./otgen transform -f templates/transformPassThrough.tmpl   | diff test/transform/flow_metrics_passthrough.json -
 cat test/transform/flow_metrics.json | ./otgen transform -f templates/transformFlowFrames.tmpl    | diff test/transform/flow_metrics_frames.json -
 cat test/transform/flow_metrics.json | ./otgen transform -f templates/transformFlowBytes.tmpl     | diff test/transform/flow_metrics_bytes.json -
 cat test/transform/flow_metrics.json | ./otgen transform -f templates/transformFlowFrameRate.tmpl | diff test/transform/flow_metrics_frame_rate.json -
