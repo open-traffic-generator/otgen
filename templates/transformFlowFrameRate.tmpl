@@ -1,0 +1,1 @@
+[{{range $i, $f := .FlowMetrics}}{{if $i}},{{end}}{"name": "{{ $f.Name }}", "frames_tx_rate": "{{ ratePrintf "%.0f" $f.FramesTxRate }}", "frames_rx_rate": "{{ ratePrintf "%.0f" $f.FramesRxRate }}"}{{end}}]

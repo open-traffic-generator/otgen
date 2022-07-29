@@ -42,6 +42,8 @@ go build -ldflags="-X 'github.com/open-traffic-generator/otgen/cmd.version=v0.0.
 
 1. Parameters
 
+1.1 Port metrics
+
 ```Shell
 cat test/transform/port_metrics.json | ./otgen transform                   | diff test/transform/port_metrics_passthrough.json -
 cat test/transform/port_metrics.json | ./otgen transform -m port           | diff test/transform/port_metrics_frames.json -
@@ -49,9 +51,19 @@ cat test/transform/port_metrics.json | ./otgen transform -m port -c frames | dif
 cat test/transform/port_metrics.json | ./otgen transform -m port -c bytes  | diff test/transform/port_metrics_bytes.json -
 cat test/transform/port_metrics.json | ./otgen transform -m port -c pps    | diff test/transform/port_metrics_frame_rate.json -
 cat test/transform/port_metrics.json | ./otgen transform -m port -c tput   | diff test/transform/port_metrics_byte_rate.json -
+```
+
+1.2 Flow metrics
+
+```Shell
+cat test/transform/flow_metrics.json | ./otgen transform                   | diff test/transform/flow_metrics.json -
+
+cat test/transform/flow_metrics.json | ./otgen transform -m flow           | diff test/transform/flow_metrics_frames.json -
 ````
 
 2. Templates - JSON
+
+1.2 Port metrics
 
 ```Shell
 cat test/transform/port_metrics.json | ./otgen transform -f templates/transformPassThrough.tmpl   | diff test/transform/port_metrics_passthrough.json -
@@ -60,6 +72,16 @@ cat test/transform/port_metrics.json | ./otgen transform -f templates/transformP
 cat test/transform/port_metrics.json | ./otgen transform -f templates/transformPortFrameRate.tmpl | diff test/transform/port_metrics_frame_rate.json -
 cat test/transform/port_metrics.json | ./otgen transform -f templates/transformPortByteRate.tmpl  | diff test/transform/port_metrics_byte_rate.json -
 ````
+
+1.2 Flow metrics
+
+```Shell
+cat test/transform/flow_metrics.json | ./otgen transform -f templates/transformPassThrough.tmpl   | diff test/transform/flow_metrics.json -
+cat test/transform/flow_metrics.json | ./otgen transform -f templates/transformFlowFrames.tmpl    | diff test/transform/flow_metrics_frames.json -
+cat test/transform/flow_metrics.json | ./otgen transform -f templates/transformFlowBytes.tmpl     | diff test/transform/flow_metrics_bytes.json -
+cat test/transform/flow_metrics.json | ./otgen transform -f templates/transformFlowFrameRate.tmpl | diff test/transform/flow_metrics_frame_rate.json -
+````
+
 
 3. Templates - Tables
 

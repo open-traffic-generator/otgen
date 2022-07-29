@@ -44,7 +44,7 @@ otgen transform
                                       #   "frames" for frame count (default),
                                       #   "bytes" for byte count,
                                       #   "pps" for frame rate, in packets per second
-                                      #   "tput" for throughput, in bytes per second
+                                      #   "tput" for throughput, in bytes per second (PortMetrics only)
   [--file template.tmpl]              # Go template file. If not provided, built-in templates will be used based on provided parameters
 ````
 
