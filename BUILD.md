@@ -41,7 +41,8 @@ go build -ldflags="-X 'github.com/open-traffic-generator/otgen/cmd.version=v0.0.
 ### `transform`
 
 1. Parameters
-   1.1 Port metrics
+
+   - Port metrics
 
 ```Shell
 cat test/transform/port_metrics.json | ./otgen transform                   | diff test/transform/port_metrics_passthrough.json -
@@ -52,7 +53,7 @@ cat test/transform/port_metrics.json | ./otgen transform -m port -c pps    | dif
 cat test/transform/port_metrics.json | ./otgen transform -m port -c tput   | diff test/transform/port_metrics_byte_rate.json -
 ```
 
-   1.2 Flow metrics
+   - Flow metrics
 
 ```Shell
 cat test/transform/flow_metrics.json | ./otgen transform                   | diff test/transform/flow_metrics_passthrough.json -
@@ -63,7 +64,8 @@ cat test/transform/flow_metrics.json | ./otgen transform -m flow -c pps    | dif
 ````
 
 2. Templates - JSON
-   2.1 Port metrics
+
+   - Port metrics
 
 ```Shell
 cat test/transform/port_metrics.json | ./otgen transform -f templates/transformPassThrough.tmpl   | diff test/transform/port_metrics_passthrough.json -
@@ -73,7 +75,7 @@ cat test/transform/port_metrics.json | ./otgen transform -f templates/transformP
 cat test/transform/port_metrics.json | ./otgen transform -f templates/transformPortByteRate.tmpl  | diff test/transform/port_metrics_byte_rate.json -
 ````
 
-   2.2 Flow metrics
+   - Flow metrics
 
 ```Shell
 cat test/transform/flow_metrics.json | ./otgen transform -f templates/transformPassThrough.tmpl   | diff test/transform/flow_metrics_passthrough.json -
@@ -84,7 +86,8 @@ cat test/transform/flow_metrics.json | ./otgen transform -f templates/transformF
 
 
 3. Templates - Tables
-   3.1 Port metrics
+
+   - Port metrics
 
 ```Shell
 cat test/transform/port_metrics.json | ./otgen transform -f templates/transformPortFramesTable.tmpl    | diff test/transform/port_metrics_frames_table.txt -
@@ -93,7 +96,7 @@ cat test/transform/port_metrics.json | ./otgen transform -f templates/transformP
 cat test/transform/port_metrics.json | ./otgen transform -f templates/transformPortByteRateTable.tmpl  | diff test/transform/port_metrics_byte_rate_table.txt -
 ````
 
-   3.2 Flow metrics
+   - Flow metrics
 
 ```Shell
 cat test/transform/flow_metrics.json | ./otgen transform -f templates/transformFlowFramesTable.tmpl    | diff test/transform/flow_metrics_frames_table.txt -
@@ -118,6 +121,10 @@ cat test/transform/port_metrics.json | ./test/transform/delay.sh 0.5 | ./otgen t
 cat test/transform/port_metrics.json | ./test/transform/delay.sh 0.5 | ./otgen transform -m port -c bytes  | ./otgen display --mode chart --type line
 cat test/transform/port_metrics.json | ./test/transform/delay.sh 0.5 | ./otgen transform -m port -c pps    | ./otgen display --mode chart --type line
 cat test/transform/port_metrics.json | ./test/transform/delay.sh 0.5 | ./otgen transform -m port -c tput   | ./otgen display --mode chart --type line
+
+cat test/transform/flow_metrics.json | ./test/transform/delay.sh 0.5 | ./otgen transform -m flow -c frames | ./otgen display --mode chart --type line
+cat test/transform/flow_metrics.json | ./test/transform/delay.sh 0.5 | ./otgen transform -m flow -c bytes  | ./otgen display --mode chart --type line
+cat test/transform/flow_metrics.json | ./test/transform/delay.sh 0.5 | ./otgen transform -m flow -c pps    | ./otgen display --mode chart --type line
 ````
 
 2. Table
@@ -127,4 +134,8 @@ cat test/transform/port_metrics.json | ./test/transform/delay.sh 0.5 | ./otgen t
 cat test/transform/port_metrics.json | ./test/transform/delay.sh 0.5 | ./otgen transform -m port -c bytes  | ./otgen display --mode table
 cat test/transform/port_metrics.json | ./test/transform/delay.sh 0.5 | ./otgen transform -m port -c pps    | ./otgen display --mode table
 cat test/transform/port_metrics.json | ./test/transform/delay.sh 0.5 | ./otgen transform -m port -c tput   | ./otgen display --mode table
+
+cat test/transform/flow_metrics.json | ./test/transform/delay.sh 0.5 | ./otgen transform -m flow -c frames | ./otgen display --mode table
+cat test/transform/flow_metrics.json | ./test/transform/delay.sh 0.5 | ./otgen transform -m flow -c bytes  | ./otgen display --mode table
+cat test/transform/flow_metrics.json | ./test/transform/delay.sh 0.5 | ./otgen transform -m flow -c pps    | ./otgen display --mode table
 ````
