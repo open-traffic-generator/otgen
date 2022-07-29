@@ -31,7 +31,6 @@ import (
 	"github.com/open-traffic-generator/snappi/gosnappi"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"google.golang.org/protobuf/encoding/protojson"
 )
 
 var otgURL string                 // URL of OTG server API endpoint
@@ -293,20 +292,10 @@ func checkResponse(res interface{}, err error) {
 }
 
 func printMetricsResponseRawJson(mr gosnappi.MetricsResponse) {
-	j, err := metricsResponseToJson(mr)
+	j, err := otgMetricsResponseToJson(mr.Msg())
 	if err == nil {
 		fmt.Println(string(j))
 	} else {
 		log.Fatal(err)
 	}
-}
-
-func metricsResponseToJson(mr gosnappi.MetricsResponse) ([]byte, error) {
-	opts := protojson.MarshalOptions{
-		UseProtoNames:   true,
-		AllowPartial:    true,
-		EmitUnpopulated: false,
-		Indent:          "",
-	}
-	return opts.Marshal(mr.Msg())
 }

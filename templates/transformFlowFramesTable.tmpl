@@ -1,0 +1,1 @@
+{{$v := "\u2502"}}{{ $v }}{{range $i, $f := .FlowMetrics}}{{if $i}}{{ $v }}{{end}} {{ $f.Name }} {{ $v }} {{ counterPrintf "%9.1d" $f.FramesTx }} {{ $v }} {{ counterPrintf "%9.1d" $f.FramesRx }} {{end}}{{ $v }}

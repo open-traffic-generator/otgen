@@ -1,0 +1,1 @@
+{{$v := "\u2502"}}{{ $v }}{{range $i, $f := .FlowMetrics}}{{if $i}}{{ $v }}{{end}} {{ $f.Name }} {{ $v }} {{ ratePrintf "%9.0f" $f.FramesTxRate }} {{ $v }} {{ ratePrintf "%9.0f" $f.FramesRxRate }} {{end}}{{ $v }}

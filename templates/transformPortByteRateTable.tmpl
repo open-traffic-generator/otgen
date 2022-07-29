@@ -1,0 +1,1 @@
+{{$v := "\u2502"}}{{ $v }}{{range $i, $p := .PortMetrics}}{{if $i}}{{ $v }}{{end}} {{ $p.Name }} {{ $v }} {{ ratePrintf "%9.0f" $p.BytesTxRate }} {{ $v }} {{ ratePrintf "%9.0f" $p.BytesRxRate }} {{end}}{{ $v }}

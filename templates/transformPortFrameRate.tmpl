@@ -1,0 +1,1 @@
+[{{range $i, $p := .PortMetrics}}{{if $i}},{{end}}{"name": "{{ $p.Name }}", "frames_tx_rate": "{{ ratePrintf "%.0f" $p.FramesTxRate }}", "frames_rx_rate": "{{ ratePrintf "%.0f" $p.FramesRxRate }}"}{{end}}]
