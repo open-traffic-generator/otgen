@@ -28,8 +28,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var flowSrc string // Source IP address
-var flowDst string // Destination IP address
+var flowSrcMac string // Source MAC address
+var flowDstMac string // Destination MAC address
+var flowSrc string    // Source IP address
+var flowDst string    // Destination IP address
 
 // flowCmd represents the flow command
 var flowCmd = &cobra.Command{
@@ -54,8 +56,14 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// flowCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-	flowCmd.Flags().StringVarP(&flowSrc, "src", "s", "192.0.2.1", "Source IP address")
-	flowCmd.Flags().StringVarP(&flowDst, "dst", "d", "192.0.2.2", "Destination IP address")
+
+	// Default MACs start with "02" to signify locally administered addresses (https://www.rfc-editor.org/rfc/rfc5342#section-2.1)
+	flowCmd.Flags().StringVarP(&flowSrcMac, "smac", "S", "02:00:00:00:01:aa", "Source MAC address")      // 01 == port 1, aa == otg side (bb == dut side)
+	flowCmd.Flags().StringVarP(&flowDstMac, "dmac", "D", "02:00:00:00:02:aa", "Destination MAC address") // 02 == port 2, aa == otg side (bb == dut side)
+
+	// Default IPs are from IP ranges reserved for documentation (https://datatracker.ietf.org/doc/html/rfc5737#section-3)
+	flowCmd.Flags().StringVarP(&flowSrc, "src", "s", "192.0.2.1", "Source IP address")      // .1 == port  1
+	flowCmd.Flags().StringVarP(&flowDst, "dst", "d", "192.0.2.2", "Destination IP address") // .2 == port  2
 }
 
 func createFlow() {
@@ -88,8 +96,8 @@ func createFlow() {
 	ipv4 := pkt.Add().Ipv4()
 	tcp := pkt.Add().Tcp()
 
-	eth.Dst().SetValue("00:11:22:33:44:55")
-	eth.Src().SetValue("00:11:22:33:44:66")
+	eth.Src().SetValue(flowSrcMac)
+	eth.Dst().SetValue(flowDstMac)
 
 	ipv4.Src().SetValue(flowSrc)
 	ipv4.Dst().SetValue(flowDst)

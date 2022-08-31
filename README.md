@@ -25,8 +25,10 @@ otgen create
   [ flow ]                            # Create OTG flow configuration (default)
   [ ipv4 | ipv6 ]                     # IP version (default ipv4)
   icmp | tcp | udp                    # IP protocol
-  --src x.x.x.x                       # Source IP address
-  --dst x.x.x.x                       # Destination IP address
+  [--smac xx.xx.xx.xx.xx.xx]          # Source MAC address
+  [--dmac xx.xx.xx.xx.xx.xx]          # Destination MAC address
+  [--src x.x.x.x]                     # Source IP address
+  [--dst x.x.x.x]                     # Destination IP address
   --port N                            # Destination TCP or UDP port
   --rate N                            # Packet rate in packets per second
 ```
