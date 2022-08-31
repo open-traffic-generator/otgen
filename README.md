@@ -11,14 +11,29 @@ The idea behind `otgen` is to leverage shell pipe capabilities to break OTG API 
 The pipe workflow on `otgen` looks the following:
 
 ```Shell
-otgen create tcp -s 1.1.1.1 -d 2.2.2.2 -p 80 --rate 1000pps | otgen run --metrics flow | otgen transform --metrics flow --counters frames | otgen display --mode table
+otgen create tcp -s 1.1.1.1 -d 2.2.2.2 -p 80 --rate 1000 | otgen run --metrics flow | otgen transform --metrics flow --counters frames | otgen display --mode table
 ````
 
 ## Command reference
 
+### `create`
+
+Create OTG configuration that can be further passed to stdin of otgen run command.
+
+```Shell
+otgen create
+  [ flow ]                            # Create OTG flow configuration (default)
+  [ ipv4 | ipv6 ]                     # IP version (default ipv4)
+  icmp | tcp | udp                    # IP protocol
+  --src x.x.x.x                       # Source IP address
+  --dst x.x.x.x                       # Destination IP address
+  --port N                            # Destination TCP or UDP port
+  --rate N                            # Packet rate in packets per second
+```
+
 ### `run`
 
-Request an OTG API endpoint to run OTG model.
+Request an OTG API endpoint to run OTG configuration.
 
 ```Shell
 otgen run 
