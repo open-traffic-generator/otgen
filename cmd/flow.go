@@ -22,32 +22,32 @@ THE SOFTWARE.
 package cmd
 
 import (
+	"fmt"
+
 	"github.com/spf13/cobra"
 )
 
-// createCmd represents the create command
-var createCmd = &cobra.Command{
-	Use:   "create",
-	Short: "Create OTG configuration that can be further passed to stdin of otgen run command",
-	Long: `Create OTG configuration that can be further passed to stdin of otgen run command.
-
-  For more information, go to https://github.com/open-traffic-generator/otgen
+// flowCmd represents the flow command
+var flowCmd = &cobra.Command{
+	Use:   "flow",
+	Short: "Create OTG flow configuration",
+	Long: `Create OTG flow configuration.
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		log.Error("You must specify an OTG object to create, one from the set: flow")
+		fmt.Println("flow called")
 	},
 }
 
 func init() {
-	rootCmd.AddCommand(createCmd)
+	createCmd.AddCommand(flowCmd)
 
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	// createCmd.PersistentFlags().String("foo", "", "A help for foo")
+	// flowCmd.PersistentFlags().String("foo", "", "A help for foo")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// createCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	// flowCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

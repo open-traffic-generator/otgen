@@ -24,8 +24,12 @@ package cmd
 import (
 	"os"
 
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
+
+// Create a new instance of the logger
+var log = logrus.New()
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{

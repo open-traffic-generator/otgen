@@ -29,7 +29,6 @@ import (
 	"time"
 
 	"github.com/open-traffic-generator/snappi/gosnappi"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -42,9 +41,6 @@ var otgMetrics string             // Metrics type to report: "port" for PortMetr
 var otgPullIntervalStr string     // Interval to pull OTG metrics. Example: 1s (default 500ms)
 var otgPullInterval time.Duration // Parsed interval to pull OTG metrics
 var xeta = float32(0.0)           // How long to wait before forcing traffic to stop. In multiples of ETA
-
-// Create a new instance of the logger
-var log = logrus.New()
 
 // runCmd represents the run command
 var runCmd = &cobra.Command{
