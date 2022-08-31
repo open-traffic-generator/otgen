@@ -34,6 +34,7 @@ var flowSrc string         // Source IP address
 var flowDst string         // Destination IP address
 var flowRate int64         // Packet per second rate
 var flowFixedPackets int32 // Number of packets to transmit
+var flowFixedSize int32    // Frame size in bytes
 
 // flowCmd represents the flow command
 var flowCmd = &cobra.Command{
@@ -72,7 +73,8 @@ func init() {
 	// We use 1000 as a default value for packet count instead of continous mode per OTG spec,
 	// as we want to prevent situations when unsuspecting user end up with non-stopping traffic
 	// if no parameter was specified
-	flowCmd.Flags().Int32VarP(&flowFixedPackets, "count", "c", 1000, "Number of packets to transmit. Use 0 for continous mode.")
+	flowCmd.Flags().Int32VarP(&flowFixedPackets, "count", "c", 1000, "Number of packets to transmit. Use 0 for continous mode")
+	flowCmd.Flags().Int32VarP(&flowFixedSize, "size", "", 0, "Frame size in bytes. If not specified, the minimum supported by the traffic engine will be used")
 }
 
 func createFlow() {
@@ -92,7 +94,9 @@ func createFlow() {
 	flow.TxRx().Port().SetRxName(p2.Name())
 
 	// Configure the size of a packet and the number of packets to transmit
-	flow.Size().SetFixed(128)
+	if flowFixedSize > 0 {
+		flow.Size().SetFixed(flowFixedSize)
+	}
 	if flowFixedPackets > 0 { // If set to 0, no duration would be specified. According to OTG spec, continous mode would be used
 		flow.Duration().FixedPackets().SetPackets(flowFixedPackets)
 	}
