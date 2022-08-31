@@ -92,6 +92,10 @@ func createFlow() {
 	tcp.SrcPort().SetValue(5000)
 	tcp.DstPort().SetValue(6000)
 
-	// Push traffic configuration constructed so far to traffic generator
-	fmt.Println(config.ToYaml())
+	// Print traffic configuration constructed
+	otgYaml, err := config.ToYaml()
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Print(otgYaml)
 }
