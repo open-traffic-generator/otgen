@@ -32,6 +32,8 @@ var flowSrcMac string      // Source MAC address
 var flowDstMac string      // Destination MAC address
 var flowSrc string         // Source IP address
 var flowDst string         // Destination IP address
+var flowSrcPort int32      // Source TCP/UDP port
+var flowDstPort int32      // Destination TCP/UDP port
 var flowRate int64         // Packet per second rate
 var flowFixedPackets int32 // Number of packets to transmit
 var flowFixedSize int32    // Frame size in bytes
@@ -67,6 +69,9 @@ func init() {
 	// Default IPs are from IP ranges reserved for documentation (https://datatracker.ietf.org/doc/html/rfc5737#section-3)
 	flowCmd.Flags().StringVarP(&flowSrc, "src", "s", "192.0.2.1", "Source IP address")      // .1 == port  1
 	flowCmd.Flags().StringVarP(&flowDst, "dst", "d", "192.0.2.2", "Destination IP address") // .2 == port  2
+
+	flowCmd.Flags().Int32VarP(&flowSrcPort, "sport", "", 0, "Source TCP/UDP port")
+	flowCmd.Flags().Int32VarP(&flowDstPort, "dport", "p", 0, "Destination TCP/UDP port")
 
 	flowCmd.Flags().Int64VarP(&flowRate, "rate", "r", 0, "Packet per second rate")
 
@@ -119,8 +124,12 @@ func createFlow() {
 	ipv4.Src().SetValue(flowSrc)
 	ipv4.Dst().SetValue(flowDst)
 
-	tcp.SrcPort().SetValue(5000)
-	tcp.DstPort().SetValue(6000)
+	if flowSrcPort >= 0 {
+		tcp.SrcPort().SetValue(flowSrcPort)
+	}
+	if flowDstPort >= 0 {
+		tcp.DstPort().SetValue(flowDstPort)
+	}
 
 	// Print traffic configuration constructed
 	otgYaml, err := config.ToYaml()
