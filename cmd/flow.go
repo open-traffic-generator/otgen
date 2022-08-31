@@ -28,6 +28,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var flowSrc string // Source IP address
+var flowDst string // Destination IP address
+
 // flowCmd represents the flow command
 var flowCmd = &cobra.Command{
 	Use:   "flow",
@@ -51,6 +54,8 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// flowCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	flowCmd.Flags().StringVarP(&flowSrc, "src", "s", "192.0.2.1", "Source IP address")
+	flowCmd.Flags().StringVarP(&flowDst, "dst", "d", "192.0.2.2", "Destination IP address")
 }
 
 func createFlow() {
@@ -86,8 +91,8 @@ func createFlow() {
 	eth.Dst().SetValue("00:11:22:33:44:55")
 	eth.Src().SetValue("00:11:22:33:44:66")
 
-	ipv4.Src().SetValue("10.1.1.1")
-	ipv4.Dst().SetValue("20.1.1.1")
+	ipv4.Src().SetValue(flowSrc)
+	ipv4.Dst().SetValue(flowDst)
 
 	tcp.SrcPort().SetValue(5000)
 	tcp.DstPort().SetValue(6000)
