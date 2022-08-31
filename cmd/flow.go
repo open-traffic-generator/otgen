@@ -32,6 +32,7 @@ var flowSrcMac string // Source MAC address
 var flowDstMac string // Destination MAC address
 var flowSrc string    // Source IP address
 var flowDst string    // Destination IP address
+var flowRate int64    // Packet per second rate
 
 // flowCmd represents the flow command
 var flowCmd = &cobra.Command{
@@ -64,6 +65,8 @@ func init() {
 	// Default IPs are from IP ranges reserved for documentation (https://datatracker.ietf.org/doc/html/rfc5737#section-3)
 	flowCmd.Flags().StringVarP(&flowSrc, "src", "s", "192.0.2.1", "Source IP address")      // .1 == port  1
 	flowCmd.Flags().StringVarP(&flowDst, "dst", "d", "192.0.2.2", "Destination IP address") // .2 == port  2
+
+	flowCmd.Flags().Int64VarP(&flowRate, "rate", "r", 0, "Packet per second rate")
 }
 
 func createFlow() {
@@ -85,7 +88,9 @@ func createFlow() {
 	// Configure the size of a packet and the number of packets to transmit
 	flow.Size().SetFixed(128)
 	flow.Duration().FixedPackets().SetPackets(1000)
-	flow.Rate().SetPps(100)
+	if flowRate > 0 {
+		flow.Rate().SetPps(flowRate)
+	}
 
 	// Configure flow metric collection
 	flow.Metrics().SetEnable(true)
