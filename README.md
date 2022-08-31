@@ -30,7 +30,8 @@ otgen create
   [--src x.x.x.x]                     # Source IP address
   [--dst x.x.x.x]                     # Destination IP address
   --port N                            # Destination TCP or UDP port
-  --rate N                            # Packet rate in packets per second
+  [--count N]                         # Number of packets to transmit. Use 0 for continous mode. (default 1000)
+  [--rate N]                          # Packet rate in packets per second. If not specified, default rate decision would be left to the traffic engine.
 ```
 
 ### `run`

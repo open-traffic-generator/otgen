@@ -28,11 +28,12 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var flowSrcMac string // Source MAC address
-var flowDstMac string // Destination MAC address
-var flowSrc string    // Source IP address
-var flowDst string    // Destination IP address
-var flowRate int64    // Packet per second rate
+var flowSrcMac string      // Source MAC address
+var flowDstMac string      // Destination MAC address
+var flowSrc string         // Source IP address
+var flowDst string         // Destination IP address
+var flowRate int64         // Packet per second rate
+var flowFixedPackets int32 // Number of packets to transmit
 
 // flowCmd represents the flow command
 var flowCmd = &cobra.Command{
@@ -67,6 +68,11 @@ func init() {
 	flowCmd.Flags().StringVarP(&flowDst, "dst", "d", "192.0.2.2", "Destination IP address") // .2 == port  2
 
 	flowCmd.Flags().Int64VarP(&flowRate, "rate", "r", 0, "Packet per second rate")
+
+	// We use 1000 as a default value for packet count instead of continous mode per OTG spec,
+	// as we want to prevent situations when unsuspecting user end up with non-stopping traffic
+	// if no parameter was specified
+	flowCmd.Flags().Int32VarP(&flowFixedPackets, "count", "c", 1000, "Number of packets to transmit. Use 0 for continous mode.")
 }
 
 func createFlow() {
@@ -87,7 +93,9 @@ func createFlow() {
 
 	// Configure the size of a packet and the number of packets to transmit
 	flow.Size().SetFixed(128)
-	flow.Duration().FixedPackets().SetPackets(1000)
+	if flowFixedPackets > 0 { // If set to 0, no duration would be specified. According to OTG spec, continous mode would be used
+		flow.Duration().FixedPackets().SetPackets(flowFixedPackets)
+	}
 	if flowRate > 0 {
 		flow.Rate().SetPps(flowRate)
 	}
