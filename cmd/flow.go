@@ -70,8 +70,8 @@ func init() {
 	flowCmd.Flags().StringVarP(&flowSrc, "src", "s", "192.0.2.1", "Source IP address")      // .1 == port  1
 	flowCmd.Flags().StringVarP(&flowDst, "dst", "d", "192.0.2.2", "Destination IP address") // .2 == port  2
 
-	flowCmd.Flags().Int32VarP(&flowSrcPort, "sport", "", 0, "Source TCP/UDP port")
-	flowCmd.Flags().Int32VarP(&flowDstPort, "dport", "p", 0, "Destination TCP/UDP port")
+	flowCmd.Flags().Int32VarP(&flowSrcPort, "sport", "", 0, "Source TCP/UDP port. If not specified, an incremental set of source ports would be used for each packet")
+	flowCmd.Flags().Int32VarP(&flowDstPort, "dport", "p", 7, "Destination TCP/UDP port")
 
 	flowCmd.Flags().Int64VarP(&flowRate, "rate", "r", 0, "Packet per second rate")
 
@@ -124,10 +124,13 @@ func createFlow() {
 	ipv4.Src().SetValue(flowSrc)
 	ipv4.Dst().SetValue(flowDst)
 
-	if flowSrcPort >= 0 {
+	if flowSrcPort > 0 {
 		tcp.SrcPort().SetValue(flowSrcPort)
+	} else if flowSrcPort == 0 {
+		// no source port was specified, use incrementing ports
+		tcp.SrcPort().Increment().SetStart(1024).SetStep(7).SetCount(65535 - 1024)
 	}
-	if flowDstPort >= 0 {
+	if flowDstPort > 0 {
 		tcp.DstPort().SetValue(flowDstPort)
 	}
 
