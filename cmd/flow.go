@@ -32,6 +32,7 @@ var flowSrcMac string      // Source MAC address
 var flowDstMac string      // Destination MAC address
 var flowSrc string         // Source IP address
 var flowDst string         // Destination IP address
+var flowProto string       // IP transport protocol
 var flowSrcPort int32      // Source TCP/UDP port
 var flowDstPort int32      // Destination TCP/UDP port
 var flowRate int64         // Packet per second rate
@@ -69,6 +70,9 @@ func init() {
 	// Default IPs are from IP ranges reserved for documentation (https://datatracker.ietf.org/doc/html/rfc5737#section-3)
 	flowCmd.Flags().StringVarP(&flowSrc, "src", "s", "192.0.2.1", "Source IP address")      // .1 == port  1
 	flowCmd.Flags().StringVarP(&flowDst, "dst", "d", "192.0.2.2", "Destination IP address") // .2 == port  2
+
+	// Transport protocol
+	flowCmd.Flags().StringVarP(&flowProto, "proto", "P", "tcp", "IP transport protocol: tcp | udp")
 
 	flowCmd.Flags().Int32VarP(&flowSrcPort, "sport", "", 0, "Source TCP/UDP port. If not specified, an incremental set of source ports would be used for each packet")
 	flowCmd.Flags().Int32VarP(&flowDstPort, "dport", "p", 7, "Destination TCP/UDP port")
@@ -115,23 +119,38 @@ func createFlow() {
 	// Configure the header stack
 	pkt := flow.Packet()
 	eth := pkt.Add().Ethernet()
-	ipv4 := pkt.Add().Ipv4()
-	tcp := pkt.Add().Tcp()
-
 	eth.Src().SetValue(flowSrcMac)
 	eth.Dst().SetValue(flowDstMac)
 
+	ipv4 := pkt.Add().Ipv4()
 	ipv4.Src().SetValue(flowSrc)
 	ipv4.Dst().SetValue(flowDst)
 
-	if flowSrcPort > 0 {
-		tcp.SrcPort().SetValue(flowSrcPort)
-	} else if flowSrcPort == 0 {
-		// no source port was specified, use incrementing ports
-		tcp.SrcPort().Increment().SetStart(1024).SetStep(7).SetCount(65535 - 1024)
-	}
-	if flowDstPort > 0 {
-		tcp.DstPort().SetValue(flowDstPort)
+	switch flowProto {
+	case "tcp":
+		tcp := pkt.Add().Tcp()
+		if flowSrcPort > 0 {
+			tcp.SrcPort().SetValue(flowSrcPort)
+		} else if flowSrcPort == 0 {
+			// no source port was specified, use incrementing ports
+			tcp.SrcPort().Increment().SetStart(1024).SetStep(7).SetCount(65535 - 1024)
+		}
+		if flowDstPort > 0 {
+			tcp.DstPort().SetValue(flowDstPort)
+		}
+	case "udp":
+		udp := pkt.Add().Udp()
+		if flowSrcPort > 0 {
+			udp.SrcPort().SetValue(flowSrcPort)
+		} else if flowSrcPort == 0 {
+			// no source port was specified, use incrementing ports
+			udp.SrcPort().Increment().SetStart(1024).SetStep(7).SetCount(65535 - 1024)
+		}
+		if flowDstPort > 0 {
+			udp.DstPort().SetValue(flowDstPort)
+		}
+	default:
+		log.Fatalf("Unsupported transport protocol: %s", flowProto)
 	}
 
 	// Print traffic configuration constructed
