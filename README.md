@@ -18,7 +18,7 @@ otgen create tcp -s 1.1.1.1 -d 2.2.2.2 -p 80 --rate 1000 | otgen run --metrics f
 
 ### `create`
 
-Create OTG configuration that can be further passed to stdin of otgen run command.
+Create OTG configuration that can be further passed to stdin of `otgen run` command.
 
 ```Shell
 otgen create
@@ -29,7 +29,7 @@ otgen create
   [--dmac xx.xx.xx.xx.xx.xx]          # Destination MAC address
   [--src x.x.x.x]                     # Source IP address
   [--dst x.x.x.x]                     # Destination IP address
-  [--sport N]                         # Source TCP or UDP port. If not specified, an incremental set of source ports would be used for each packet
+  [--sport N]                         # Source TCP or UDP port. If not specified, incrementing source port numbers would be used for new packet
   [--dport N]                         # Destination TCP or UDP port
   [--count N]                         # Number of packets to transmit. Use 0 for continous mode. (default 1000)
   [--rate N]                          # Packet rate in packets per second. If not specified, default rate decision would be left to the traffic engine
