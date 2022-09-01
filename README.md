@@ -29,11 +29,11 @@ otgen create
   [--dmac xx.xx.xx.xx.xx.xx]          # Destination MAC address
   [--src x.x.x.x]                     # Source IP address
   [--dst x.x.x.x]                     # Destination IP address
-  [--sport N]                         # Source TCP or UDP port. If not specified, incrementing source port numbers would be used for new packet
-  [--dport N]                         # Destination TCP or UDP port
+  [--sport N]                         # Source TCP or UDP port. If not specified, incrementing source port numbers would be used for each new packet
+  [--dport N]                         # Destination TCP or UDP port (default 7 - echo protocol)
   [--count N]                         # Number of packets to transmit. Use 0 for continous mode. (default 1000)
   [--rate N]                          # Packet rate in packets per second. If not specified, default rate decision would be left to the traffic engine
-  [--size N]                          # Frame size in bytes. If not specified, default frame size decision would be left to the traffic engine.
+  [--size N]                          # Frame size in bytes. If not specified, default frame size decision would be left to the traffic engine
 ```
 
 ### `run`
