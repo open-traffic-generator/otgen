@@ -43,7 +43,10 @@ var flowFixedSize int32    // Frame size in bytes
 var flowCmd = &cobra.Command{
 	Use:   "flow",
 	Short: "Create OTG flow configuration",
-	Long: `Create OTG flow configuration.
+	Long: `
+Create OTG flow configuration.
+
+For more information, go to https://github.com/open-traffic-generator/otgen
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 		createFlow()
@@ -77,7 +80,7 @@ func init() {
 	flowCmd.Flags().Int32VarP(&flowSrcPort, "sport", "", 0, "Source TCP/UDP port. If not specified, an incremental set of source ports would be used for each packet")
 	flowCmd.Flags().Int32VarP(&flowDstPort, "dport", "p", 7, "Destination TCP/UDP port")
 
-	flowCmd.Flags().Int64VarP(&flowRate, "rate", "r", 0, "Packet per second rate")
+	flowCmd.Flags().Int64VarP(&flowRate, "rate", "r", 0, "Packet per second rate. If not specified, default rate decision would be left to the traffic engine")
 
 	// We use 1000 as a default value for packet count instead of continous mode per OTG spec,
 	// as we want to prevent situations when unsuspecting user end up with non-stopping traffic

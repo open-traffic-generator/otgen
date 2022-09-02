@@ -46,7 +46,8 @@ var xeta = float32(0.0)           // How long to wait before forcing traffic to 
 var runCmd = &cobra.Command{
 	Use:   "run",
 	Short: "Request an OTG API endpoint to run OTG model",
-	Long: `Request an OTG API endpoint to run OTG model.
+	Long: `
+Request an OTG API endpoint to run OTG model.
 
 For more information, go to https://github.com/open-traffic-generator/otgen
 `,

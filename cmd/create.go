@@ -29,7 +29,8 @@ import (
 var createCmd = &cobra.Command{
 	Use:   "create",
 	Short: "Create OTG configuration that can be further passed to stdin of otgen run command",
-	Long: `Create OTG configuration that can be further passed to stdin of otgen run command.
+	Long: `
+Create OTG configuration that can be further passed to stdin of otgen run command.
 
   For more information, go to https://github.com/open-traffic-generator/otgen
 `,

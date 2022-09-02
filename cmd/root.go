@@ -35,7 +35,8 @@ var log = logrus.New()
 var rootCmd = &cobra.Command{
 	Use:   "otgen",
 	Short: "Open Traffic Generator CLI Tool",
-	Long: `Open Traffic Generator CLI Tool.
+	Long: `
+Open Traffic Generator CLI Tool.
 
 For more information, go to https://github.com/open-traffic-generator/otgen
 `,
