@@ -28,9 +28,23 @@ import (
 	"github.com/spf13/cobra"
 )
 
+const (
+	// Default MACs start with "02" to signify locally administered addresses (https://www.rfc-editor.org/rfc/rfc5342#section-2.1)
+	MAC_DEFAULT_SRC = "02:00:00:00:01:aa" // 01 == port 1, aa == otg side (bb == dut side)
+	MAC_DEFAULT_DST = "02:00:00:00:02:aa" // 02 == port 2, aa == otg side (bb == dut side)
+	// Default IPv4s are from IP ranges reserved for documentation (https://datatracker.ietf.org/doc/html/rfc5737#section-3)
+	IPV4_DEFAULT_SRC = "192.0.2.1" // .1 == port  1
+	IPV4_DEFAULT_DST = "192.0.2.2" // .2 == port  2
+	// Default IPv6s are link-local addresses based on default MAC addresses
+	IPV6_DEFAULT_SRC = "fe80::000:00ff:fe00:01aa"
+	IPV6_DEFAULT_DST = "fe80::000:00ff:fe00:02aa"
+)
+
 var flowName string            // Flow name
 var flowSrcMac string          // Source MAC address
 var flowDstMac string          // Destination MAC address
+var flowIPv4 bool              // IP version 4
+var flowIPv6 bool              // IP version 6
 var flowSrc string             // Source IP address
 var flowDst string             // Destination IP address
 var flowProto string           // IP transport protocol
@@ -56,6 +70,18 @@ For more information, go to https://github.com/open-traffic-generator/otgen
 	Run: func(cmd *cobra.Command, args []string) {
 		createFlow()
 	},
+	PreRunE: func(cmd *cobra.Command, args []string) error {
+		if flowIPv6 {
+			flowIPv4 = false
+			if flowSrc == IPV4_DEFAULT_SRC {
+				flowSrc = IPV6_DEFAULT_SRC
+			}
+			if flowDst == IPV4_DEFAULT_DST {
+				flowDst = IPV6_DEFAULT_DST
+			}
+		}
+		return nil
+	},
 }
 
 func init() {
@@ -73,13 +99,15 @@ func init() {
 
 	flowCmd.Flags().StringVarP(&flowName, "name", "n", "f1", "Flow name") // TODO when creating multiple flows, iterrate for the next available flow index
 
-	// Default MACs start with "02" to signify locally administered addresses (https://www.rfc-editor.org/rfc/rfc5342#section-2.1)
-	flowCmd.Flags().StringVarP(&flowSrcMac, "smac", "S", "02:00:00:00:01:aa", "Source MAC address")      // 01 == port 1, aa == otg side (bb == dut side)
-	flowCmd.Flags().StringVarP(&flowDstMac, "dmac", "D", "02:00:00:00:02:aa", "Destination MAC address") // 02 == port 2, aa == otg side (bb == dut side)
+	flowCmd.Flags().StringVarP(&flowSrcMac, "smac", "S", MAC_DEFAULT_SRC, "Source MAC address")
+	flowCmd.Flags().StringVarP(&flowDstMac, "dmac", "D", MAC_DEFAULT_DST, "Destination MAC address")
 
-	// Default IPs are from IP ranges reserved for documentation (https://datatracker.ietf.org/doc/html/rfc5737#section-3)
-	flowCmd.Flags().StringVarP(&flowSrc, "src", "s", "192.0.2.1", "Source IP address")      // .1 == port  1
-	flowCmd.Flags().StringVarP(&flowDst, "dst", "d", "192.0.2.2", "Destination IP address") // .2 == port  2
+	flowCmd.Flags().BoolVarP(&flowIPv4, "ipv4", "4", true, "IP Version 4")
+	flowCmd.Flags().BoolVarP(&flowIPv6, "ipv6", "6", false, "IP Version 6")
+	flowCmd.MarkFlagsMutuallyExclusive("ipv4", "ipv6")
+
+	flowCmd.Flags().StringVarP(&flowSrc, "src", "s", IPV4_DEFAULT_SRC, "Source IP address")
+	flowCmd.Flags().StringVarP(&flowDst, "dst", "d", IPV4_DEFAULT_DST, "Destination IP address")
 
 	// Transport protocol
 	flowCmd.Flags().StringVarP(&flowProto, "proto", "P", "tcp", "IP transport protocol: tcp | udp")
@@ -144,9 +172,15 @@ func createFlow() {
 	eth.Src().SetValue(flowSrcMac)
 	eth.Dst().SetValue(flowDstMac)
 
-	ipv4 := pkt.Add().Ipv4()
-	ipv4.Src().SetValue(flowSrc)
-	ipv4.Dst().SetValue(flowDst)
+	if flowIPv4 {
+		ipv4 := pkt.Add().Ipv4()
+		ipv4.Src().SetValue(flowSrc)
+		ipv4.Dst().SetValue(flowDst)
+	} else if flowIPv6 {
+		ipv6 := pkt.Add().Ipv6()
+		ipv6.Src().SetValue(flowSrc)
+		ipv6.Dst().SetValue(flowDst)
+	}
 
 	switch flowProto {
 	case "tcp":

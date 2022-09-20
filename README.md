@@ -23,7 +23,8 @@ Create OTG configuration that can be further passed to stdin of `otgen run` comm
 ```Shell
 otgen create
   [ flow ]                            # Create OTG flow configuration (default)
-  [ ipv4 | ipv6 ]                     # IP version (default ipv4)
+  [--ipv4 ]                           # IP version 4 (default)
+  [--ipv6 ]                           # IP version 6
   [--name string]                     # Flow name (default f1)
   [--proto icmp | tcp | udp]          # IP transport protocol
   [--smac xx.xx.xx.xx.xx.xx]          # Source MAC address
