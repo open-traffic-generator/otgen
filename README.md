@@ -24,6 +24,7 @@ Create OTG configuration that can be further passed to stdin of `otgen run` comm
 otgen create
   [ flow ]                            # Create OTG flow configuration (default)
   [ ipv4 | ipv6 ]                     # IP version (default ipv4)
+  [--name string]                     # Flow name (default f1)
   [--proto icmp | tcp | udp]          # IP transport protocol
   [--smac xx.xx.xx.xx.xx.xx]          # Source MAC address
   [--dmac xx.xx.xx.xx.xx.xx]          # Destination MAC address

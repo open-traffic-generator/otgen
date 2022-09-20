@@ -28,6 +28,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var flowName string        // Flow name
 var flowSrcMac string      // Source MAC address
 var flowDstMac string      // Destination MAC address
 var flowSrc string         // Source IP address
@@ -66,6 +67,8 @@ func init() {
 	// is called directly, e.g.:
 	// flowCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 
+	flowCmd.Flags().StringVarP(&flowName, "name", "n", "f1", "Flow name") // TODO when creating multiple flows, iterrate for the next available flow index
+
 	// Default MACs start with "02" to signify locally administered addresses (https://www.rfc-editor.org/rfc/rfc5342#section-2.1)
 	flowCmd.Flags().StringVarP(&flowSrcMac, "smac", "S", "02:00:00:00:01:aa", "Source MAC address")      // 01 == port 1, aa == otg side (bb == dut side)
 	flowCmd.Flags().StringVarP(&flowDstMac, "dmac", "D", "02:00:00:00:02:aa", "Destination MAC address") // 02 == port 2, aa == otg side (bb == dut side)
@@ -101,7 +104,7 @@ func createFlow() {
 	p2 := config.Ports().Add().SetName("p2").SetLocation("${OTG_P2_LOCATION}")
 
 	// Configure the flow and set the endpoints
-	flow := config.Flows().Add().SetName("f1")
+	flow := config.Flows().Add().SetName(flowName)
 	flow.TxRx().Port().SetTxName(p1.Name())
 	flow.TxRx().Port().SetRxName(p2.Name())
 
