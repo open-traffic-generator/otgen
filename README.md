@@ -35,6 +35,10 @@ otgen create
   [--count N]                         # Number of packets to transmit. Use 0 for continous mode. (default 1000)
   [--rate N]                          # Packet rate in packets per second. If not specified, default rate decision would be left to the traffic engine
   [--size N]                          # Frame size in bytes. If not specified, default frame size decision would be left to the traffic engine
+  [--loss]                            # Enable loss metrics
+  [--latency]                         # Enable latency metrics
+  [--timestamps]                      # Enable metrics timestamps
+  [--nometrics ]                      # Disable flow metrics
 ```
 
 ### `run`

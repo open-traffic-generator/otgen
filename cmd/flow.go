@@ -28,17 +28,21 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var flowName string        // Flow name
-var flowSrcMac string      // Source MAC address
-var flowDstMac string      // Destination MAC address
-var flowSrc string         // Source IP address
-var flowDst string         // Destination IP address
-var flowProto string       // IP transport protocol
-var flowSrcPort int32      // Source TCP/UDP port
-var flowDstPort int32      // Destination TCP/UDP port
-var flowRate int64         // Packet per second rate
-var flowFixedPackets int32 // Number of packets to transmit
-var flowFixedSize int32    // Frame size in bytes
+var flowName string            // Flow name
+var flowSrcMac string          // Source MAC address
+var flowDstMac string          // Destination MAC address
+var flowSrc string             // Source IP address
+var flowDst string             // Destination IP address
+var flowProto string           // IP transport protocol
+var flowSrcPort int32          // Source TCP/UDP port
+var flowDstPort int32          // Destination TCP/UDP port
+var flowRate int64             // Packet per second rate
+var flowFixedPackets int32     // Number of packets to transmit
+var flowFixedSize int32        // Frame size in bytes
+var flowDisableMetrics bool    // Disable flow metrics
+var flowLossMetrics bool       // Enable loss metrics
+var flowLatencyMetrics bool    // Enable latency metrics
+var flowMetricsTimestamps bool // Enable metrics timestamps
 
 // flowCmd represents the flow command
 var flowCmd = &cobra.Command{
@@ -90,6 +94,13 @@ func init() {
 	// if no parameter was specified
 	flowCmd.Flags().Int32VarP(&flowFixedPackets, "count", "c", 1000, "Number of packets to transmit. Use 0 for continous mode")
 	flowCmd.Flags().Int32VarP(&flowFixedSize, "size", "", 0, "Frame size in bytes. If not specified, the minimum supported by the traffic engine will be used")
+
+	// Metrics
+	flowCmd.Flags().BoolVarP(&flowDisableMetrics, "nometrics", "", false, "Disable flow metrics")
+	flowCmd.Flags().BoolVarP(&flowLossMetrics, "loss", "", false, "Enable loss metrics")
+	flowCmd.Flags().BoolVarP(&flowLatencyMetrics, "latency", "", false, "Enable latency metrics")
+	flowCmd.Flags().BoolVarP(&flowMetricsTimestamps, "timestamps", "", false, "Enable metrics timestamps")
+
 }
 
 func createFlow() {
@@ -120,7 +131,12 @@ func createFlow() {
 	}
 
 	// Configure flow metric collection
-	flow.Metrics().SetEnable(true)
+	flow.Metrics().SetEnable(!flowDisableMetrics)
+	flow.Metrics().SetLoss(flowLossMetrics)
+	if flowLatencyMetrics {
+		flow.Metrics().Latency().SetEnable(flowLatencyMetrics)
+	}
+	flow.Metrics().SetTimestamps(flowMetricsTimestamps)
 
 	// Configure the header stack
 	pkt := flow.Packet()
