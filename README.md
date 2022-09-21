@@ -24,7 +24,19 @@ Use env variables to define values of the following OTG attibutes:
 ```Shell
 OTG_LOCATION_P1                       # location for port "p1" – flow tx port
 OTG_LOCATION_P2                       # location for port "p2" - flow rx port
+OTG_FLOW_SMAC_P1                      # Source MAC address to use for flows with tx on port "p1"
+OTG_FLOW_DMAC_P1                      # Destination MAC address to use for flows with tx on port "p1"
 ```
+
+For example:
+
+```Shell
+export OTG_LOCATION_P1="localhost:5555"     # ixia-c-traffic-engine for p1 (tx) listening on localhost:5555
+export OTG_LOCATION_P2="localhost:5556"     # ixia-c-traffic-engine for p2 (rx) listening on localhost:5556
+export OTG_FLOW_SMAC_P1="02:00:00:00:01:aa"
+export OTG_FLOW_DMAC_P1="02:00:00:00:02:aa"
+```
+
 
 ## Command reference
 
