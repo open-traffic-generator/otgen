@@ -3,6 +3,7 @@ module github.com/open-traffic-generator/otgen
 go 1.17
 
 require (
+	github.com/drone/envsubst v1.0.3
 	github.com/gosuri/uilive v0.0.4
 	github.com/lucasb-eyer/go-colorful v1.2.0
 	github.com/mum4k/termdash v0.17.0

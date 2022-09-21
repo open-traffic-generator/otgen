@@ -17,6 +17,15 @@ otgen transform --metrics flow --counters frames | \
 otgen display --mode table
 ````
 
+## Environmental variables
+
+Use env variables to define values of the following OTG attibutes:
+
+```Shell
+OTG_LOCATION_P1                       # location for port "p1" – flow tx port
+OTG_LOCATION_P2                       # location for port "p2" - flow rx port
+```
+
 ## Command reference
 
 ### `create`

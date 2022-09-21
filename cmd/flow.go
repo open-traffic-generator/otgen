@@ -24,11 +24,15 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/drone/envsubst"
 	"github.com/open-traffic-generator/snappi/gosnappi"
 	"github.com/spf13/cobra"
 )
 
 const (
+	// Env vars for port locations
+	PORT_LOCATION_P1 = "${OTG_LOCATION_P1}"
+	PORT_LOCATION_P2 = "${OTG_LOCATION_P2}"
 	// Default MACs start with "02" to signify locally administered addresses (https://www.rfc-editor.org/rfc/rfc5342#section-2.1)
 	MAC_DEFAULT_SRC = "02:00:00:00:01:aa" // 01 == port 1, aa == otg side (bb == dut side)
 	MAC_DEFAULT_DST = "02:00:00:00:02:aa" // 02 == port 2, aa == otg side (bb == dut side)
@@ -169,8 +173,22 @@ func createFlow() {
 	config := api.NewConfig()
 
 	// Add port locations to the configuration
-	p1 := config.Ports().Add().SetName("p1").SetLocation("${OTG_P1_LOCATION}")
-	p2 := config.Ports().Add().SetName("p2").SetLocation("${OTG_P2_LOCATION}")
+	p1str, err := envsubst.EvalEnv(PORT_LOCATION_P1)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if p1str == "" {
+		p1str = PORT_LOCATION_P1
+	}
+	p1 := config.Ports().Add().SetName("p1").SetLocation(p1str)
+	p2str, err := envsubst.EvalEnv(PORT_LOCATION_P2)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if p2str == "" {
+		p2str = PORT_LOCATION_P2
+	}
+	p2 := config.Ports().Add().SetName("p2").SetLocation(p2str)
 
 	// Configure the flow and set the endpoints
 	flow := config.Flows().Add().SetName(flowName)
