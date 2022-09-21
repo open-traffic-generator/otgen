@@ -11,7 +11,10 @@ The idea behind `otgen` is to leverage shell pipe capabilities to break OTG API 
 The pipe workflow on `otgen` looks the following:
 
 ```Shell
-otgen create flow -s 1.1.1.1 -d 2.2.2.2 -p 80 --rate 1000 | otgen run --metrics flow | otgen transform --metrics flow --counters frames | otgen display --mode table
+otgen create flow -s 1.1.1.1 -d 2.2.2.2 -p 80 --rate 1000 | \
+otgen run --metrics flow | \
+otgen transform --metrics flow --counters frames | \
+otgen display --mode table
 ````
 
 ## Command reference
@@ -23,9 +26,9 @@ Create OTG configuration that can be further passed to stdin of `otgen run` comm
 ```Shell
 otgen create
   [ flow ]                            # Create OTG flow configuration (default)
+  [--name string]                     # Flow name (default f1)
   [--ipv4 ]                           # IP version 4 (default)
   [--ipv6 ]                           # IP version 6
-  [--name string]                     # Flow name (default f1)
   [--proto icmp | tcp | udp]          # IP transport protocol
   [--smac xx.xx.xx.xx.xx.xx]          # Source MAC address
   [--dmac xx.xx.xx.xx.xx.xx]          # Destination MAC address
@@ -37,7 +40,7 @@ otgen create
   [--rate N]                          # Packet rate in packets per second. If not specified, default rate decision would be left to the traffic engine
   [--size N]                          # Frame size in bytes. If not specified, default frame size decision would be left to the traffic engine
   [--loss]                            # Enable loss metrics
-  [--latency]                         # Enable latency metrics
+  [--latency sf | ct]                 # Enable latency metrics: sf for store_forward | ct for cut_through
   [--timestamps]                      # Enable metrics timestamps
   [--nometrics ]                      # Disable flow metrics
 ```

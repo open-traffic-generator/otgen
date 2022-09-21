@@ -38,6 +38,10 @@ const (
 	// Default IPv6s are link-local addresses based on default MAC addresses
 	IPV6_DEFAULT_SRC = "fe80::000:00ff:fe00:01aa"
 	IPV6_DEFAULT_DST = "fe80::000:00ff:fe00:02aa"
+	// Latency modes
+	LATENCY_SF      = "sf"      // store_forward
+	LATENCY_CT      = "ct"      // cut_through
+	LATENCY_DISABLE = "disable" // disable
 )
 
 var flowName string            // Flow name
@@ -55,7 +59,7 @@ var flowFixedPackets int32     // Number of packets to transmit
 var flowFixedSize int32        // Frame size in bytes
 var flowDisableMetrics bool    // Disable flow metrics
 var flowLossMetrics bool       // Enable loss metrics
-var flowLatencyMetrics bool    // Enable latency metrics
+var flowLatencyMetrics string  // Enable latency metrics mode
 var flowMetricsTimestamps bool // Enable metrics timestamps
 
 // flowCmd represents the flow command
@@ -80,6 +84,14 @@ For more information, go to https://github.com/open-traffic-generator/otgen
 				flowDst = IPV6_DEFAULT_DST
 			}
 		}
+		switch flowLatencyMetrics {
+		case LATENCY_SF:
+		case LATENCY_CT:
+		case LATENCY_DISABLE:
+		default:
+			log.Fatalf("Unsupported latency mode requested: %s", flowLatencyMetrics)
+		}
+
 		return nil
 	},
 }
@@ -126,7 +138,7 @@ func init() {
 	// Metrics
 	flowCmd.Flags().BoolVarP(&flowDisableMetrics, "nometrics", "", false, "Disable flow metrics")
 	flowCmd.Flags().BoolVarP(&flowLossMetrics, "loss", "", false, "Enable loss metrics")
-	flowCmd.Flags().BoolVarP(&flowLatencyMetrics, "latency", "", false, "Enable latency metrics")
+	flowCmd.Flags().StringVarP(&flowLatencyMetrics, "latency", "", LATENCY_DISABLE, "Enable latency metrics: \"sf\" for store_forward | \"ct\" for cut_through")
 	flowCmd.Flags().BoolVarP(&flowMetricsTimestamps, "timestamps", "", false, "Enable metrics timestamps")
 
 }
@@ -161,8 +173,13 @@ func createFlow() {
 	// Configure flow metric collection
 	flow.Metrics().SetEnable(!flowDisableMetrics)
 	flow.Metrics().SetLoss(flowLossMetrics)
-	if flowLatencyMetrics {
-		flow.Metrics().Latency().SetEnable(flowLatencyMetrics)
+	switch flowLatencyMetrics {
+	case LATENCY_SF:
+		flow.Metrics().Latency().SetEnable(true)
+		flow.Metrics().Latency().SetMode(gosnappi.FlowLatencyMetricsMode.STORE_FORWARD)
+	case LATENCY_CT:
+		flow.Metrics().Latency().SetEnable(true)
+		flow.Metrics().Latency().SetMode(gosnappi.FlowLatencyMetricsMode.CUT_THROUGH)
 	}
 	flow.Metrics().SetTimestamps(flowMetricsTimestamps)
 
