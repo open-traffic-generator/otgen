@@ -38,6 +38,10 @@ const (
 	// Default IPv6s are link-local addresses based on default MAC addresses
 	IPV6_DEFAULT_SRC = "fe80::000:00ff:fe00:01aa"
 	IPV6_DEFAULT_DST = "fe80::000:00ff:fe00:02aa"
+	// Transport protocols
+	PROTO_ICMP = "icmp"
+	PROTO_TCP  = "tcp"
+	PROTO_UDP  = "udp"
 	// Latency modes
 	LATENCY_SF      = "sf"      // store_forward
 	LATENCY_CT      = "ct"      // cut_through
@@ -84,6 +88,20 @@ For more information, go to https://github.com/open-traffic-generator/otgen
 				flowDst = IPV6_DEFAULT_DST
 			}
 		}
+		switch flowProto {
+		case PROTO_ICMP:
+		case "1":
+			flowProto = PROTO_ICMP
+		case PROTO_TCP:
+		case "6":
+			flowProto = PROTO_TCP
+		case PROTO_UDP:
+		case "17":
+			flowProto = PROTO_UDP
+		default:
+			log.Fatalf("Unsupported transport protocol: %s", flowProto)
+		}
+
 		switch flowLatencyMetrics {
 		case LATENCY_SF:
 		case LATENCY_CT:
@@ -122,7 +140,7 @@ func init() {
 	flowCmd.Flags().StringVarP(&flowDst, "dst", "d", IPV4_DEFAULT_DST, "Destination IP address")
 
 	// Transport protocol
-	flowCmd.Flags().StringVarP(&flowProto, "proto", "P", "tcp", "IP transport protocol: tcp | udp")
+	flowCmd.Flags().StringVarP(&flowProto, "proto", "P", PROTO_TCP, "IP transport protocol: \"icmp\" | \"tcp\" | \"udp\"")
 
 	flowCmd.Flags().Int32VarP(&flowSrcPort, "sport", "", 0, "Source TCP/UDP port. If not specified, an incremental set of source ports would be used for each packet")
 	flowCmd.Flags().Int32VarP(&flowDstPort, "dport", "p", 7, "Destination TCP/UDP port")
@@ -200,7 +218,13 @@ func createFlow() {
 	}
 
 	switch flowProto {
-	case "tcp":
+	case PROTO_ICMP:
+		if flowIPv4 {
+			pkt.Add().Icmp()
+		} else if flowIPv6 {
+			pkt.Add().Icmpv6()
+		}
+	case PROTO_TCP:
 		tcp := pkt.Add().Tcp()
 		if flowSrcPort > 0 {
 			tcp.SrcPort().SetValue(flowSrcPort)
@@ -211,7 +235,7 @@ func createFlow() {
 		if flowDstPort > 0 {
 			tcp.DstPort().SetValue(flowDstPort)
 		}
-	case "udp":
+	case PROTO_UDP:
 		udp := pkt.Add().Udp()
 		if flowSrcPort > 0 {
 			udp.SrcPort().SetValue(flowSrcPort)
@@ -222,8 +246,6 @@ func createFlow() {
 		if flowDstPort > 0 {
 			udp.DstPort().SetValue(flowDstPort)
 		}
-	default:
-		log.Fatalf("Unsupported transport protocol: %s", flowProto)
 	}
 
 	// Print traffic configuration constructed
