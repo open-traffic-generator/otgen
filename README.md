@@ -26,6 +26,10 @@ OTG_LOCATION_P1                       # location for port "p1" – flow tx port
 OTG_LOCATION_P2                       # location for port "p2" - flow rx port
 OTG_FLOW_SMAC_P1                      # Source MAC address to use for flows with tx on port "p1"
 OTG_FLOW_DMAC_P1                      # Destination MAC address to use for flows with tx on port "p1"
+OTG_FLOW_SRC_IPV4                     # Source IPv4 address to use for flows
+OTG_FLOW_DST_IPV4                     # Destination IPv4 address to use for flows
+OTG_FLOW_SRC_IPV6                     # Source IPv6 address to use for flows
+OTG_FLOW_DST_IPV6                     # Destination IPv6 address to use for flows
 ```
 
 For example:
@@ -35,6 +39,10 @@ export OTG_LOCATION_P1="localhost:5555"     # ixia-c-traffic-engine for p1 (tx) 
 export OTG_LOCATION_P2="localhost:5556"     # ixia-c-traffic-engine for p2 (rx) listening on localhost:5556
 export OTG_FLOW_SMAC_P1="02:00:00:00:01:aa"
 export OTG_FLOW_DMAC_P1="02:00:00:00:02:aa"
+export OTG_FLOW_SRC_IPV4="192.0.2.1"
+export OTG_FLOW_DST_IPV4="192.0.2.2"
+export OTG_FLOW_SRC_IPV6="fe80::000:00ff:fe00:01aa"
+export OTG_FLOW_DST_IPV6="fe80::000:00ff:fe00:02aa"
 ```
 
 

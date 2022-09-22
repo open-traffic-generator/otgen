@@ -39,9 +39,15 @@ const (
 	// Default MACs start with "02" to signify locally administered addresses (https://www.rfc-editor.org/rfc/rfc5342#section-2.1)
 	MAC_DEFAULT_SRC = "02:00:00:00:01:aa" // 01 == port 1, aa == otg side (bb == dut side)
 	MAC_DEFAULT_DST = "02:00:00:00:02:aa" // 02 == port 2, aa == otg side (bb == dut side)
+	// Env vars for IPv4 addresses
+	IPV4_SRC = "${OTG_FLOW_SRC_IPV4}"
+	IPV4_DST = "${OTG_FLOW_DST_IPV4}"
 	// Default IPv4s are from IP ranges reserved for documentation (https://datatracker.ietf.org/doc/html/rfc5737#section-3)
 	IPV4_DEFAULT_SRC = "192.0.2.1" // .1 == port  1
 	IPV4_DEFAULT_DST = "192.0.2.2" // .2 == port  2
+	// Env vars for IPv6 addresses
+	IPV6_SRC = "${OTG_FLOW_SRC_IPV6}"
+	IPV6_DST = "${OTG_FLOW_DST_IPV6}"
 	// Default IPv6s are link-local addresses based on default MAC addresses
 	IPV6_DEFAULT_SRC = "fe80::000:00ff:fe00:01aa"
 	IPV6_DEFAULT_DST = "fe80::000:00ff:fe00:02aa"
@@ -88,11 +94,11 @@ For more information, go to https://github.com/open-traffic-generator/otgen
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		if flowIPv6 {
 			flowIPv4 = false
-			if flowSrc == IPV4_DEFAULT_SRC {
-				flowSrc = IPV6_DEFAULT_SRC
+			if flowSrc == envSubstOrDefault(IPV4_SRC, IPV4_DEFAULT_SRC) {
+				flowSrc = envSubstOrDefault(IPV6_SRC, IPV6_DEFAULT_SRC)
 			}
-			if flowDst == IPV4_DEFAULT_DST {
-				flowDst = IPV6_DEFAULT_DST
+			if flowDst == envSubstOrDefault(IPV4_DST, IPV4_DEFAULT_DST) {
+				flowDst = envSubstOrDefault(IPV6_DST, IPV6_DEFAULT_DST)
 			}
 		}
 		switch flowProto {
@@ -143,8 +149,8 @@ func init() {
 	flowCmd.Flags().BoolVarP(&flowIPv6, "ipv6", "6", false, "IP Version 6")
 	flowCmd.MarkFlagsMutuallyExclusive("ipv4", "ipv6")
 
-	flowCmd.Flags().StringVarP(&flowSrc, "src", "s", IPV4_DEFAULT_SRC, "Source IP address")
-	flowCmd.Flags().StringVarP(&flowDst, "dst", "d", IPV4_DEFAULT_DST, "Destination IP address")
+	flowCmd.Flags().StringVarP(&flowSrc, "src", "s", envSubstOrDefault(IPV4_SRC, IPV4_DEFAULT_SRC), "Source IP address")
+	flowCmd.Flags().StringVarP(&flowDst, "dst", "d", envSubstOrDefault(IPV4_DST, IPV4_DEFAULT_DST), "Destination IP address")
 
 	// Transport protocol
 	flowCmd.Flags().StringVarP(&flowProto, "proto", "P", PROTO_TCP, "IP transport protocol: \"icmp\" | \"tcp\" | \"udp\"")
