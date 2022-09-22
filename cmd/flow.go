@@ -33,9 +33,14 @@ const (
 	// Env vars for port locations
 	PORT_LOCATION_P1 = "${OTG_LOCATION_P1}"
 	PORT_LOCATION_P2 = "${OTG_LOCATION_P2}"
+	// Test port names
+	PORT_NAME_P1 = "p1"
+	PORT_NAME_P2 = "p2"
 	// Env vars for MAC addresses
 	MAC_SRC_P1 = "${OTG_FLOW_SMAC_P1}"
 	MAC_DST_P1 = "${OTG_FLOW_DMAC_P1}"
+	MAC_SRC_P2 = "${OTG_FLOW_SMAC_P2}"
+	MAC_DST_P2 = "${OTG_FLOW_DMAC_P2}"
 	// Default MACs start with "02" to signify locally administered addresses (https://www.rfc-editor.org/rfc/rfc5342#section-2.1)
 	MAC_DEFAULT_SRC = "02:00:00:00:01:aa" // 01 == port 1, aa == otg side (bb == dut side)
 	MAC_DEFAULT_DST = "02:00:00:00:02:aa" // 02 == port 2, aa == otg side (bb == dut side)
@@ -62,6 +67,8 @@ const (
 )
 
 var flowName string            // Flow name
+var flowTxPort string          // Test port name for Tx
+var flowRxPort string          // Test port name for Rx
 var flowSrcMac string          // Source MAC address
 var flowDstMac string          // Destination MAC address
 var flowIPv4 bool              // IP version 4
@@ -92,6 +99,26 @@ For more information, go to https://github.com/open-traffic-generator/otgen
 		createFlow()
 	},
 	PreRunE: func(cmd *cobra.Command, args []string) error {
+		// set default MACs depending on Tx test port
+		switch flowTxPort {
+		case PORT_NAME_P1:
+			if flowSrcMac == "" {
+				flowSrcMac = envSubstOrDefault(MAC_SRC_P1, MAC_DEFAULT_SRC)
+			}
+			if flowDstMac == "" {
+				flowDstMac = envSubstOrDefault(MAC_DST_P1, MAC_DEFAULT_DST)
+			}
+		case PORT_NAME_P2: // swap default SRC and DST MACs
+			if flowSrcMac == "" {
+				flowSrcMac = envSubstOrDefault(MAC_SRC_P2, MAC_DEFAULT_DST)
+			}
+			if flowDstMac == "" {
+				flowDstMac = envSubstOrDefault(MAC_DST_P2, MAC_DEFAULT_SRC)
+			}
+		default:
+			log.Fatalf("Unsupported test port name: %s", flowTxPort)
+		}
+
 		if flowIPv6 {
 			flowIPv4 = false
 			if flowSrc == envSubstOrDefault(IPV4_SRC, IPV4_DEFAULT_SRC) {
@@ -142,8 +169,11 @@ func init() {
 
 	flowCmd.Flags().StringVarP(&flowName, "name", "n", "f1", "Flow name") // TODO when creating multiple flows, iterrate for the next available flow index
 
-	flowCmd.Flags().StringVarP(&flowSrcMac, "smac", "S", envSubstOrDefault(MAC_SRC_P1, MAC_DEFAULT_SRC), "Source MAC address")
-	flowCmd.Flags().StringVarP(&flowDstMac, "dmac", "D", envSubstOrDefault(MAC_DST_P1, MAC_DEFAULT_DST), "Destination MAC address")
+	flowCmd.Flags().StringVarP(&flowTxPort, "tx", "", PORT_NAME_P1, "Test port name for Tx")
+	flowCmd.Flags().StringVarP(&flowRxPort, "rx", "", PORT_NAME_P2, "Test port name for Rx")
+
+	flowCmd.Flags().StringVarP(&flowSrcMac, "smac", "S", "", fmt.Sprintf("Source MAC address (default \"%s\")", MAC_DEFAULT_SRC))
+	flowCmd.Flags().StringVarP(&flowDstMac, "dmac", "D", "", fmt.Sprintf("Destination MAC address (default \"%s\")", MAC_DEFAULT_DST))
 
 	flowCmd.Flags().BoolVarP(&flowIPv4, "ipv4", "4", true, "IP Version 4")
 	flowCmd.Flags().BoolVarP(&flowIPv6, "ipv6", "6", false, "IP Version 6")
@@ -182,13 +212,13 @@ func createFlow() {
 	config := api.NewConfig()
 
 	// Add port locations to the configuration
-	p1 := config.Ports().Add().SetName("p1").SetLocation(envSubstOrDefault(PORT_LOCATION_P1, PORT_LOCATION_P1))
-	p2 := config.Ports().Add().SetName("p2").SetLocation(envSubstOrDefault(PORT_LOCATION_P2, PORT_LOCATION_P2))
+	config.Ports().Add().SetName(PORT_NAME_P1).SetLocation(envSubstOrDefault(PORT_LOCATION_P1, PORT_LOCATION_P1))
+	config.Ports().Add().SetName(PORT_NAME_P2).SetLocation(envSubstOrDefault(PORT_LOCATION_P2, PORT_LOCATION_P2))
 
 	// Configure the flow and set the endpoints
 	flow := config.Flows().Add().SetName(flowName)
-	flow.TxRx().Port().SetTxName(p1.Name())
-	flow.TxRx().Port().SetRxName(p2.Name())
+	flow.TxRx().Port().SetTxName(flowTxPort)
+	flow.TxRx().Port().SetRxName(flowRxPort)
 
 	// Configure the size of a packet and the number of packets to transmit
 	if flowFixedSize > 0 {
