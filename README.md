@@ -60,8 +60,7 @@ Create a new OTG configuration item that can be further passed to stdin of `otge
 The `add` variant of the command first reads an OTG configuraton from stdin.
 
 ```Shell
-otgen create
-  [ flow ]                            # Create OTG flow configuration (default)
+otgen create flow                     # Create OTG flow configuration (default)
   [--name string]                     # Flow name (default f1)
   [--tx portname]                     # Test port name for TX (default p1) 
   [--rx portname]                     # Test port name for RX (default p2) 
