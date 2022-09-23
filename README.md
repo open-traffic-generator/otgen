@@ -20,7 +20,7 @@ otgen display --mode table
 
 ## Environmental variables
 
-Use env variables to define values of the following OTG attibutes:
+Use env variables to define values of the following OTG attributes:
 
 ```Shell
 OTG_LOCATION_P1                       # location for test port "p1"
@@ -57,7 +57,7 @@ export OTG_FLOW_DST_IPV6="fe80::000:00ff:fe00:02aa"
 ### `create` and `add`
 
 Create a new OTG configuration item that can be further passed to stdin of `otgen run` command.
-The `add` variant of the command first reads an OTG configuraton from stdin.
+The `add` variant of the command first reads an OTG configuration from stdin.
 
 ```Shell
 otgen create flow                     # Create OTG flow configuration (default)
@@ -73,7 +73,7 @@ otgen create flow                     # Create OTG flow configuration (default)
   [--dst x.x.x.x]                     # Destination IP address
   [--sport N]                         # Source TCP or UDP port. If not specified, incrementing source port numbers would be used for each new packet
   [--dport N]                         # Destination TCP or UDP port (default 7 - echo protocol)
-  [--count N]                         # Number of packets to transmit. Use 0 for continous mode. (default 1000)
+  [--count N]                         # Number of packets to transmit. Use 0 for continuous mode. (default 1000)
   [--rate N]                          # Packet rate in packets per second. If not specified, default rate decision would be left to the traffic engine
   [--size N]                          # Frame size in bytes. If not specified, default frame size decision would be left to the traffic engine
   [--loss]                            # Enable loss metrics
