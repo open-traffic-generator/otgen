@@ -18,7 +18,8 @@ cobra-cli add version --license mit --author "Open Traffic Generator"
 cobra-cli add transform --license mit --author "Open Traffic Generator"
 cobra-cli add display --license mit --author "Open Traffic Generator"
 cobra-cli add create --license mit --author "Open Traffic Generator"
-cobra-cli add flow --license mit --author "Open Traffic Generator" # subcommand for create
+cobra-cli add add --license mit --author "Open Traffic Generator"
+cobra-cli add flow --license mit --author "Open Traffic Generator" # subcommand for create and add
 ````
 
 ### GoReleaser

@@ -12,6 +12,7 @@ The pipe workflow on `otgen` looks the following:
 
 ```Shell
 otgen create flow -s 1.1.1.1 -d 2.2.2.2 -p 80 --rate 1000 | \
+otgen add flow -n f2 -s 2.2.2.2 -d 1.1.1.1 --sport 80 --dport 1024 --tx p2 --rx p1 | \
 otgen run --metrics flow | \
 otgen transform --metrics flow --counters frames | \
 otgen display --mode table
@@ -51,12 +52,12 @@ export OTG_FLOW_SRC_IPV6="fe80::000:00ff:fe00:01aa"
 export OTG_FLOW_DST_IPV6="fe80::000:00ff:fe00:02aa"
 ```
 
-
 ## Command reference
 
-### `create`
+### `create` and `add`
 
-Create OTG configuration that can be further passed to stdin of `otgen run` command.
+Create a new OTG configuration item that can be further passed to stdin of `otgen run` command.
+The `add` variant of the command first reads an OTG configuraton from stdin.
 
 ```Shell
 otgen create

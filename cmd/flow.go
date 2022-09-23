@@ -23,6 +23,8 @@ package cmd
 
 import (
 	"fmt"
+	"io"
+	"os"
 
 	"github.com/drone/envsubst"
 	"github.com/open-traffic-generator/snappi/gosnappi"
@@ -89,14 +91,18 @@ var flowMetricsTimestamps bool // Enable metrics timestamps
 // flowCmd represents the flow command
 var flowCmd = &cobra.Command{
 	Use:   "flow",
-	Short: "Create OTG flow configuration",
+	Short: "New OTG flow configuration",
 	Long: `
-Create OTG flow configuration.
+New OTG flow configuration.
 
 For more information, go to https://github.com/open-traffic-generator/otgen
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		createFlow()
+		if cmd.Parent().Use == createCmd.Use {
+			createFlow()
+		} else {
+			addFlow()
+		}
 	},
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		// set default MACs depending on Tx test port
@@ -155,7 +161,6 @@ For more information, go to https://github.com/open-traffic-generator/otgen
 }
 
 func init() {
-	createCmd.AddCommand(flowCmd)
 
 	// Here you will define your flags and configuration settings.
 
@@ -202,18 +207,38 @@ func init() {
 	flowCmd.Flags().StringVarP(&flowLatencyMetrics, "latency", "", LATENCY_DISABLE, "Enable latency metrics: \"sf\" for store_forward | \"ct\" for cut_through")
 	flowCmd.Flags().BoolVarP(&flowMetricsTimestamps, "timestamps", "", false, "Enable metrics timestamps")
 
+	var flowCmdCreateCopy = *flowCmd
+	var flowCmdAddCopy = *flowCmd
+
+	createCmd.AddCommand(&flowCmdCreateCopy)
+	addCmd.AddCommand(&flowCmdAddCopy)
 }
 
 func createFlow() {
-	// Create a new API handle to make API calls against a traffic generator
+	// Create a new API handle
 	api := gosnappi.NewApi()
 
-	// Create a new traffic configuration that will be set on traffic generator
-	config := api.NewConfig()
+	// Create a flow
+	newFlow(api.NewConfig())
+}
 
+func addFlow() {
+	// Create a new API handle
+	api := gosnappi.NewApi()
+
+	// Read pre-existing traffic configuration from STDIN and then create a flow
+	newFlow(readOtgStdin(api))
+}
+
+func newFlow(config gosnappi.Config) {
 	// Add port locations to the configuration
-	config.Ports().Add().SetName(PORT_NAME_P1).SetLocation(envSubstOrDefault(PORT_LOCATION_P1, PORT_LOCATION_P1))
-	config.Ports().Add().SetName(PORT_NAME_P2).SetLocation(envSubstOrDefault(PORT_LOCATION_P2, PORT_LOCATION_P2))
+	if !otgConfigHasPort(config, PORT_NAME_P1) {
+		config.Ports().Add().SetName(PORT_NAME_P1).SetLocation(envSubstOrDefault(PORT_LOCATION_P1, PORT_LOCATION_P1))
+	}
+
+	if !otgConfigHasPort(config, PORT_NAME_P2) {
+		config.Ports().Add().SetName(PORT_NAME_P2).SetLocation(envSubstOrDefault(PORT_LOCATION_P2, PORT_LOCATION_P2))
+	}
 
 	// Configure the flow and set the endpoints
 	flow := config.Flows().Add().SetName(flowName)
@@ -299,6 +324,22 @@ func createFlow() {
 	fmt.Print(otgYaml)
 }
 
+func readOtgStdin(api gosnappi.GosnappiApi) gosnappi.Config {
+	otgbytes, err := io.ReadAll(os.Stdin)
+	if err != nil {
+		log.Fatal(err)
+	}
+	otg := string(otgbytes)
+
+	config := api.NewConfig()
+	err = config.FromYaml(otg) // Thus YAML is assumed by default, and as a superset of JSON, it works for JSON format too
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return config
+}
+
 // Substitute e with env variable of such name, if it is not empty, otherwise use default vaule d
 func envSubstOrDefault(e string, d string) string {
 	s, err := envsubst.EvalEnv(e)
@@ -309,4 +350,13 @@ func envSubstOrDefault(e string, d string) string {
 		s = d
 	}
 	return s
+}
+
+func otgConfigHasPort(config gosnappi.Config, name string) bool {
+	for _, p := range config.Ports().Items() {
+		if p.Name() == name {
+			return true
+		}
+	}
+	return false
 }
