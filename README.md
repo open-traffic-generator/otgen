@@ -20,7 +20,14 @@ otgen display --mode table
 
 ## Environmental variables
 
-Use env variables to define values of the following OTG attributes:
+Values of certain parameters in the OTG configuration depend on the specifics of the traffic generator deployment. These values would typically stay the same between multiple `otgen` executions as long as the traffic generator deployment stays the same. For example:
+ 
+   * `location` string of the OTG `ports` depends on which specific port instance we want to use, and how OTG Controller can connect to that instance
+   * MAC addresses for OTG `flows` change only after re-deployment of containerized traffic generator components, and don't change in hardware setups
+
+For such parameters it may be more convinient to change default values used by `otgen` instead of specifying them as command-line arguments.
+
+Environmental variables is one of the mechanisms used by `otgen` to control default values. See the full list of ENV vars recognized by `otgen` to redefine default values.
 
 ```Shell
 OTG_LOCATION_P1                       # location for test port "p1"
@@ -51,6 +58,8 @@ export OTG_FLOW_DST_IPV4="192.0.2.2"
 export OTG_FLOW_SRC_IPV6="fe80::000:00ff:fe00:01aa"
 export OTG_FLOW_DST_IPV6="fe80::000:00ff:fe00:02aa"
 ```
+
+Note, default values displayed via built-in `--help` output reflect currently set environmental variables values.
 
 ## Command reference
 
