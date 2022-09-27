@@ -18,50 +18,9 @@ otgen transform --metrics flow --counters frames | \
 otgen display --mode table
 ````
 
-## Environmental variables
+Port locations are read from `ENV:OTG_LOCATION_P1` and `ENV:OTG_LOCATION_P2`.
 
-Values of certain parameters in the OTG configuration depend on specifics of the traffic generator deployment. These values would typically stay the same between multiple `otgen` runs as long as the deployment stays the same. 
-
-For example:
- 
-   * `location` string of the OTG `ports` section depends on traffic generator ports available for the test
-   * MAC addresses for OTG `flows` change only after re-deployment of containerized traffic generator components, and don't change in hardware setups
-
-For such parameters it may be more convinient to change default values used by `otgen` instead of specifying them as command-line arguments.
-
-Environmental variables is one of the mechanisms used by `otgen` to control default values. See below the full list of the variables recognized by `otgen` to redefine default values.
-
-```Shell
-OTG_LOCATION_P1                       # location for test port "p1"
-OTG_LOCATION_P2                       # location for test port "p2"
-
-OTG_FLOW_SMAC_P1                      # Source MAC address to use for flows with Tx on port "p1"
-OTG_FLOW_DMAC_P1                      # Destination MAC address to use for flows with Tx on port "p1"
-OTG_FLOW_SMAC_P2                      # Source MAC address to use for flows with Tx on port "p2"
-OTG_FLOW_DMAC_P2                      # Destination MAC address to use for flows with Tx on port "p2"
-
-OTG_FLOW_SRC_IPV4                     # Source IPv4 address to use for flows
-OTG_FLOW_DST_IPV4                     # Destination IPv4 address to use for flows
-OTG_FLOW_SRC_IPV6                     # Source IPv6 address to use for flows
-OTG_FLOW_DST_IPV6                     # Destination IPv6 address to use for flows
-```
-
-These are the values `otgen` uses if no variables or arguments were provided.
-
-```Shell
-export OTG_LOCATION_P1="localhost:5555"     # ixia-c-traffic-engine for p1 (tx) listening on localhost:5555
-export OTG_LOCATION_P2="localhost:5556"     # ixia-c-traffic-engine for p2 (rx) listening on localhost:5556
-export OTG_FLOW_SMAC_P1="02:00:00:00:01:aa"
-export OTG_FLOW_DMAC_P1="02:00:00:00:02:aa"
-export OTG_FLOW_SMAC_P2="02:00:00:00:02:aa"
-export OTG_FLOW_DMAC_P2="02:00:00:00:01:aa"
-export OTG_FLOW_SRC_IPV4="192.0.2.1"
-export OTG_FLOW_DST_IPV4="192.0.2.2"
-export OTG_FLOW_SRC_IPV6="fe80::000:00ff:fe00:01aa"
-export OTG_FLOW_DST_IPV6="fe80::000:00ff:fe00:02aa"
-```
-
-Note, default values displayed via built-in `--help` output reflect currently set environmental variables values.
+See [Environmental variables](#environmental-variables) section for more options.
 
 ## Command reference
 
@@ -150,3 +109,48 @@ To check `otgen` version you have, use
 ```Shell
 otgen version
 ````
+
+## Environmental variables
+
+Values of certain parameters in the OTG configuration depend on specifics of the traffic generator deployment. These values would typically stay the same between multiple `otgen` runs as long as the deployment stays the same. 
+
+For example:
+ 
+   * `location` string of the OTG `ports` section depends on traffic generator ports available for the test
+   * MAC addresses for OTG `flows` change only after re-deployment of containerized traffic generator components, and don't change in hardware setups
+
+For such parameters it may be more convinient to change default values used by `otgen` instead of specifying them as command-line arguments.
+
+Environmental variables is one of the mechanisms used by `otgen` to control default values. See below the full list of the variables recognized by `otgen` to redefine default values.
+
+```Shell
+OTG_LOCATION_P1                       # location for test port "p1"
+OTG_LOCATION_P2                       # location for test port "p2"
+
+OTG_FLOW_SMAC_P1                      # Source MAC address to use for flows with Tx on port "p1"
+OTG_FLOW_DMAC_P1                      # Destination MAC address to use for flows with Tx on port "p1"
+OTG_FLOW_SMAC_P2                      # Source MAC address to use for flows with Tx on port "p2"
+OTG_FLOW_DMAC_P2                      # Destination MAC address to use for flows with Tx on port "p2"
+
+OTG_FLOW_SRC_IPV4                     # Source IPv4 address to use for flows
+OTG_FLOW_DST_IPV4                     # Destination IPv4 address to use for flows
+OTG_FLOW_SRC_IPV6                     # Source IPv6 address to use for flows
+OTG_FLOW_DST_IPV6                     # Destination IPv6 address to use for flows
+```
+
+These are the values `otgen` uses if no variables or arguments were provided.
+
+```Shell
+export OTG_LOCATION_P1="localhost:5555"     # ixia-c-traffic-engine for p1 (tx) listening on localhost:5555
+export OTG_LOCATION_P2="localhost:5556"     # ixia-c-traffic-engine for p2 (rx) listening on localhost:5556
+export OTG_FLOW_SMAC_P1="02:00:00:00:01:aa"
+export OTG_FLOW_DMAC_P1="02:00:00:00:02:aa"
+export OTG_FLOW_SMAC_P2="02:00:00:00:02:aa"
+export OTG_FLOW_DMAC_P2="02:00:00:00:01:aa"
+export OTG_FLOW_SRC_IPV4="192.0.2.1"
+export OTG_FLOW_DST_IPV4="192.0.2.2"
+export OTG_FLOW_SRC_IPV6="fe80::000:00ff:fe00:01aa"
+export OTG_FLOW_DST_IPV6="fe80::000:00ff:fe00:02aa"
+```
+
+Note, default values displayed via built-in `--help` output reflect currently set environmental variables values.
