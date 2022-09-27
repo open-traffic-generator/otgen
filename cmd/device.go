@@ -31,6 +31,7 @@ import (
 var deviceName string   // Device name
 var deviceTxPort string // Test port name for Tx
 var deviceRxPort string // Test port name for Rx
+var deviceMac string    // Device ethernet MAC
 
 // deviceCmd represents the device command
 var deviceCmd = &cobra.Command{
@@ -52,7 +53,13 @@ For more information, go to https://github.com/open-traffic-generator/otgen
 		// set default MACs depending on Tx test port
 		switch deviceTxPort {
 		case PORT_NAME_P1:
+			if deviceMac == "" {
+				deviceMac = envSubstOrDefault(MAC_SRC_P1, MAC_DEFAULT_SRC)
+			}
 		case PORT_NAME_P2: // swap default SRC and DST MACs
+			if deviceMac == "" {
+				deviceMac = envSubstOrDefault(MAC_SRC_P2, MAC_DEFAULT_DST)
+			}
 		default:
 			log.Fatalf("Unsupported test port name: %s", deviceTxPort)
 		}
@@ -78,6 +85,8 @@ func init() {
 
 	deviceCmd.Flags().StringVarP(&deviceTxPort, "tx", "", PORT_NAME_P1, "Test port name for Tx")
 	deviceCmd.Flags().StringVarP(&deviceRxPort, "rx", "", PORT_NAME_P2, "Test port name for Rx")
+
+	deviceCmd.Flags().StringVarP(&deviceMac, "mac", "M", "", fmt.Sprintf("Device MAC address (default \"%s\")", MAC_DEFAULT_SRC))
 
 	var deviceCmdCreateCopy = *deviceCmd
 	var deviceCmdAddCopy = *deviceCmd
@@ -108,7 +117,11 @@ func newDevice(config gosnappi.Config) {
 	otgGetOrCreatePort(config, PORT_NAME_P1, PORT_LOCATION_P1)
 	otgGetOrCreatePort(config, PORT_NAME_P2, PORT_LOCATION_P2)
 
-	config.Devices().Add().SetName(deviceName)
+	// Device name
+	device := config.Devices().Add().SetName(deviceName)
+
+	// Device ethernets
+	device.Ethernets().Add().SetName(deviceName + ".eth[0]").SetMac(deviceMac)
 
 	// Print traffic configuration constructed
 	otgYaml, err := config.ToYaml()

@@ -55,6 +55,9 @@ otgen create flow                     # Create OTG flow configuration
 ```Shell
 otgen create device                   # Create OTG device configuration
   [--name string]                     # Device name (default otg1)
+  [--tx portname]                     # Test port name for TX (default p1) 
+  [--rx portname]                     # Test port name for RX (default p2) 
+  [--mac xx.xx.xx.xx.xx.xx]           # Device MAC address
 ```
 
 
