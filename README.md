@@ -58,6 +58,9 @@ otgen create device                   # Create OTG device configuration
   [--tx portname]                     # Test port name for TX (default p1) 
   [--rx portname]                     # Test port name for RX (default p2) 
   [--mac xx.xx.xx.xx.xx.xx]           # Device MAC address
+  [--ip x.x.x.x]                      # Device IP address
+  [--gw x.x.x.x]                      # Device default gateway
+  [--prefix nn]                       # Device network prefix
 ```
 
 

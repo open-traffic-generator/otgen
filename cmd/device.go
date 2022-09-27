@@ -28,10 +28,13 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var deviceName string   // Device name
-var deviceTxPort string // Test port name for Tx
-var deviceRxPort string // Test port name for Rx
-var deviceMac string    // Device ethernet MAC
+var deviceName string    // Device name
+var deviceTxPort string  // Test port name for Tx
+var deviceRxPort string  // Test port name for Rx
+var deviceMac string     // Device ethernet MAC
+var deviceIPv4 string    // Device IPv4 address
+var deviceGWv4 string    // Device IPv4 default gateway
+var devicePrefixv4 int32 // Device IPv4 network prefix
 
 // deviceCmd represents the device command
 var deviceCmd = &cobra.Command{
@@ -87,6 +90,9 @@ func init() {
 	deviceCmd.Flags().StringVarP(&deviceRxPort, "rx", "", PORT_NAME_P2, "Test port name for Rx")
 
 	deviceCmd.Flags().StringVarP(&deviceMac, "mac", "M", "", fmt.Sprintf("Device MAC address (default \"%s\")", MAC_DEFAULT_SRC))
+	deviceCmd.Flags().StringVarP(&deviceIPv4, "ip", "I", IPV4_DEFAULT_SRC, "Device IP address") // TODO consider IP/prefix format
+	deviceCmd.Flags().StringVarP(&deviceGWv4, "gw", "G", IPV4_DEFAULT_GW, "Device default gateway")
+	deviceCmd.Flags().Int32VarP(&devicePrefixv4, "prefix", "P", IPV4_DEFAULT_PREFIX, "Device network prefix")
 
 	var deviceCmdCreateCopy = *deviceCmd
 	var deviceCmdAddCopy = *deviceCmd
@@ -121,7 +127,18 @@ func newDevice(config gosnappi.Config) {
 	device := config.Devices().Add().SetName(deviceName)
 
 	// Device ethernets
-	device.Ethernets().Add().SetName(deviceName + ".eth[0]").SetMac(deviceMac)
+	deviceEth := device.Ethernets().Add().
+		SetName(deviceName + ".eth[0]").
+		SetMac(deviceMac)
+
+	deviceEth.Connection().
+		SetPortName(deviceTxPort)
+
+	deviceEth.Ipv4Addresses().Add().
+		SetName(deviceEth.Name() + ".ipv4[0]").
+		SetAddress(deviceIPv4).
+		SetGateway(deviceGWv4).
+		SetPrefix(devicePrefixv4)
 
 	// Print traffic configuration constructed
 	otgYaml, err := config.ToYaml()

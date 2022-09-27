@@ -29,18 +29,6 @@ import (
 )
 
 const (
-	// Env vars for IPv4 addresses
-	IPV4_SRC = "${OTG_FLOW_SRC_IPV4}"
-	IPV4_DST = "${OTG_FLOW_DST_IPV4}"
-	// Default IPv4s are from IP ranges reserved for documentation (https://datatracker.ietf.org/doc/html/rfc5737#section-3)
-	IPV4_DEFAULT_SRC = "192.0.2.1" // .1 == port  1
-	IPV4_DEFAULT_DST = "192.0.2.2" // .2 == port  2
-	// Env vars for IPv6 addresses
-	IPV6_SRC = "${OTG_FLOW_SRC_IPV6}"
-	IPV6_DST = "${OTG_FLOW_DST_IPV6}"
-	// Default IPv6s are link-local addresses based on default MAC addresses
-	IPV6_DEFAULT_SRC = "fe80::000:00ff:fe00:01aa"
-	IPV6_DEFAULT_DST = "fe80::000:00ff:fe00:02aa"
 	// Transport protocols
 	PROTO_ICMP = "icmp"
 	PROTO_TCP  = "tcp"
