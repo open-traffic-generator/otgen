@@ -218,13 +218,8 @@ func addFlow() {
 
 func newFlow(config gosnappi.Config) {
 	// Add port locations to the configuration
-	if !otgConfigHasPort(config, PORT_NAME_P1) {
-		config.Ports().Add().SetName(PORT_NAME_P1).SetLocation(envSubstOrDefault(PORT_LOCATION_P1, PORT_LOCATION_P1))
-	}
-
-	if !otgConfigHasPort(config, PORT_NAME_P2) {
-		config.Ports().Add().SetName(PORT_NAME_P2).SetLocation(envSubstOrDefault(PORT_LOCATION_P2, PORT_LOCATION_P2))
-	}
+	otgGetOrCreatePort(config, PORT_NAME_P1, PORT_LOCATION_P1)
+	otgGetOrCreatePort(config, PORT_NAME_P2, PORT_LOCATION_P2)
 
 	// Configure the flow and set the endpoints
 	flow := config.Flows().Add().SetName(flowName)

@@ -105,13 +105,8 @@ func addDevice() {
 
 func newDevice(config gosnappi.Config) {
 	// Add port locations to the configuration
-	if !otgConfigHasPort(config, PORT_NAME_P1) {
-		config.Ports().Add().SetName(PORT_NAME_P1).SetLocation(envSubstOrDefault(PORT_LOCATION_P1, PORT_LOCATION_P1))
-	}
-
-	if !otgConfigHasPort(config, PORT_NAME_P2) {
-		config.Ports().Add().SetName(PORT_NAME_P2).SetLocation(envSubstOrDefault(PORT_LOCATION_P2, PORT_LOCATION_P2))
-	}
+	otgGetOrCreatePort(config, PORT_NAME_P1, PORT_LOCATION_P1)
+	otgGetOrCreatePort(config, PORT_NAME_P2, PORT_LOCATION_P2)
 
 	config.Devices().Add().SetName(deviceName)
 
