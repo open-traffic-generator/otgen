@@ -20,14 +20,16 @@ otgen display --mode table
 
 ## Environmental variables
 
-Values of certain parameters in the OTG configuration depend on the specifics of the traffic generator deployment. These values would typically stay the same between multiple `otgen` executions as long as the traffic generator deployment stays the same. For example:
+Values of certain parameters in the OTG configuration depend on specifics of the traffic generator deployment. These values would typically stay the same between multiple `otgen` runs as long as the deployment stays the same. 
+
+For example:
  
-   * `location` string of the OTG `ports` depends on which specific port instance we want to use, and how OTG Controller can connect to that instance
+   * `location` string of the OTG `ports` section depends on traffic generator ports available for the test
    * MAC addresses for OTG `flows` change only after re-deployment of containerized traffic generator components, and don't change in hardware setups
 
 For such parameters it may be more convinient to change default values used by `otgen` instead of specifying them as command-line arguments.
 
-Environmental variables is one of the mechanisms used by `otgen` to control default values. See the full list of ENV vars recognized by `otgen` to redefine default values.
+Environmental variables is one of the mechanisms used by `otgen` to control default values. See below the full list of the variables recognized by `otgen` to redefine default values.
 
 ```Shell
 OTG_LOCATION_P1                       # location for test port "p1"
@@ -44,7 +46,7 @@ OTG_FLOW_SRC_IPV6                     # Source IPv6 address to use for flows
 OTG_FLOW_DST_IPV6                     # Destination IPv6 address to use for flows
 ```
 
-For example:
+These are the values `otgen` uses if no variables or arguments were provided.
 
 ```Shell
 export OTG_LOCATION_P1="localhost:5555"     # ixia-c-traffic-engine for p1 (tx) listening on localhost:5555
