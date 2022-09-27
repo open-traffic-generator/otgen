@@ -28,6 +28,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var deviceName string   // Device name
+var deviceTxPort string // Test port name for Tx
+var deviceRxPort string // Test port name for Rx
+
 // deviceCmd represents the device command
 var deviceCmd = &cobra.Command{
 	Use:   "device",
@@ -45,6 +49,14 @@ For more information, go to https://github.com/open-traffic-generator/otgen
 		}
 	},
 	PreRunE: func(cmd *cobra.Command, args []string) error {
+		// set default MACs depending on Tx test port
+		switch deviceTxPort {
+		case PORT_NAME_P1:
+		case PORT_NAME_P2: // swap default SRC and DST MACs
+		default:
+			log.Fatalf("Unsupported test port name: %s", deviceTxPort)
+		}
+
 		return nil
 	},
 }
@@ -61,6 +73,11 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// deviceCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+
+	deviceCmd.Flags().StringVarP(&deviceName, "name", "n", "otg1", "Device name") // TODO when creating multiple devices, iterrate for the next available device index
+
+	deviceCmd.Flags().StringVarP(&deviceTxPort, "tx", "", PORT_NAME_P1, "Test port name for Tx")
+	deviceCmd.Flags().StringVarP(&deviceRxPort, "rx", "", PORT_NAME_P2, "Test port name for Rx")
 
 	var deviceCmdCreateCopy = *deviceCmd
 	var deviceCmdAddCopy = *deviceCmd
@@ -87,6 +104,17 @@ func addDevice() {
 }
 
 func newDevice(config gosnappi.Config) {
+	// Add port locations to the configuration
+	if !otgConfigHasPort(config, PORT_NAME_P1) {
+		config.Ports().Add().SetName(PORT_NAME_P1).SetLocation(envSubstOrDefault(PORT_LOCATION_P1, PORT_LOCATION_P1))
+	}
+
+	if !otgConfigHasPort(config, PORT_NAME_P2) {
+		config.Ports().Add().SetName(PORT_NAME_P2).SetLocation(envSubstOrDefault(PORT_LOCATION_P2, PORT_LOCATION_P2))
+	}
+
+	config.Devices().Add().SetName(deviceName)
+
 	// Print traffic configuration constructed
 	otgYaml, err := config.ToYaml()
 	if err != nil {
