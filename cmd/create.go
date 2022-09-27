@@ -22,6 +22,10 @@ THE SOFTWARE.
 package cmd
 
 import (
+	"io"
+	"os"
+
+	"github.com/drone/envsubst"
 	"github.com/open-traffic-generator/snappi/gosnappi"
 	"github.com/spf13/cobra"
 )
@@ -72,6 +76,22 @@ func init() {
 	// createCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
+func readOtgStdin(api gosnappi.GosnappiApi) gosnappi.Config {
+	otgbytes, err := io.ReadAll(os.Stdin)
+	if err != nil {
+		log.Fatal(err)
+	}
+	otg := string(otgbytes)
+
+	config := api.NewConfig()
+	err = config.FromYaml(otg) // Thus YAML is assumed by default, and as a superset of JSON, it works for JSON format too
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return config
+}
+
 func otgConfigHasPort(config gosnappi.Config, name string) bool {
 	for _, p := range config.Ports().Items() {
 		if p.Name() == name {
@@ -90,4 +110,16 @@ func otgGetOrCreatePort(config gosnappi.Config, name string, location string) go
 	p := config.Ports().Add().SetName(name)
 	p.SetLocation(envSubstOrDefault(location, location))
 	return p
+}
+
+// Substitute e with env variable of such name, if it is not empty, otherwise use default vaule d
+func envSubstOrDefault(e string, d string) string {
+	s, err := envsubst.EvalEnv(e)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if s == "" {
+		s = d
+	}
+	return s
 }
