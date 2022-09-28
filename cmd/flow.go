@@ -92,6 +92,20 @@ For more information, go to https://github.com/open-traffic-generator/otgen
 			if flowDstMac == "" {
 				flowDstMac = envSubstOrDefault(MAC_DST_P2, MAC_DEFAULT_SRC)
 			}
+		case DEVICE_NAME_1: // currently only a single-ethernet devices are supported
+			if flowSrcMac == "" {
+				flowSrcMac = envSubstOrDefault(MAC_SRC_P1, MAC_DEFAULT_SRC)
+			}
+			if flowDstMac == "" {
+				flowDstMac = envSubstOrDefault(MAC_DST_P1, MAC_DEFAULT_DST)
+			}
+		case DEVICE_NAME_2: // currently only a single-ethernet devices are supported
+			if flowSrcMac == "" {
+				flowSrcMac = envSubstOrDefault(MAC_SRC_P2, MAC_DEFAULT_DST)
+			}
+			if flowDstMac == "" {
+				flowDstMac = envSubstOrDefault(MAC_DST_P2, MAC_DEFAULT_SRC)
+			}
 		default:
 			log.Fatalf("Unsupported test port name: %s", flowTxPort)
 		}
@@ -208,8 +222,18 @@ func newFlow(config gosnappi.Config) {
 
 	// Configure the flow and set the endpoints
 	flow := config.Flows().Add().SetName(flowName)
-	flow.TxRx().Port().SetTxName(flowTxPort)
-	flow.TxRx().Port().SetRxName(flowRxPort)
+	switch flowTxPort {
+	case DEVICE_NAME_1:
+		flow.TxRx().Device().SetTxNames([]string{DEVICE_NAME_1 + ".eth[0]"})
+	default:
+		flow.TxRx().Port().SetTxName(flowTxPort)
+	}
+	switch flowRxPort {
+	case DEVICE_NAME_2:
+		flow.TxRx().Device().SetRxNames([]string{DEVICE_NAME_2 + ".eth[0]"})
+	default:
+		flow.TxRx().Port().SetRxName(flowRxPort)
+	}
 
 	// Configure the size of a packet and the number of packets to transmit
 	if flowFixedSize > 0 {

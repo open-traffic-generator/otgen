@@ -37,6 +37,9 @@ const (
 	// Test port names
 	PORT_NAME_P1 = "p1"
 	PORT_NAME_P2 = "p2"
+	// OTG device names
+	DEVICE_NAME_1 = "otg1"
+	DEVICE_NAME_2 = "otg2"
 	// Env vars for MAC addresses
 	MAC_SRC_P1 = "${OTG_FLOW_SMAC_P1}"
 	MAC_DST_P1 = "${OTG_FLOW_DMAC_P1}"

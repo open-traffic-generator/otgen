@@ -83,7 +83,7 @@ func init() {
 	// is called directly, e.g.:
 	// deviceCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 
-	deviceCmd.Flags().StringVarP(&deviceName, "name", "n", "otg1", "Device name") // TODO when creating multiple devices, iterrate for the next available device index
+	deviceCmd.Flags().StringVarP(&deviceName, "name", "n", DEVICE_NAME_1, "Device name") // TODO when creating multiple devices, iterrate for the next available device index
 
 	deviceCmd.Flags().StringVarP(&devicePort, "port", "p", PORT_NAME_P1, "Test port name")
 
