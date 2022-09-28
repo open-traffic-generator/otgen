@@ -29,8 +29,7 @@ import (
 )
 
 var deviceName string    // Device name
-var deviceTxPort string  // Test port name for Tx
-var deviceRxPort string  // Test port name for Rx
+var devicePort string    // Test port name
 var deviceMac string     // Device ethernet MAC
 var deviceIPv4 string    // Device IPv4 address
 var deviceGWv4 string    // Device IPv4 default gateway
@@ -54,7 +53,7 @@ For more information, go to https://github.com/open-traffic-generator/otgen
 	},
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		// set default MACs depending on Tx test port
-		switch deviceTxPort {
+		switch devicePort {
 		case PORT_NAME_P1:
 			if deviceMac == "" {
 				deviceMac = envSubstOrDefault(MAC_SRC_P1, MAC_DEFAULT_SRC)
@@ -64,7 +63,7 @@ For more information, go to https://github.com/open-traffic-generator/otgen
 				deviceMac = envSubstOrDefault(MAC_SRC_P2, MAC_DEFAULT_DST)
 			}
 		default:
-			log.Fatalf("Unsupported test port name: %s", deviceTxPort)
+			log.Fatalf("Unsupported test port name: %s", devicePort)
 		}
 
 		return nil
@@ -86,11 +85,10 @@ func init() {
 
 	deviceCmd.Flags().StringVarP(&deviceName, "name", "n", "otg1", "Device name") // TODO when creating multiple devices, iterrate for the next available device index
 
-	deviceCmd.Flags().StringVarP(&deviceTxPort, "tx", "", PORT_NAME_P1, "Test port name for Tx")
-	deviceCmd.Flags().StringVarP(&deviceRxPort, "rx", "", PORT_NAME_P2, "Test port name for Rx")
+	deviceCmd.Flags().StringVarP(&devicePort, "port", "p", PORT_NAME_P1, "Test port name")
 
 	deviceCmd.Flags().StringVarP(&deviceMac, "mac", "M", "", fmt.Sprintf("Device MAC address (default \"%s\")", MAC_DEFAULT_SRC))
-	deviceCmd.Flags().StringVarP(&deviceIPv4, "ip", "I", IPV4_DEFAULT_SRC, "Device IP address") // TODO consider IP/prefix format
+	deviceCmd.Flags().StringVarP(&deviceIPv4, "ip", "I", IPV4_DEFAULT_SRC, "Device IP address") // TODO consider IP/prefix format: split(a, "/")
 	deviceCmd.Flags().StringVarP(&deviceGWv4, "gw", "G", IPV4_DEFAULT_GW, "Device default gateway")
 	deviceCmd.Flags().Int32VarP(&devicePrefixv4, "prefix", "P", IPV4_DEFAULT_PREFIX, "Device network prefix")
 
@@ -131,8 +129,9 @@ func newDevice(config gosnappi.Config) {
 		SetName(deviceName + ".eth[0]").
 		SetMac(deviceMac)
 
-	deviceEth.Connection().
-		SetPortName(deviceTxPort)
+	// Connection is not yes available, tested with Ixia-c 0.0.1-3383
+	//deviceEth.Connection().SetPortName(devicePort)
+	deviceEth.SetPortName(devicePort)
 
 	deviceEth.Ipv4Addresses().Add().
 		SetName(deviceEth.Name() + ".ipv4[0]").
