@@ -78,13 +78,6 @@ For more information, go to https://github.com/open-traffic-generator/otgen
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		// set default MACs depending on Tx test port
 		switch flowTxPort {
-		case PORT_NAME_P1:
-			if flowSrcMac == "" {
-				flowSrcMac = envSubstOrDefault(MAC_SRC_P1, MAC_DEFAULT_SRC)
-			}
-			if flowDstMac == "" {
-				flowDstMac = envSubstOrDefault(MAC_DST_P1, MAC_DEFAULT_DST)
-			}
 		case PORT_NAME_P2: // swap default SRC and DST MACs
 			if flowSrcMac == "" {
 				flowSrcMac = envSubstOrDefault(MAC_SRC_P2, MAC_DEFAULT_DST)
@@ -92,22 +85,13 @@ For more information, go to https://github.com/open-traffic-generator/otgen
 			if flowDstMac == "" {
 				flowDstMac = envSubstOrDefault(MAC_DST_P2, MAC_DEFAULT_SRC)
 			}
-		case DEVICE_NAME_1: // currently only a single-ethernet devices are supported
+		default: // assume p1
 			if flowSrcMac == "" {
 				flowSrcMac = envSubstOrDefault(MAC_SRC_P1, MAC_DEFAULT_SRC)
 			}
 			if flowDstMac == "" {
 				flowDstMac = envSubstOrDefault(MAC_DST_P1, MAC_DEFAULT_DST)
 			}
-		case DEVICE_NAME_2: // currently only a single-ethernet devices are supported
-			if flowSrcMac == "" {
-				flowSrcMac = envSubstOrDefault(MAC_SRC_P2, MAC_DEFAULT_DST)
-			}
-			if flowDstMac == "" {
-				flowDstMac = envSubstOrDefault(MAC_DST_P2, MAC_DEFAULT_SRC)
-			}
-		default:
-			log.Fatalf("Unsupported test port name: %s", flowTxPort)
 		}
 
 		if flowIPv6 {
@@ -220,20 +204,8 @@ func newFlow(config gosnappi.Config) {
 	otgGetOrCreatePort(config, PORT_NAME_P1, PORT_LOCATION_P1)
 	otgGetOrCreatePort(config, PORT_NAME_P2, PORT_LOCATION_P2)
 
-	// Configure the flow and set the endpoints
+	// Configure the flow name
 	flow := config.Flows().Add().SetName(flowName)
-	switch flowTxPort {
-	case DEVICE_NAME_1:
-		flow.TxRx().Device().SetTxNames([]string{DEVICE_NAME_1 + ".eth[0]"})
-	default:
-		flow.TxRx().Port().SetTxName(flowTxPort)
-	}
-	switch flowRxPort {
-	case DEVICE_NAME_2:
-		flow.TxRx().Device().SetRxNames([]string{DEVICE_NAME_2 + ".eth[0]"})
-	default:
-		flow.TxRx().Port().SetRxName(flowRxPort)
-	}
 
 	// Configure the size of a packet and the number of packets to transmit
 	if flowFixedSize > 0 {
@@ -262,8 +234,35 @@ func newFlow(config gosnappi.Config) {
 	// Configure the header stack
 	pkt := flow.Packet()
 	eth := pkt.Add().Ethernet()
-	eth.Src().SetValue(flowSrcMac)
-	eth.Dst().SetValue(flowDstMac)
+
+	// Set the endpoints
+	deviceTx := otgGetDevice(config, flowTxPort) // currently only single-ethernet devices are supported
+	if deviceTx != nil {
+		flow.TxRx().Device().SetTxNames([]string{deviceTx.Ethernets().Items()[0].Name()})
+		eth.Src().SetValue(deviceTx.Ethernets().Items()[0].Mac())
+	} else {
+		portTx := otgGetPort(config, flowTxPort)
+		if portTx != nil {
+			flow.TxRx().Port().SetTxName(portTx.Name())
+			eth.Src().SetValue(flowSrcMac)
+		} else {
+			log.Fatalf("Non-existent Tx port name: %s", flowTxPort)
+		}
+	}
+
+	deviceRx := otgGetDevice(config, flowRxPort) // currently only single-ethernet devices are supported
+	if deviceRx != nil {
+		flow.TxRx().Device().SetRxNames([]string{deviceRx.Ethernets().Items()[0].Name()})
+		eth.Dst().SetValue(deviceRx.Ethernets().Items()[0].Mac()) // TODO this is a stub - use ARP instead
+	} else {
+		portRx := otgGetPort(config, flowRxPort)
+		if portRx != nil {
+			flow.TxRx().Port().SetRxName(portRx.Name())
+			eth.Dst().SetValue(flowDstMac)
+		} else {
+			log.Fatalf("Non-existent Rx port name: %s", flowRxPort)
+		}
+	}
 
 	if flowIPv4 {
 		ipv4 := pkt.Add().Ipv4()

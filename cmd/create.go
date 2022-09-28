@@ -119,6 +119,15 @@ func otgConfigHasPort(config gosnappi.Config, name string) bool {
 	return false
 }
 
+func otgGetPort(config gosnappi.Config, name string) gosnappi.Port {
+	for _, p := range config.Ports().Items() {
+		if p.Name() == name {
+			return p
+		}
+	}
+	return nil
+}
+
 func otgGetOrCreatePort(config gosnappi.Config, name string, location string) gosnappi.Port {
 	for _, p := range config.Ports().Items() {
 		if p.Name() == name {
@@ -128,6 +137,15 @@ func otgGetOrCreatePort(config gosnappi.Config, name string, location string) go
 	p := config.Ports().Add().SetName(name)
 	p.SetLocation(envSubstOrDefault(location, location))
 	return p
+}
+
+func otgGetDevice(config gosnappi.Config, name string) gosnappi.Device {
+	for _, d := range config.Devices().Items() {
+		if d.Name() == name {
+			return d
+		}
+	}
+	return nil
 }
 
 // Substitute e with env variable of such name, if it is not empty, otherwise use default vaule d
