@@ -38,8 +38,8 @@ const (
 	PORT_LOCATION_TX = "localhost:5555"
 	PORT_LOCATION_RX = "localhost:5556"
 	// Test port names
-	PORT_NAME_P1 = "p1"
-	PORT_NAME_P2 = "p2"
+	PORT_NAME_TX = "p1"
+	PORT_NAME_RX = "p2"
 	// OTG device names
 	DEVICE_NAME_1 = "otg1"
 	DEVICE_NAME_2 = "otg2"

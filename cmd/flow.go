@@ -81,7 +81,7 @@ For more information, go to https://github.com/open-traffic-generator/otgen
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		// set default MACs depending on Tx test port
 		switch flowTxPort {
-		case PORT_NAME_P2: // swap default SRC and DST MACs
+		case PORT_NAME_RX: // swap default SRC and DST MACs. TODO use --swap parameter instead to do this explicitly
 			if flowSrcMac == "" {
 				flowSrcMac = envSubstOrDefault(MAC_SRC_P2, MAC_DEFAULT_DST)
 			}
@@ -154,8 +154,8 @@ func init() {
 
 	flowCmd.Flags().StringVarP(&flowName, "name", "n", "f1", "Flow name") // TODO when creating multiple flows, iterrate for the next available flow index
 
-	flowCmd.Flags().StringVarP(&flowTxPort, "tx", "", PORT_NAME_P1, "Test port name for Tx")
-	flowCmd.Flags().StringVarP(&flowRxPort, "rx", "", PORT_NAME_P2, "Test port name for Rx")
+	flowCmd.Flags().StringVarP(&flowTxPort, "tx", "", PORT_NAME_TX, "Test port name for Tx")
+	flowCmd.Flags().StringVarP(&flowRxPort, "rx", "", PORT_NAME_RX, "Test port name for Rx")
 	flowCmd.Flags().StringVarP(&flowTxLocation, "txl", "", "", fmt.Sprintf("Test port location string for Tx (default \"%s\")", PORT_LOCATION_TX))
 	flowCmd.Flags().StringVarP(&flowRxLocation, "rxl", "", "", fmt.Sprintf("Test port location string for Rx (default \"%s\")", PORT_LOCATION_RX))
 

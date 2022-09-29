@@ -56,7 +56,7 @@ For more information, go to https://github.com/open-traffic-generator/otgen
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		// set default MACs depending on Tx test port
 		switch devicePort {
-		case PORT_NAME_P2: // swap default SRC and DST MACs
+		case PORT_NAME_RX: // swap default SRC and DST MACs. TODO use --swap parameter instead to do this explicitly
 			if deviceMac == "" {
 				deviceMac = envSubstOrDefault(MAC_SRC_P2, MAC_DEFAULT_DST)
 			}
@@ -89,7 +89,7 @@ func init() {
 
 	deviceCmd.Flags().StringVarP(&deviceName, "name", "n", DEVICE_NAME_1, "Device name") // TODO when creating multiple devices, iterrate for the next available device index
 
-	deviceCmd.Flags().StringVarP(&devicePort, "port", "p", PORT_NAME_P1, "Test port name")
+	deviceCmd.Flags().StringVarP(&devicePort, "port", "p", PORT_NAME_TX, "Test port name")
 	deviceCmd.Flags().StringVarP(&devicePortLocation, "location", "l", "", fmt.Sprintf("Test port location string (default \"%s\")", PORT_LOCATION_TX))
 
 	deviceCmd.Flags().StringVarP(&deviceMac, "mac", "M", "", fmt.Sprintf("Device MAC address (default \"%s\")", MAC_DEFAULT_SRC))
