@@ -24,6 +24,7 @@ package cmd
 import (
 	"io"
 	"os"
+	"strings"
 
 	"github.com/drone/envsubst"
 	"github.com/open-traffic-generator/snappi/gosnappi"
@@ -32,8 +33,7 @@ import (
 
 const (
 	// Env vars for port locations
-	PORT_LOCATION_P1 = "${OTG_LOCATION_P1}"
-	PORT_LOCATION_P2 = "${OTG_LOCATION_P2}"
+	PORT_LOCATION_TEMPLATE = "${OTG_LOCATION_%NAME%}"
 	// Test port names
 	PORT_NAME_P1 = "p1"
 	PORT_NAME_P2 = "p2"
@@ -158,4 +158,9 @@ func envSubstOrDefault(e string, d string) string {
 		s = d
 	}
 	return s
+}
+
+// Produce a string from a "template" by replacing "%placeholder%" with "text"
+func stringFromTemplate(template string, placeholder string, text string) string {
+	return strings.Replace(template, "%"+placeholder+"%", text, -1)
 }

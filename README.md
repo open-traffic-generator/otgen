@@ -18,7 +18,7 @@ otgen transform --metrics flow --counters frames | \
 otgen display --mode table
 ````
 
-Port locations are read from `ENV:OTG_LOCATION_P1` and `ENV:OTG_LOCATION_P2`.
+Port locations are read from `ENV:OTG_LOCATION_%PORT_NAME%` where `%PORT_NAME%` is replaced by name of the test port provided via `--tx | --rx`.
 
 See [Environmental variables](#environmental-variables) section for more options.
 
@@ -135,6 +135,7 @@ For such parameters it may be more convinient to change default values used by `
 Environmental variables is one of the mechanisms used by `otgen` to control default values. See below the full list of the variables recognized by `otgen` to redefine default values.
 
 ```Shell
+OTG_LOCATION_%PORT_NAME%              # location for test port with a name PORT_NAME, for example:
 OTG_LOCATION_P1                       # location for test port "p1"
 OTG_LOCATION_P2                       # location for test port "p2"
 

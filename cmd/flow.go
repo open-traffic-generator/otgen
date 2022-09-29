@@ -23,6 +23,7 @@ package cmd
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/open-traffic-generator/snappi/gosnappi"
 	"github.com/spf13/cobra"
@@ -200,10 +201,6 @@ func addFlow() {
 }
 
 func newFlow(config gosnappi.Config) {
-	// Add port locations to the configuration
-	otgGetOrCreatePort(config, PORT_NAME_P1, PORT_LOCATION_P1)
-	otgGetOrCreatePort(config, PORT_NAME_P2, PORT_LOCATION_P2)
-
 	// Configure the flow name
 	flow := config.Flows().Add().SetName(flowName)
 
@@ -241,7 +238,7 @@ func newFlow(config gosnappi.Config) {
 		flow.TxRx().Device().SetTxNames([]string{deviceTx.Ethernets().Items()[0].Name()})
 		eth.Src().SetValue(deviceTx.Ethernets().Items()[0].Mac())
 	} else {
-		portTx := otgGetPort(config, flowTxPort)
+		portTx := otgGetOrCreatePort(config, flowTxPort, stringFromTemplate(PORT_LOCATION_TEMPLATE, "NAME", strings.ToUpper(flowTxPort)))
 		if portTx != nil {
 			flow.TxRx().Port().SetTxName(portTx.Name())
 			eth.Src().SetValue(flowSrcMac)
@@ -255,7 +252,7 @@ func newFlow(config gosnappi.Config) {
 		flow.TxRx().Device().SetRxNames([]string{deviceRx.Ethernets().Items()[0].Name()})
 		eth.Dst().SetValue(deviceRx.Ethernets().Items()[0].Mac()) // TODO this is a stub - use ARP instead
 	} else {
-		portRx := otgGetPort(config, flowRxPort)
+		portRx := otgGetOrCreatePort(config, flowRxPort, stringFromTemplate(PORT_LOCATION_TEMPLATE, "NAME", strings.ToUpper(flowRxPort)))
 		if portRx != nil {
 			flow.TxRx().Port().SetRxName(portRx.Name())
 			eth.Dst().SetValue(flowDstMac)

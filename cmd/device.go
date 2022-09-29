@@ -23,6 +23,7 @@ package cmd
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/open-traffic-generator/snappi/gosnappi"
 	"github.com/spf13/cobra"
@@ -54,16 +55,14 @@ For more information, go to https://github.com/open-traffic-generator/otgen
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		// set default MACs depending on Tx test port
 		switch devicePort {
-		case PORT_NAME_P1:
-			if deviceMac == "" {
-				deviceMac = envSubstOrDefault(MAC_SRC_P1, MAC_DEFAULT_SRC)
-			}
 		case PORT_NAME_P2: // swap default SRC and DST MACs
 			if deviceMac == "" {
 				deviceMac = envSubstOrDefault(MAC_SRC_P2, MAC_DEFAULT_DST)
 			}
-		default:
-			log.Fatalf("Unsupported test port name: %s", devicePort)
+		default: // assume p1
+			if deviceMac == "" {
+				deviceMac = envSubstOrDefault(MAC_SRC_P1, MAC_DEFAULT_SRC)
+			}
 		}
 
 		return nil
@@ -118,8 +117,7 @@ func addDevice() {
 
 func newDevice(config gosnappi.Config) {
 	// Add port locations to the configuration
-	otgGetOrCreatePort(config, PORT_NAME_P1, PORT_LOCATION_P1)
-	otgGetOrCreatePort(config, PORT_NAME_P2, PORT_LOCATION_P2)
+	otgGetOrCreatePort(config, devicePort, stringFromTemplate(PORT_LOCATION_TEMPLATE, "NAME", strings.ToUpper(devicePort)))
 
 	// Device name
 	device := config.Devices().Add().SetName(deviceName)
