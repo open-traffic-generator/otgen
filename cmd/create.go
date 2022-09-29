@@ -34,6 +34,9 @@ import (
 const (
 	// Env vars for port locations
 	PORT_LOCATION_TEMPLATE = "${OTG_LOCATION_%NAME%}"
+	// Port location defaults
+	PORT_LOCATION_TX = "localhost:5555"
+	PORT_LOCATION_RX = "localhost:5556"
 	// Test port names
 	PORT_NAME_P1 = "p1"
 	PORT_NAME_P2 = "p2"
@@ -135,7 +138,7 @@ func otgGetOrCreatePort(config gosnappi.Config, name string, location string) go
 		}
 	}
 	p := config.Ports().Add().SetName(name)
-	p.SetLocation(envSubstOrDefault(location, location))
+	p.SetLocation(location)
 	return p
 }
 

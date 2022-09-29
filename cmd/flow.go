@@ -43,6 +43,8 @@ const (
 var flowName string            // Flow name
 var flowTxPort string          // Test port name for Tx
 var flowRxPort string          // Test port name for Rx
+var flowTxLocation string      // Test port location string for Tx
+var flowRxLocation string      // Test port location srting for Rx
 var flowSrcMac string          // Source MAC address
 var flowDstMac string          // Destination MAC address
 var flowIPv4 bool              // IP version 4
@@ -93,6 +95,14 @@ For more information, go to https://github.com/open-traffic-generator/otgen
 			if flowDstMac == "" {
 				flowDstMac = envSubstOrDefault(MAC_DST_P1, MAC_DEFAULT_DST)
 			}
+		}
+
+		if flowTxLocation == "" {
+			flowTxLocation = envSubstOrDefault(stringFromTemplate(PORT_LOCATION_TEMPLATE, "NAME", strings.ToUpper(flowTxPort)), PORT_LOCATION_TX)
+		}
+
+		if flowRxLocation == "" {
+			flowRxLocation = envSubstOrDefault(stringFromTemplate(PORT_LOCATION_TEMPLATE, "NAME", strings.ToUpper(flowRxPort)), PORT_LOCATION_RX)
 		}
 
 		if flowIPv6 {
@@ -146,6 +156,8 @@ func init() {
 
 	flowCmd.Flags().StringVarP(&flowTxPort, "tx", "", PORT_NAME_P1, "Test port name for Tx")
 	flowCmd.Flags().StringVarP(&flowRxPort, "rx", "", PORT_NAME_P2, "Test port name for Rx")
+	flowCmd.Flags().StringVarP(&flowTxLocation, "txl", "", "", fmt.Sprintf("Test port location string for Tx (default \"%s\")", PORT_LOCATION_TX))
+	flowCmd.Flags().StringVarP(&flowRxLocation, "rxl", "", "", fmt.Sprintf("Test port location string for Rx (default \"%s\")", PORT_LOCATION_RX))
 
 	flowCmd.Flags().StringVarP(&flowSrcMac, "smac", "S", "", fmt.Sprintf("Source MAC address (default \"%s\")", MAC_DEFAULT_SRC))
 	flowCmd.Flags().StringVarP(&flowDstMac, "dmac", "D", "", fmt.Sprintf("Destination MAC address (default \"%s\")", MAC_DEFAULT_DST))
@@ -238,7 +250,7 @@ func newFlow(config gosnappi.Config) {
 		flow.TxRx().Device().SetTxNames([]string{deviceTx.Ethernets().Items()[0].Name()})
 		eth.Src().SetValue(deviceTx.Ethernets().Items()[0].Mac())
 	} else {
-		portTx := otgGetOrCreatePort(config, flowTxPort, stringFromTemplate(PORT_LOCATION_TEMPLATE, "NAME", strings.ToUpper(flowTxPort)))
+		portTx := otgGetOrCreatePort(config, flowTxPort, flowTxLocation)
 		if portTx != nil {
 			flow.TxRx().Port().SetTxName(portTx.Name())
 			eth.Src().SetValue(flowSrcMac)
@@ -252,7 +264,7 @@ func newFlow(config gosnappi.Config) {
 		flow.TxRx().Device().SetRxNames([]string{deviceRx.Ethernets().Items()[0].Name()})
 		eth.Dst().SetValue(deviceRx.Ethernets().Items()[0].Mac()) // TODO this is a stub - use ARP instead
 	} else {
-		portRx := otgGetOrCreatePort(config, flowRxPort, stringFromTemplate(PORT_LOCATION_TEMPLATE, "NAME", strings.ToUpper(flowRxPort)))
+		portRx := otgGetOrCreatePort(config, flowRxPort, flowRxLocation)
 		if portRx != nil {
 			flow.TxRx().Port().SetRxName(portRx.Name())
 			eth.Dst().SetValue(flowDstMac)

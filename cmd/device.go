@@ -29,12 +29,13 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var deviceName string    // Device name
-var devicePort string    // Test port name
-var deviceMac string     // Device ethernet MAC
-var deviceIPv4 string    // Device IPv4 address
-var deviceGWv4 string    // Device IPv4 default gateway
-var devicePrefixv4 int32 // Device IPv4 network prefix
+var deviceName string         // Device name
+var devicePort string         // Test port name
+var devicePortLocation string // Test port location string
+var deviceMac string          // Device ethernet MAC
+var deviceIPv4 string         // Device IPv4 address
+var deviceGWv4 string         // Device IPv4 default gateway
+var devicePrefixv4 int32      // Device IPv4 network prefix
 
 // deviceCmd represents the device command
 var deviceCmd = &cobra.Command{
@@ -65,6 +66,10 @@ For more information, go to https://github.com/open-traffic-generator/otgen
 			}
 		}
 
+		if devicePortLocation == "" {
+			devicePortLocation = envSubstOrDefault(stringFromTemplate(PORT_LOCATION_TEMPLATE, "NAME", strings.ToUpper(devicePort)), PORT_LOCATION_TX)
+		}
+
 		return nil
 	},
 }
@@ -85,6 +90,7 @@ func init() {
 	deviceCmd.Flags().StringVarP(&deviceName, "name", "n", DEVICE_NAME_1, "Device name") // TODO when creating multiple devices, iterrate for the next available device index
 
 	deviceCmd.Flags().StringVarP(&devicePort, "port", "p", PORT_NAME_P1, "Test port name")
+	deviceCmd.Flags().StringVarP(&devicePortLocation, "location", "l", "", fmt.Sprintf("Test port location string (default \"%s\")", PORT_LOCATION_TX))
 
 	deviceCmd.Flags().StringVarP(&deviceMac, "mac", "M", "", fmt.Sprintf("Device MAC address (default \"%s\")", MAC_DEFAULT_SRC))
 	deviceCmd.Flags().StringVarP(&deviceIPv4, "ip", "I", IPV4_DEFAULT_SRC, "Device IP address") // TODO consider IP/prefix format: split(a, "/")
@@ -117,7 +123,7 @@ func addDevice() {
 
 func newDevice(config gosnappi.Config) {
 	// Add port locations to the configuration
-	otgGetOrCreatePort(config, devicePort, stringFromTemplate(PORT_LOCATION_TEMPLATE, "NAME", strings.ToUpper(devicePort)))
+	otgGetOrCreatePort(config, devicePort, devicePortLocation)
 
 	// Device name
 	device := config.Devices().Add().SetName(deviceName)
