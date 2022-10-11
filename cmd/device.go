@@ -58,11 +58,11 @@ For more information, go to https://github.com/open-traffic-generator/otgen
 		switch devicePort {
 		case PORT_NAME_RX: // swap default SRC and DST MACs. TODO use --swap parameter instead to do this explicitly
 			if deviceMac == "" {
-				deviceMac = envSubstOrDefault(MAC_SRC_P2, MAC_DEFAULT_DST)
+				deviceMac = envSubstOrDefault(MAC_SRC_RX, MAC_DEFAULT_DST)
 			}
-		default: // assume p1
+		default: // PORT_NAME_TX
 			if deviceMac == "" {
-				deviceMac = envSubstOrDefault(MAC_SRC_P1, MAC_DEFAULT_SRC)
+				deviceMac = envSubstOrDefault(MAC_SRC_TX, MAC_DEFAULT_SRC)
 			}
 		}
 

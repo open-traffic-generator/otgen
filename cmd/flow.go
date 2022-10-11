@@ -34,6 +34,9 @@ const (
 	PROTO_ICMP = "icmp"
 	PROTO_TCP  = "tcp"
 	PROTO_UDP  = "udp"
+	// Default TCP/UDP ports
+	SPORT_DEFAULT = 0 // when 0 specified, an incremental set of source ports would be used for each packet
+	DPORT_DEFAULT = 7 // echo port
 	// Latency modes
 	LATENCY_SF      = "sf"      // store_forward
 	LATENCY_CT      = "ct"      // cut_through
@@ -54,6 +57,7 @@ var flowDst string             // Destination IP address
 var flowProto string           // IP transport protocol
 var flowSrcPort int32          // Source TCP/UDP port
 var flowDstPort int32          // Destination TCP/UDP port
+var flowTxRxSwap bool          // Swap default values between Tx and Rx, source and destination
 var flowRate int64             // Packet per second rate
 var flowFixedPackets int32     // Number of packets to transmit
 var flowFixedSize int32        // Frame size in bytes
@@ -79,41 +83,95 @@ For more information, go to https://github.com/open-traffic-generator/otgen
 		}
 	},
 	PreRunE: func(cmd *cobra.Command, args []string) error {
-		// set default MACs depending on Tx test port
-		switch flowTxPort {
-		case PORT_NAME_RX: // swap default SRC and DST MACs. TODO use --swap parameter instead to do this explicitly
+		// set values of Tx/Rx names and locations; src and dst MACs, IPs and TCP/UDP ports from defaults if not explicitly provided
+		// with optional --swap logic to easily reverse defaults between Tx and Rx sides
+		switch flowTxRxSwap { // Done: ports, MACs, IPs, TCP/UDP ports. TODO consider to swap only if both Tx and Rx are defaults
+		case true:
+			if flowTxPort == PORT_NAME_TX { // no port name was provided, use swapped default value
+				flowTxPort = PORT_NAME_RX
+			}
+			if flowRxPort == PORT_NAME_RX { // no port name was provided, use swapped default value
+				flowRxPort = PORT_NAME_TX
+			}
+
+			if flowTxLocation == "" {
+				// no location was provided, init from defaults with the following logic:
+				// take ENV:OTG_LOCATION_%flowTxPort% (already swapped) or use default value for Rx port (swap)
+				flowTxLocation = envSubstOrDefault(stringFromTemplate(PORT_LOCATION_TEMPLATE, "NAME", strings.ToUpper(flowTxPort)), PORT_LOCATION_RX)
+			}
+			if flowRxLocation == "" {
+				// no location was provided, init from defaults with the following logic:
+				// take ENV:OTG_LOCATION_%flowRxPort% (already swapped) or use default value for Tx port (swap)
+				flowRxLocation = envSubstOrDefault(stringFromTemplate(PORT_LOCATION_TEMPLATE, "NAME", strings.ToUpper(flowRxPort)), PORT_LOCATION_TX)
+			}
+
+			if flowSrcMac == "" { // no src MAC was provided, use swapped default value
+				flowSrcMac = envSubstOrDefault(MAC_SRC_RX, MAC_DEFAULT_DST)
+			}
+			if flowDstMac == "" { // no dst MAC was provided, use swapped default value
+				flowDstMac = envSubstOrDefault(MAC_DST_RX, MAC_DEFAULT_SRC)
+			}
+
+			// IPv4 default values are initialized in init()
+			if flowIPv6 {
+				flowIPv4 = false
+				if flowSrc == envSubstOrDefault(IPV4_SRC, IPV4_DEFAULT_SRC) {
+					// no src IP was provided, replace default IPv4 src with default IPv6 **dst** (swap)
+					flowSrc = envSubstOrDefault(IPV6_DST, IPV6_DEFAULT_DST)
+				}
+				if flowDst == envSubstOrDefault(IPV4_DST, IPV4_DEFAULT_DST) {
+					// no dst IP was provided, replace default IPv4 dst with default IPv6 **src** (swap)
+					flowDst = envSubstOrDefault(IPV6_SRC, IPV6_DEFAULT_SRC)
+				}
+			} else {
+				if flowSrc == envSubstOrDefault(IPV4_SRC, IPV4_DEFAULT_SRC) {
+					// no src IP was provided, replace default src with dst (swap)
+					flowSrc = envSubstOrDefault(IPV4_DST, IPV4_DEFAULT_DST)
+				}
+				if flowDst == envSubstOrDefault(IPV4_DST, IPV4_DEFAULT_DST) {
+					// no dst IP was provided, replace default dst with src (swap)
+					flowDst = envSubstOrDefault(IPV4_SRC, IPV4_DEFAULT_SRC)
+				}
+			}
+			// TCP/UDP default values are initialized in init()
+			if flowSrcPort == SPORT_DEFAULT { // no src port was provided, use swapped default value
+				flowSrcPort = DPORT_DEFAULT
+			}
+			if flowDstPort == DPORT_DEFAULT { // no dst port was provided, use swapped default value
+				flowDstPort = SPORT_DEFAULT
+			}
+		default: // false == default / normal
+			// TODO can we reuse the same approach as with IPs, so that default values taken from ENVs are shown in --help?
+			if flowTxLocation == "" {
+				flowTxLocation = envSubstOrDefault(stringFromTemplate(PORT_LOCATION_TEMPLATE, "NAME", strings.ToUpper(flowTxPort)), PORT_LOCATION_TX)
+			}
+			if flowRxLocation == "" {
+				flowRxLocation = envSubstOrDefault(stringFromTemplate(PORT_LOCATION_TEMPLATE, "NAME", strings.ToUpper(flowRxPort)), PORT_LOCATION_RX)
+			}
+
+			// TODO can we reuse the same approach as with IPs, so that default values taken from ENVs are shown in --help?
 			if flowSrcMac == "" {
-				flowSrcMac = envSubstOrDefault(MAC_SRC_P2, MAC_DEFAULT_DST)
+				flowSrcMac = envSubstOrDefault(MAC_SRC_TX, MAC_DEFAULT_SRC)
 			}
 			if flowDstMac == "" {
-				flowDstMac = envSubstOrDefault(MAC_DST_P2, MAC_DEFAULT_SRC)
+				flowDstMac = envSubstOrDefault(MAC_DST_TX, MAC_DEFAULT_DST)
 			}
-		default: // assume p1
-			if flowSrcMac == "" {
-				flowSrcMac = envSubstOrDefault(MAC_SRC_P1, MAC_DEFAULT_SRC)
+
+			// IPv4 default values are initialized in init()
+			if flowIPv6 {
+				flowIPv4 = false
+				if flowSrc == envSubstOrDefault(IPV4_SRC, IPV4_DEFAULT_SRC) {
+					// no src IP was provided, replace default IPv4 src with default IPv6 src
+					flowSrc = envSubstOrDefault(IPV6_SRC, IPV6_DEFAULT_SRC)
+				}
+				if flowDst == envSubstOrDefault(IPV4_DST, IPV4_DEFAULT_DST) {
+					// no dst IP was provided, replace default IPv4 dst with default IPv6 dst
+					flowDst = envSubstOrDefault(IPV6_DST, IPV6_DEFAULT_DST)
+				}
 			}
-			if flowDstMac == "" {
-				flowDstMac = envSubstOrDefault(MAC_DST_P1, MAC_DEFAULT_DST)
-			}
+			// TCP/UDP default values are initialized in init(), nothing to do here
 		}
 
-		if flowTxLocation == "" {
-			flowTxLocation = envSubstOrDefault(stringFromTemplate(PORT_LOCATION_TEMPLATE, "NAME", strings.ToUpper(flowTxPort)), PORT_LOCATION_TX)
-		}
-
-		if flowRxLocation == "" {
-			flowRxLocation = envSubstOrDefault(stringFromTemplate(PORT_LOCATION_TEMPLATE, "NAME", strings.ToUpper(flowRxPort)), PORT_LOCATION_RX)
-		}
-
-		if flowIPv6 {
-			flowIPv4 = false
-			if flowSrc == envSubstOrDefault(IPV4_SRC, IPV4_DEFAULT_SRC) {
-				flowSrc = envSubstOrDefault(IPV6_SRC, IPV6_DEFAULT_SRC)
-			}
-			if flowDst == envSubstOrDefault(IPV4_DST, IPV4_DEFAULT_DST) {
-				flowDst = envSubstOrDefault(IPV6_DST, IPV6_DEFAULT_DST)
-			}
-		}
 		switch flowProto {
 		case PROTO_ICMP:
 		case "1":
@@ -172,8 +230,10 @@ func init() {
 	// Transport protocol
 	flowCmd.Flags().StringVarP(&flowProto, "proto", "P", PROTO_TCP, "IP transport protocol: \"icmp\" | \"tcp\" | \"udp\"")
 
-	flowCmd.Flags().Int32VarP(&flowSrcPort, "sport", "", 0, "Source TCP/UDP port. If not specified, an incremental set of source ports would be used for each packet")
-	flowCmd.Flags().Int32VarP(&flowDstPort, "dport", "p", 7, "Destination TCP/UDP port")
+	flowCmd.Flags().Int32VarP(&flowSrcPort, "sport", "", SPORT_DEFAULT, "Source TCP/UDP port. If not specified, an incremental set of source ports would be used for each packet")
+	flowCmd.Flags().Int32VarP(&flowDstPort, "dport", "p", DPORT_DEFAULT, "Destination TCP/UDP port")
+
+	flowCmd.Flags().BoolVarP(&flowTxRxSwap, "swap", "", false, "Swap default values between Tx and Rx, source and destination")
 
 	flowCmd.Flags().Int64VarP(&flowRate, "rate", "r", 0, "Packet per second rate. If not specified, default rate decision would be left to the traffic engine")
 
@@ -245,11 +305,13 @@ func newFlow(config gosnappi.Config) {
 	eth := pkt.Add().Ethernet()
 
 	// Set the endpoints
-	deviceTx := otgGetDevice(config, flowTxPort) // currently only single-ethernet devices are supported
-	if deviceTx != nil {
+	// First, see if we have a device with a name specified as --tx
+	// currently only single-ethernet devices are supported
+	deviceTx := otgGetDevice(config, flowTxPort)
+	if deviceTx != nil { // found a device, use it as Tx for the flow, as well as it's MAC address as a source MAC
 		flow.TxRx().Device().SetTxNames([]string{deviceTx.Ethernets().Items()[0].Name()})
-		eth.Src().SetValue(deviceTx.Ethernets().Items()[0].Mac())
-	} else {
+		eth.Src().SetValue(deviceTx.Ethernets().Items()[0].Mac()) // TODO this would override --smac parameter, is it OK?
+	} else { // no such device, use or create a test port with --tx name
 		portTx := otgGetOrCreatePort(config, flowTxPort, flowTxLocation)
 		if portTx != nil {
 			flow.TxRx().Port().SetTxName(portTx.Name())
@@ -259,10 +321,12 @@ func newFlow(config gosnappi.Config) {
 		}
 	}
 
-	deviceRx := otgGetDevice(config, flowRxPort) // currently only single-ethernet devices are supported
-	if deviceRx != nil {
+	// First, see if we have a device with a name specified as --rx
+	// currently only single-ethernet devices are supported
+	deviceRx := otgGetDevice(config, flowRxPort)
+	if deviceRx != nil { // found a device, use it as a Rx for the flow, but not its MAC address, as it would override --dmac parameter
 		flow.TxRx().Device().SetRxNames([]string{deviceRx.Ethernets().Items()[0].Name()})
-		eth.Dst().SetValue(deviceRx.Ethernets().Items()[0].Mac()) // TODO this is a stub - use ARP instead
+		eth.Dst().SetValue(flowDstMac) // TODO ARP option
 	} else {
 		portRx := otgGetOrCreatePort(config, flowRxPort, flowRxLocation)
 		if portRx != nil {
@@ -300,6 +364,9 @@ func newFlow(config gosnappi.Config) {
 		}
 		if flowDstPort > 0 {
 			tcp.DstPort().SetValue(flowDstPort)
+		} else if flowDstPort == 0 {
+			// no destination port was specified, use incrementing ports
+			tcp.DstPort().Increment().SetStart(1024).SetStep(7).SetCount(65535 - 1024)
 		}
 	case PROTO_UDP:
 		udp := pkt.Add().Udp()
@@ -311,6 +378,9 @@ func newFlow(config gosnappi.Config) {
 		}
 		if flowDstPort > 0 {
 			udp.DstPort().SetValue(flowDstPort)
+		} else if flowDstPort == 0 {
+			// no destination port was specified, use incrementing ports
+			udp.DstPort().Increment().SetStart(1024).SetStep(7).SetCount(65535 - 1024)
 		}
 	}
 

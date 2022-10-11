@@ -44,10 +44,10 @@ const (
 	DEVICE_NAME_1 = "otg1"
 	DEVICE_NAME_2 = "otg2"
 	// Env vars for MAC addresses
-	MAC_SRC_P1 = "${OTG_FLOW_SMAC_P1}"
-	MAC_DST_P1 = "${OTG_FLOW_DMAC_P1}"
-	MAC_SRC_P2 = "${OTG_FLOW_SMAC_P2}"
-	MAC_DST_P2 = "${OTG_FLOW_DMAC_P2}"
+	MAC_SRC_TX = "${OTG_FLOW_SMAC_P1}"
+	MAC_DST_TX = "${OTG_FLOW_DMAC_P1}"
+	MAC_SRC_RX = "${OTG_FLOW_SMAC_P2}"
+	MAC_DST_RX = "${OTG_FLOW_DMAC_P2}"
 	// Default MACs start with "02" to signify locally administered addresses (https://www.rfc-editor.org/rfc/rfc5342#section-2.1)
 	MAC_DEFAULT_SRC = "02:00:00:00:01:aa" // 01 == port 1, aa == otg side (bb == dut side)
 	MAC_DEFAULT_DST = "02:00:00:00:02:aa" // 02 == port 2, aa == otg side (bb == dut side)
