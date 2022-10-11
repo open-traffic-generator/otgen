@@ -113,24 +113,6 @@ func readOtgStdin(api gosnappi.GosnappiApi) gosnappi.Config {
 	return config
 }
 
-func otgConfigHasPort(config gosnappi.Config, name string) bool {
-	for _, p := range config.Ports().Items() {
-		if p.Name() == name {
-			return true
-		}
-	}
-	return false
-}
-
-func otgGetPort(config gosnappi.Config, name string) gosnappi.Port {
-	for _, p := range config.Ports().Items() {
-		if p.Name() == name {
-			return p
-		}
-	}
-	return nil
-}
-
 func otgGetOrCreatePort(config gosnappi.Config, name string, location string) gosnappi.Port {
 	for _, p := range config.Ports().Items() {
 		if p.Name() == name {
