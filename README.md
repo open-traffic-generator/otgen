@@ -18,10 +18,6 @@ otgen transform --metrics flow --counters frames | \
 otgen display --mode table
 ````
 
-Port locations are read from `ENV:OTG_LOCATION_P1` and `ENV:OTG_LOCATION_P2`.
-
-See [Environmental variables](#environmental-variables) section for more options.
-
 ## Command reference
 
 ### `create` and `add`
@@ -30,10 +26,12 @@ Create a new OTG configuration item that can be further passed to stdin of `otge
 The `add` variant of the command first reads an OTG configuration from stdin.
 
 ```Shell
-otgen create flow                     # Create OTG flow configuration (default)
+otgen create flow                     # Create OTG flow configuration
   [--name string]                     # Flow name (default f1)
-  [--tx portname]                     # Test port name for TX (default p1) 
-  [--rx portname]                     # Test port name for RX (default p2) 
+  [--tx string]                       # Test port name for TX (default p1) 
+  [--rx string]                       # Test port name for RX (default p2) 
+  [--txl string]                      # Test port location string for TX (default localhost:5555) 
+  [--rxl string]                      # Test port location string for RX (default localhost:5556) 
   [--ipv4 ]                           # IP version 4 (default)
   [--ipv6 ]                           # IP version 6
   [--proto icmp | tcp | udp]          # IP transport protocol
@@ -43,6 +41,7 @@ otgen create flow                     # Create OTG flow configuration (default)
   [--dst x.x.x.x]                     # Destination IP address
   [--sport N]                         # Source TCP or UDP port. If not specified, incrementing source port numbers would be used for each new packet
   [--dport N]                         # Destination TCP or UDP port (default 7 - echo protocol)
+  [--swap]                            # Swap default values of: Tx and Rx names and locations; source and destination MACs, IPs and TCP/UDP ports
   [--count N]                         # Number of packets to transmit. Use 0 for continuous mode. (default 1000)
   [--rate N]                          # Packet rate in packets per second. If not specified, default rate decision would be left to the traffic engine
   [--size N]                          # Frame size in bytes. If not specified, default frame size decision would be left to the traffic engine
@@ -51,6 +50,18 @@ otgen create flow                     # Create OTG flow configuration (default)
   [--timestamps]                      # Enable metrics timestamps
   [--nometrics ]                      # Disable flow metrics
 ```
+
+```Shell
+otgen create device                   # Create OTG device configuration
+  [--name string]                     # Device name (default otg1)
+  [--port string]                     # Test port name (default p1)
+  [--location string]                 # Test port location string (default localhost:5555)
+  [--mac xx.xx.xx.xx.xx.xx]           # Device MAC address
+  [--ip x.x.x.x]                      # Device IP address
+  [--gw x.x.x.x]                      # Device default gateway
+  [--prefix nn]                       # Device network prefix
+```
+
 
 ### `run`
 
@@ -124,8 +135,7 @@ For such parameters it may be more convinient to change default values used by `
 Environmental variables is one of the mechanisms used by `otgen` to control default values. See below the full list of the variables recognized by `otgen` to redefine default values.
 
 ```Shell
-OTG_LOCATION_P1                       # location for test port "p1"
-OTG_LOCATION_P2                       # location for test port "p2"
+OTG_LOCATION_%PORT_NAME%              # location for test port with a name PORT_NAME, for example:
 
 OTG_FLOW_SMAC_P1                      # Source MAC address to use for flows with Tx on port "p1"
 OTG_FLOW_DMAC_P1                      # Destination MAC address to use for flows with Tx on port "p1"
@@ -153,4 +163,4 @@ export OTG_FLOW_SRC_IPV6="fe80::000:00ff:fe00:01aa"
 export OTG_FLOW_DST_IPV6="fe80::000:00ff:fe00:02aa"
 ```
 
-Note, default values displayed via built-in `--help` output reflect currently set environmental variables values.
+Note, default values displayed via built-in `--help` output reflect currently set environmental variables values, except for test port location strings.
