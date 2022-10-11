@@ -40,7 +40,8 @@ var chartType string   // type of chart to show
 var displayCmd = &cobra.Command{
 	Use:   "display",
 	Short: "Display running test metrics as a chart or a table",
-	Long: `Display running test metrics as a chart or a table.
+	Long: `
+Display running test metrics as a chart or a table.
 
 For more information, go to https://github.com/open-traffic-generator/otgen
 `,

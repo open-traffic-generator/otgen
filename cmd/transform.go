@@ -51,7 +51,9 @@ var transformTemplateFile string // Go template file for transform
 var transformCmd = &cobra.Command{
 	Use:   "transform",
 	Short: "Transform raw OTG metrics into a format suitable for further processing",
-	Long: `Transform raw OTG metrics into a format suitable for further processing.
+	Long: `
+Transform raw OTG metrics into a format suitable for further processing.
+
 If no parameters is provided, transform validates input for a match with
 OTG MetricsResponse data structure, and if matched, outputs it as is.
 

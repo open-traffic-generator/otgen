@@ -22,45 +22,34 @@ THE SOFTWARE.
 package cmd
 
 import (
-	"os"
-
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
-// Create a new instance of the logger
-var log = logrus.New()
-
-// rootCmd represents the base command when called without any subcommands
-var rootCmd = &cobra.Command{
-	Use:   "otgen",
-	Short: "Open Traffic Generator CLI Tool",
+// addCmd represents the add command
+var addCmd = &cobra.Command{
+	Use:   "add",
+	Short: "Read OTG configuration from stdin and add the specified item",
 	Long: `
-Open Traffic Generator CLI Tool.
+Read OTG configuration from stdin and add the specified item. 
+The output can be passed to stdin of "otgen run" or another "otgen add" command.
 
-For more information, go to https://github.com/open-traffic-generator/otgen
+  For more information, go to https://github.com/open-traffic-generator/otgen
 `,
-	// Uncomment the following line if your bare application
-	// has an action associated with it:
-	// Run: func(cmd *cobra.Command, args []string) { },
-}
-
-// Execute adds all child commands to the root command and sets flags appropriately.
-// This is called by main.main(). It only needs to happen once to the rootCmd.
-func Execute() {
-	err := rootCmd.Execute()
-	if err != nil {
-		os.Exit(1)
-	}
+	Run: func(cmd *cobra.Command, args []string) {
+		log.Error("You must specify an OTG object to add, one from the set: flow")
+	},
 }
 
 func init() {
+	rootCmd.AddCommand(addCmd)
+
 	// Here you will define your flags and configuration settings.
-	// Cobra supports persistent flags, which, if defined here,
-	// will be global for your application.
 
-	// rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.otgen.yaml)")
+	// Cobra supports Persistent Flags which will work for this command
+	// and all subcommands, e.g.:
+	// addCmd.PersistentFlags().String("foo", "", "A help for foo")
 
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
+	// Cobra supports local flags which will only run when this command
+	// is called directly, e.g.:
+	// addCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
