@@ -136,6 +136,8 @@ Environmental variables is one of the mechanisms used by `otgen` to control defa
 
 ```Shell
 OTG_LOCATION_%PORT_NAME%              # location for test port with a name PORT_NAME, for example:
+OTG_LOCATION_P1                       # location for test port "p1"
+OTG_LOCATION_P2                       # location for test port "p2"
 
 OTG_FLOW_SMAC_P1                      # Source MAC address to use for flows with Tx on port "p1"
 OTG_FLOW_DMAC_P1                      # Destination MAC address to use for flows with Tx on port "p1"
