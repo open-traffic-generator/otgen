@@ -20,6 +20,13 @@ otgen display --mode table
 
 ## Command reference
 
+### Global options
+
+```Shell
+otgen 
+  [--log level]                       # Logging level: err | warn | info | debug (default "err")
+```
+
 ### `create` and `add`
 
 Create a new OTG configuration item that can be further passed to stdin of `otgen run` command.
@@ -65,11 +72,11 @@ otgen create device                   # Create OTG device configuration
 
 ### `run`
 
-Request an OTG API endpoint to run OTG configuration.
+Requests OTG API endpoint to apply OTG configuration and run Traffic Flows.
 
 ```Shell
 otgen run 
-  [--api https://otg-api-endpoint]    # OTG server API endpoint (default is https://localhost)
+  [--api https://otg-api-endpoint]    # URL of OTG API endpoint. Overrides ENV:OTG_API (default "https://localhost")
   [--insecure]                        # Ignore X.509 certificate validation
   [--file otg.yml | --file otg.json]  # OTG model file. If not provided, will use stdin
   [--yaml | --json]                   # Format of OTG input
@@ -135,6 +142,8 @@ For such parameters it may be more convinient to change default values used by `
 Environmental variables is one of the mechanisms used by `otgen` to control default values. See below the full list of the variables recognized by `otgen` to redefine default values.
 
 ```Shell
+OTG_API                               # URL of OTG API endpoint
+
 OTG_LOCATION_%PORT_NAME%              # location for test port with a name PORT_NAME, for example:
 OTG_LOCATION_P1                       # location for test port "p1"
 OTG_LOCATION_P2                       # location for test port "p2"
@@ -153,6 +162,7 @@ OTG_FLOW_DST_IPV6                     # Destination IPv6 address to use for flow
 These are the values `otgen` uses if no variables or arguments were provided.
 
 ```Shell
+export OTG_API="https://localhost"
 export OTG_LOCATION_P1="localhost:5555"     # ixia-c-traffic-engine for p1 (tx) listening on localhost:5555
 export OTG_LOCATION_P2="localhost:5556"     # ixia-c-traffic-engine for p2 (rx) listening on localhost:5556
 export OTG_FLOW_SMAC_P1="02:00:00:00:01:aa"

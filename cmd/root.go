@@ -28,6 +28,12 @@ import (
 	"github.com/spf13/cobra"
 )
 
+const (
+	LOG_DEFAULT_LEVEL = "err"
+)
+
+var logLevel string // Logging level: error | info | debug
+
 // Create a new instance of the logger
 var log = logrus.New()
 
@@ -60,6 +66,7 @@ func init() {
 	// will be global for your application.
 
 	// rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.otgen.yaml)")
+	rootCmd.PersistentFlags().StringVarP(&logLevel, "log", "", LOG_DEFAULT_LEVEL, "Logging level: err | warn | info | debug")
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
