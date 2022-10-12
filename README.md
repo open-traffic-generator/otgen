@@ -142,6 +142,8 @@ For such parameters it may be more convinient to change default values used by `
 Environmental variables is one of the mechanisms used by `otgen` to control default values. See below the full list of the variables recognized by `otgen` to redefine default values.
 
 ```Shell
+OTG_API                               # URL of OTG API endpoint
+
 OTG_LOCATION_%PORT_NAME%              # location for test port with a name PORT_NAME, for example:
 OTG_LOCATION_P1                       # location for test port "p1"
 OTG_LOCATION_P2                       # location for test port "p2"
@@ -160,6 +162,7 @@ OTG_FLOW_DST_IPV6                     # Destination IPv6 address to use for flow
 These are the values `otgen` uses if no variables or arguments were provided.
 
 ```Shell
+export OTG_API="https://localhost"
 export OTG_LOCATION_P1="localhost:5555"     # ixia-c-traffic-engine for p1 (tx) listening on localhost:5555
 export OTG_LOCATION_P2="localhost:5556"     # ixia-c-traffic-engine for p2 (rx) listening on localhost:5556
 export OTG_FLOW_SMAC_P1="02:00:00:00:01:aa"
