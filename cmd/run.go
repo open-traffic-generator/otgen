@@ -33,6 +33,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
+const (
+	OTG_API         = "${OTG_API}"        // Env var for API endpoint
+	OTG_DEFAULT_API = "https://localhost" // Default API endpoint value
+)
+
 var otgURL string                 // URL of OTG server API endpoint
 var otgIgnoreX509 bool            // Ignore X.509 certificate validation of OTG API endpoint
 var otgYaml bool                  // Format of OTG input is YAML. Mutually exclusive with --json
@@ -46,9 +51,9 @@ var xeta = float32(0.0)           // How long to wait before forcing traffic to 
 // runCmd represents the run command
 var runCmd = &cobra.Command{
 	Use:   "run",
-	Short: "Request an OTG API endpoint to run OTG model",
+	Short: "Requests OTG API endpoint to apply OTG configuration and run Traffic Flows",
 	Long: `
-Request an OTG API endpoint to run OTG model.
+Requests OTG API endpoint to apply OTG configuration and run Traffic Flows.
 
 For more information, go to https://github.com/open-traffic-generator/otgen
 `,
@@ -97,7 +102,7 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// runCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-	runCmd.Flags().StringVarP(&otgURL, "api", "a", "https://localhost", "URL of OTG API endpoint. Example: https://otg-api-endpoint")
+	runCmd.Flags().StringVarP(&otgURL, "api", "a", envSubstOrDefault(OTG_API, OTG_DEFAULT_API), "URL of OTG API endpoint. Overrides ENV:OTG_API")
 	runCmd.Flags().BoolVarP(&otgIgnoreX509, "insecure", "k", false, "Ignore X.509 certificate validation of OTG API endpoint")
 	runCmd.Flags().BoolVarP(&otgYaml, "yaml", "y", false, "Format of OTG input is YAML. Mutually exclusive with --json. Assumed format by default")
 	runCmd.Flags().BoolVarP(&otgJson, "json", "j", false, "Format of OTG input is JSON. Mutually exclusive with --yaml")

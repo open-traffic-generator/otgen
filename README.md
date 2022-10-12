@@ -72,11 +72,11 @@ otgen create device                   # Create OTG device configuration
 
 ### `run`
 
-Request an OTG API endpoint to run OTG configuration.
+Requests OTG API endpoint to apply OTG configuration and run Traffic Flows.
 
 ```Shell
 otgen run 
-  [--api https://otg-api-endpoint]    # OTG server API endpoint (default is https://localhost)
+  [--api https://otg-api-endpoint]    # URL of OTG API endpoint. Overrides ENV:OTG_API (default "https://localhost")
   [--insecure]                        # Ignore X.509 certificate validation
   [--file otg.yml | --file otg.json]  # OTG model file. If not provided, will use stdin
   [--yaml | --json]                   # Format of OTG input
