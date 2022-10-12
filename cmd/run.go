@@ -29,6 +29,7 @@ import (
 	"time"
 
 	"github.com/open-traffic-generator/snappi/gosnappi"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -66,6 +67,21 @@ For more information, go to https://github.com/open-traffic-generator/otgen
 		}
 
 		runTraffic(initOTG())
+	},
+	PreRunE: func(cmd *cobra.Command, args []string) error {
+		switch logLevel {
+		case "err":
+			log.SetLevel(logrus.ErrorLevel)
+		case "warn":
+			log.SetLevel(logrus.WarnLevel)
+		case "info":
+			log.SetLevel(logrus.InfoLevel)
+		case "debug":
+			log.SetLevel(logrus.DebugLevel)
+		default:
+			log.Fatalf("Unsupported log level: %s", logLevel)
+		}
+		return nil
 	},
 }
 
@@ -281,7 +297,7 @@ func checkResponse(res interface{}, err error) {
 		printMetricsResponseRawJson(v)
 	case gosnappi.ResponseWarning:
 		for _, w := range v.Warnings() {
-			log.Info("WARNING:", w)
+			log.Warn("WARNING:", w)
 		}
 	default:
 		log.Fatal("Unknown response type:", v)

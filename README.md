@@ -20,6 +20,13 @@ otgen display --mode table
 
 ## Command reference
 
+### Global options
+
+```Shell
+otgen 
+  [--log level]                       # Logging level: err | warn | info | debug (default "err")
+```
+
 ### `create` and `add`
 
 Create a new OTG configuration item that can be further passed to stdin of `otgen run` command.
