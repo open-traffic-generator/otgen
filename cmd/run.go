@@ -42,7 +42,7 @@ var otgURL string                 // URL of OTG server API endpoint
 var otgIgnoreX509 bool            // Ignore X.509 certificate validation of OTG API endpoint
 var otgYaml bool                  // Format of OTG input is YAML. Mutually exclusive with --json
 var otgJson bool                  // Format of OTG input is JSON. Mutually exclusive with --yaml
-var otgFile string                // OTG model file
+var otgFile string                // OTG configuration file
 var otgMetrics string             // Metrics type to report: "port" for PortMetrics, "flow" for FlowMetrics
 var otgPullIntervalStr string     // Interval to pull OTG metrics. Example: 1s (default 500ms)
 var otgPullInterval time.Duration // Parsed interval to pull OTG metrics
@@ -107,7 +107,7 @@ func init() {
 	runCmd.Flags().BoolVarP(&otgYaml, "yaml", "y", false, "Format of OTG input is YAML. Mutually exclusive with --json. Assumed format by default")
 	runCmd.Flags().BoolVarP(&otgJson, "json", "j", false, "Format of OTG input is JSON. Mutually exclusive with --yaml")
 	runCmd.MarkFlagsMutuallyExclusive("json", "yaml")
-	runCmd.Flags().StringVarP(&otgFile, "file", "f", "", "OTG model file. If not provided, will use stdin")
+	runCmd.Flags().StringVarP(&otgFile, "file", "f", "", "OTG configuration file. If not provided, will use stdin")
 	runCmd.Flags().StringVarP(&otgMetrics, "metrics", "m", "port", "Metrics type to report:\n  \"port\" for PortMetrics,\n  \"flow\" for FlowMetrics\n ")
 	runCmd.Flags().StringVarP(&otgPullIntervalStr, "interval", "i", "0.5s", "Interval to pull OTG metrics. Valid time units are 'ms', 's', 'm', 'h'. Example: 1s")
 	runCmd.Flags().Float32VarP(&xeta, "xeta", "x", float32(0.0), "How long to wait before forcing traffic to stop. In multiples of ETA. Example: 1.5 (default is no limit)")
@@ -157,7 +157,18 @@ func runTraffic(api gosnappi.GosnappiApi, config gosnappi.Config) {
 	checkResponse(res, err)
 	log.Info("ready.")
 
+	// start configured protocols
+	// TODO stop at the end, consider defer
+	if len(config.Devices().Items()) > 0 { // TODO also if LAGs are configured
+		log.Info("Starting protocols...")
+		ps := api.NewProtocolState().SetState(gosnappi.ProtocolStateState.START)
+		res, err = api.SetProtocolState(ps)
+		checkResponse(res, err)
+		log.Info("started...")
+	}
+
 	// start transmitting configured flows
+	// TODO check we have traffic flows
 	log.Info("Starting traffic...")
 	ts := api.NewTransmitState().SetState(gosnappi.TransmitStateState.START)
 	res, err = api.SetTransmitState(ts)

@@ -72,13 +72,17 @@ otgen create device                   # Create OTG device configuration
 
 ### `run`
 
-Requests OTG API endpoint to apply OTG configuration and run Traffic Flows.
+Requests OTG API endpoint to:
+
+  * apply OTG configuration
+  * start Protocols, if any Devices are defined in the configuration
+  * run Traffic Flows
 
 ```Shell
 otgen run 
   [--api https://otg-api-endpoint]    # URL of OTG API endpoint. Overrides ENV:OTG_API (default "https://localhost")
   [--insecure]                        # Ignore X.509 certificate validation
-  [--file otg.yml | --file otg.json]  # OTG model file. If not provided, will use stdin
+  [--file otg.yml | --file otg.json]  # OTG configuration file. If not provided, will use stdin
   [--yaml | --json]                   # Format of OTG input
   [--metrics port|flow]               # Metrics type to report: "port" for PortMetrics, "flow" for FlowMetrics
   [--interval 0.5s]                   # Interval to pull OTG metrics. Valid time units are 'ms', 's', 'm', 'h'. Example: 1s (default 0.5s)
