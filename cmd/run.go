@@ -158,7 +158,6 @@ func runTraffic(api gosnappi.GosnappiApi, config gosnappi.Config) {
 	log.Info("ready.")
 
 	// start configured protocols
-	// TODO stop at the end, consider defer
 	if len(config.Devices().Items()) > 0 { // TODO also if LAGs are configured
 		log.Info("Starting protocols...")
 		ps := api.NewProtocolState().SetState(gosnappi.ProtocolStateState.START)
@@ -216,11 +215,22 @@ func runTraffic(api gosnappi.GosnappiApi, config gosnappi.Config) {
 	}
 
 	// stop transmitting traffic
+	// TODO consider defer
 	log.Info("Stopping traffic...")
 	ts = api.NewTransmitState().SetState(gosnappi.TransmitStateState.STOP)
 	res, err = api.SetTransmitState(ts)
 	checkResponse(res, err)
 	log.Info("stopped.")
+
+	// stop protocols
+	// TODO consider defer
+	if len(config.Devices().Items()) > 0 { // TODO also if LAGs are configured
+		log.Info("Stopping protocols...")
+		ps := api.NewProtocolState().SetState(gosnappi.ProtocolStateState.STOP)
+		res, err = api.SetProtocolState(ps)
+		checkResponse(res, err)
+		log.Info("stopped.")
+	}
 }
 
 func calculateTrafficTargets(config gosnappi.Config) (int64, time.Duration) {
