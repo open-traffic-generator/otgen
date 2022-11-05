@@ -169,14 +169,30 @@ func startProtocols(api gosnappi.GosnappiApi, config gosnappi.Config) (gosnappi.
 
 		// Detect protocols present in the configuration
 		var configuredProtocols = make(map[string]bool)
+		var routesPerProtocol = make(map[string]int64)
 		for _, d := range config.Devices().Items() {
 			if d.Bgp().RouterId() != "" {
 				proto := "bgp4"
-				if !configuredProtocols[proto] && len(d.Bgp().Ipv4Interfaces().Items()) > 0 {
-					log.Debugf("Configuration has %s protocol", strings.ToUpper(proto))
-					configuredProtocols[proto] = true
+				if len(d.Bgp().Ipv4Interfaces().Items()) > 0 {
+					if !configuredProtocols[proto] {
+						log.Debugf("Configuration has %s protocol", strings.ToUpper(proto))
+						configuredProtocols[proto] = true
+					}
+					// Count number of announced routes
+					for _, i := range d.Bgp().Ipv4Interfaces().Items() {
+						for _, p := range i.Peers().Items() {
+							for _, r := range p.V4Routes().Items() {
+								for _, a := range r.Addresses().Items() {
+									routesPerProtocol[proto] += int64(a.Count())
+								}
+							}
+						}
+					}
 				}
 			}
+		}
+		for p, r := range routesPerProtocol {
+			log.Debugf("%s configuration has total of %d routes to announce", strings.ToUpper(p), r)
 		}
 
 		// Wait for configured procotols to come up
@@ -190,17 +206,29 @@ func startProtocols(api gosnappi.GosnappiApi, config gosnappi.Config) (gosnappi.
 			}
 			proto := "bgp4"
 			if configuredProtocols[proto] && !protocolState[proto] {
-				log.Debugf("Waiting for %s protocol to come up...", strings.ToUpper(proto))
 				req.Bgpv4()
 				res, err := api.GetMetrics(req)
 				if err != nil {
 					log.Fatal(err)
 				}
 				protocolState[proto] = true
+				advertisedRoutes := int64(0)
 				for _, m := range res.Bgpv4Metrics().Items() {
+					// Check if protocol came up
 					if m.SessionState() != gosnappi.Bgpv4MetricSessionState.UP {
 						protocolState[proto] = false
+					} else {
+						advertisedRoutes += int64(m.RoutesAdvertised())
 					}
+				}
+				if protocolState[proto] {
+					if advertisedRoutes < routesPerProtocol[proto] {
+						// Not all configured routes we advertised yet
+						log.Debugf("%s has %d routes advertised of %d configured...", strings.ToUpper(proto), advertisedRoutes, routesPerProtocol[proto])
+						protocolState[proto] = false
+					}
+				} else {
+					log.Debugf("Waiting for %s protocol to come up...", strings.ToUpper(proto))
 				}
 			}
 			waitIsOver := true
