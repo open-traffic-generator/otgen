@@ -151,21 +151,11 @@ func initOTG() (gosnappi.GosnappiApi, gosnappi.Config) {
 	return api, config
 }
 
-func runTraffic(api gosnappi.GosnappiApi, config gosnappi.Config) {
-	// push traffic configuration to otgHost
-	log.Info("Applying OTG config...")
-	res, err := api.SetConfig(config)
-	checkResponse(res, err)
-	log.Info("ready.")
-
-	// Reusable metrics request
-	req := api.NewMetricsRequest()
-
-	// start configured protocols
+func startProtocols(api gosnappi.GosnappiApi, config gosnappi.Config) {
 	if len(config.Devices().Items()) > 0 { // TODO also if LAGs are configured
 		log.Info("Starting protocols...")
 		ps := api.NewProtocolState().SetState(gosnappi.ProtocolStateState.START)
-		res, err = api.SetProtocolState(ps)
+		res, err := api.SetProtocolState(ps)
 		checkResponse(res, err)
 		log.Info("started...")
 
@@ -187,7 +177,7 @@ func runTraffic(api gosnappi.GosnappiApi, config gosnappi.Config) {
 		}
 
 		// Wait for configured procotols to come up
-		// TODO ARP
+		req := api.NewMetricsRequest()
 		for {
 			var protocolState = make(map[string]bool)
 			for p, c := range configuredProtocols {
@@ -224,6 +214,17 @@ func runTraffic(api gosnappi.GosnappiApi, config gosnappi.Config) {
 			time.Sleep(otgPullInterval)
 		}
 	}
+}
+
+func runTraffic(api gosnappi.GosnappiApi, config gosnappi.Config) {
+	// push traffic configuration to otgHost
+	log.Info("Applying OTG config...")
+	res, err := api.SetConfig(config)
+	checkResponse(res, err)
+	log.Info("ready.")
+
+	// start configured protocols
+	startProtocols(api, config)
 
 	// start transmitting configured flows
 	// TODO check we have traffic flows
@@ -237,6 +238,7 @@ func runTraffic(api gosnappi.GosnappiApi, config gosnappi.Config) {
 	log.Infof("Total packets to transmit: %d, ETA is: %s\n", targetTx, trafficETA)
 
 	// initialize flow metrics
+	req := api.NewMetricsRequest()
 	switch otgMetrics {
 	case "port":
 		req.Port()
