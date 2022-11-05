@@ -167,10 +167,8 @@ func startProtocols(api gosnappi.GosnappiApi, config gosnappi.Config) (gosnappi.
 		checkResponse(res, err)
 		log.Info("started...")
 
-		// A map of supported protocols and if they are present in the configuration
-		configuredProtocols := map[string]bool{
-			"bgp4": false,
-		}
+		// Detect protocols present in the configuration
+		var configuredProtocols = make(map[string]bool)
 		for _, d := range config.Devices().Items() {
 			if d.Bgp().RouterId() != "" {
 				if !configuredProtocols["bgp4"] && len(d.Bgp().Ipv4Interfaces().Items()) > 0 {
