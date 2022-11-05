@@ -171,13 +171,15 @@ func startProtocols(api gosnappi.GosnappiApi, config gosnappi.Config) (gosnappi.
 		var configuredProtocols = make(map[string]bool)
 		for _, d := range config.Devices().Items() {
 			if d.Bgp().RouterId() != "" {
-				if !configuredProtocols["bgp4"] && len(d.Bgp().Ipv4Interfaces().Items()) > 0 {
-					log.Debug("Configuration has BGP4 protocol")
-					configuredProtocols["bgp4"] = true
+				proto := "bgp4"
+				if !configuredProtocols[proto] && len(d.Bgp().Ipv4Interfaces().Items()) > 0 {
+					log.Debugf("Configuration has %s protocol", strings.ToUpper(proto))
+					configuredProtocols[proto] = true
 				}
-				if !configuredProtocols["bgp6"] && len(d.Bgp().Ipv6Interfaces().Items()) > 0 {
-					log.Debug("Configuration has BGP6 protocol")
-					configuredProtocols["bgp6"] = true
+				proto = "bgp6"
+				if !configuredProtocols[proto] && len(d.Bgp().Ipv6Interfaces().Items()) > 0 {
+					log.Debugf("Configuration has %s protocol", strings.ToUpper(proto))
+					configuredProtocols[proto] = true
 				}
 			}
 		}
