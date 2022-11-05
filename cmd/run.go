@@ -72,7 +72,7 @@ For more information, go to https://github.com/open-traffic-generator/otgen
 			log.Fatal(err)
 		}
 
-		runTraffic(initOTG())
+		stopProtocols(runTraffic(startProtocols(applyConfig(initOTG()))))
 	},
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		switch logLevel {
@@ -151,7 +151,15 @@ func initOTG() (gosnappi.GosnappiApi, gosnappi.Config) {
 	return api, config
 }
 
-func startProtocols(api gosnappi.GosnappiApi, config gosnappi.Config) {
+func applyConfig(api gosnappi.GosnappiApi, config gosnappi.Config) (gosnappi.GosnappiApi, gosnappi.Config) {
+	log.Info("Applying OTG config...")
+	res, err := api.SetConfig(config)
+	checkResponse(res, err)
+	log.Info("ready.")
+	return api, config
+}
+
+func startProtocols(api gosnappi.GosnappiApi, config gosnappi.Config) (gosnappi.GosnappiApi, gosnappi.Config) {
 	if len(config.Devices().Items()) > 0 { // TODO also if LAGs are configured
 		log.Info("Starting protocols...")
 		ps := api.NewProtocolState().SetState(gosnappi.ProtocolStateState.START)
@@ -214,23 +222,15 @@ func startProtocols(api gosnappi.GosnappiApi, config gosnappi.Config) {
 			time.Sleep(otgPullInterval)
 		}
 	}
+	return api, config
 }
 
-func runTraffic(api gosnappi.GosnappiApi, config gosnappi.Config) {
-	// push traffic configuration to otgHost
-	log.Info("Applying OTG config...")
-	res, err := api.SetConfig(config)
-	checkResponse(res, err)
-	log.Info("ready.")
-
-	// start configured protocols
-	startProtocols(api, config)
-
+func runTraffic(api gosnappi.GosnappiApi, config gosnappi.Config) (gosnappi.GosnappiApi, gosnappi.Config) {
 	// start transmitting configured flows
 	// TODO check we have traffic flows
 	log.Info("Starting traffic...")
 	ts := api.NewTransmitState().SetState(gosnappi.TransmitStateState.START)
-	res, err = api.SetTransmitState(ts)
+	res, err := api.SetTransmitState(ts)
 	checkResponse(res, err)
 	log.Info("started...")
 
@@ -281,16 +281,20 @@ func runTraffic(api gosnappi.GosnappiApi, config gosnappi.Config) {
 	res, err = api.SetTransmitState(ts)
 	checkResponse(res, err)
 	log.Info("stopped.")
+	return api, config
+}
 
+func stopProtocols(api gosnappi.GosnappiApi, config gosnappi.Config) (gosnappi.GosnappiApi, gosnappi.Config) {
 	// stop protocols
 	// TODO consider defer
 	if len(config.Devices().Items()) > 0 { // TODO also if LAGs are configured
 		log.Info("Stopping protocols...")
 		ps := api.NewProtocolState().SetState(gosnappi.ProtocolStateState.STOP)
-		res, err = api.SetProtocolState(ps)
+		res, err := api.SetProtocolState(ps)
 		checkResponse(res, err)
 		log.Info("stopped.")
 	}
+	return api, config
 }
 
 func calculateTrafficTargets(config gosnappi.Config) (int64, time.Duration) {
