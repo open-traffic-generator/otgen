@@ -176,11 +176,6 @@ func startProtocols(api gosnappi.GosnappiApi, config gosnappi.Config) (gosnappi.
 					log.Debugf("Configuration has %s protocol", strings.ToUpper(proto))
 					configuredProtocols[proto] = true
 				}
-				proto = "bgp6"
-				if !configuredProtocols[proto] && len(d.Bgp().Ipv6Interfaces().Items()) > 0 {
-					log.Debugf("Configuration has %s protocol", strings.ToUpper(proto))
-					configuredProtocols[proto] = true
-				}
 			}
 		}
 
