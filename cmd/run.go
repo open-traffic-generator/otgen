@@ -26,6 +26,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/open-traffic-generator/snappi/gosnappi"
@@ -38,17 +39,15 @@ const (
 	OTG_DEFAULT_API = "https://localhost" // Default API endpoint value
 )
 
-var otgURL string                                     // URL of OTG server API endpoint
-var otgIgnoreX509 bool                                // Ignore X.509 certificate validation of OTG API endpoint
-var otgYaml bool                                      // Format of OTG input is YAML. Mutually exclusive with --json
-var otgJson bool                                      // Format of OTG input is JSON. Mutually exclusive with --yaml
-var otgFile string                                    // OTG configuration file
-var otgWaitProtoString string                         // String if protocols to wait to come up
-var otgWaitProtocols = map[string]bool{"bgp4": false} // A map of supported protocols and if we shall wait for them
-var otgMetrics string                                 // Metrics type to report: "port" for PortMetrics, "flow" for FlowMetrics
-var otgPullIntervalStr string                         // Interval to pull OTG metrics. Example: 1s (default 500ms)
-var otgPullInterval time.Duration                     // Parsed interval to pull OTG metrics
-var xeta = float32(0.0)                               // How long to wait before forcing traffic to stop. In multiples of ETA
+var otgURL string                 // URL of OTG server API endpoint
+var otgIgnoreX509 bool            // Ignore X.509 certificate validation of OTG API endpoint
+var otgYaml bool                  // Format of OTG input is YAML. Mutually exclusive with --json
+var otgJson bool                  // Format of OTG input is JSON. Mutually exclusive with --yaml
+var otgFile string                // OTG configuration file
+var otgMetrics string             // Metrics type to report: "port" for PortMetrics, "flow" for FlowMetrics
+var otgPullIntervalStr string     // Interval to pull OTG metrics. Example: 1s (default 500ms)
+var otgPullInterval time.Duration // Parsed interval to pull OTG metrics
+var xeta = float32(0.0)           // How long to wait before forcing traffic to stop. In multiples of ETA
 
 // runCmd represents the run command
 var runCmd = &cobra.Command{
@@ -88,12 +87,6 @@ For more information, go to https://github.com/open-traffic-generator/otgen
 		default:
 			log.Fatalf("Unsupported log level: %s", logLevel)
 		}
-		_, isProtoSupported := otgWaitProtocols[otgWaitProtoString]
-		if isProtoSupported {
-			otgWaitProtocols[otgWaitProtoString] = true
-		} else {
-			log.Fatalf("Unsupported protocol to wait: %s", otgWaitProtoString)
-		}
 		return nil
 	},
 }
@@ -116,7 +109,6 @@ func init() {
 	runCmd.Flags().BoolVarP(&otgJson, "json", "j", false, "Format of OTG input is JSON. Mutually exclusive with --yaml")
 	runCmd.MarkFlagsMutuallyExclusive("json", "yaml")
 	runCmd.Flags().StringVarP(&otgFile, "file", "f", "", "OTG configuration file. If not provided, will use stdin")
-	runCmd.Flags().StringVarP(&otgWaitProtoString, "wait", "w", "", "Protocol to wait for to come up")
 	runCmd.Flags().StringVarP(&otgMetrics, "metrics", "m", "port", "Metrics type to report:\n  \"port\" for PortMetrics,\n  \"flow\" for FlowMetrics\n ")
 	runCmd.Flags().StringVarP(&otgPullIntervalStr, "interval", "i", "0.5s", "Interval to pull OTG metrics. Valid time units are 'ms', 's', 'm', 'h'. Example: 1s")
 	runCmd.Flags().Float32VarP(&xeta, "xeta", "x", float32(0.0), "How long to wait before forcing traffic to stop. In multiples of ETA. Example: 1.5 (default is no limit)")
@@ -176,34 +168,61 @@ func runTraffic(api gosnappi.GosnappiApi, config gosnappi.Config) {
 		res, err = api.SetProtocolState(ps)
 		checkResponse(res, err)
 		log.Info("started...")
-	}
 
-	// wait for procotols to come up
-	if otgWaitProtoString != "" {
-		log.Info(fmt.Sprintf("Waiting for %s protocol to come up...", otgWaitProtoString))
-		switch otgWaitProtoString {
-		case "bgp4":
-			req.Bgpv4()
-		default: // TODO ARP
+		// A map of supported protocols and if they are present in the configuration
+		configuredProtocols := map[string]bool{
+			"bgp4": false,
 		}
+		for _, d := range config.Devices().Items() {
+			if d.Bgp().RouterId() != "" {
+				if !configuredProtocols["bgp4"] && len(d.Bgp().Ipv4Interfaces().Items()) > 0 {
+					log.Debug("Configuration has BGP4 protocol")
+					configuredProtocols["bgp4"] = true
+				}
+				if !configuredProtocols["bgp6"] && len(d.Bgp().Ipv6Interfaces().Items()) > 0 {
+					log.Debug("Configuration has BGP6 protocol")
+					configuredProtocols["bgp6"] = true
+				}
+			}
+		}
+
+		// Wait for configured procotols to come up
+		// TODO ARP
 		for {
-			res, err := api.GetMetrics(req)
-			if err != nil {
-				log.Fatal(err)
+			var protocolState = make(map[string]bool)
+			for p, c := range configuredProtocols {
+				if c { // will wait for this protocol to come up
+					protocolState[p] = false
+				}
+			}
+			proto := "bgp4"
+			if configuredProtocols[proto] && !protocolState[proto] {
+				log.Debugf("Waiting for %s protocol to come up...", strings.ToUpper(proto))
+				req.Bgpv4()
+				res, err := api.GetMetrics(req)
+				if err != nil {
+					log.Fatal(err)
+				}
+				protocolState[proto] = true
+				for _, m := range res.Bgpv4Metrics().Items() {
+					if m.SessionState() != gosnappi.Bgpv4MetricSessionState.UP {
+						protocolState[proto] = false
+					}
+				}
 			}
 			waitIsOver := true
-			for _, m := range res.Bgpv4Metrics().Items() {
-				if m.SessionState() != gosnappi.Bgpv4MetricSessionState.UP {
+			for p, s := range protocolState {
+				if s {
+					log.Infof("%s protocol is up.", strings.ToUpper(p))
+				} else {
 					waitIsOver = false
 				}
 			}
 			if waitIsOver {
-				log.Info("all protocols are up.")
 				break
 			}
 			time.Sleep(otgPullInterval)
 		}
-
 	}
 
 	// start transmitting configured flows
