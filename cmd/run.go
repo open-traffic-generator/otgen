@@ -213,18 +213,20 @@ func startProtocols(api gosnappi.GosnappiApi, config gosnappi.Config) (gosnappi.
 				}
 				protocolState[proto] = true
 				advertisedRoutes := int64(0)
+				receivedRoutes := int64(0)
 				for _, m := range res.Bgpv4Metrics().Items() {
 					// Check if protocol came up
 					if m.SessionState() != gosnappi.Bgpv4MetricSessionState.UP {
 						protocolState[proto] = false
 					} else {
 						advertisedRoutes += int64(m.RoutesAdvertised())
+						receivedRoutes += int64(m.RoutesReceived())
 					}
 				}
 				if protocolState[proto] {
-					if advertisedRoutes < routesPerProtocol[proto] {
+					log.Debugf("%s has advertised %d routes of total %d configured, and received %d routes...", strings.ToUpper(proto), advertisedRoutes, routesPerProtocol[proto], receivedRoutes)
+					if advertisedRoutes < routesPerProtocol[proto] || receivedRoutes < 2*advertisedRoutes {
 						// Not all configured routes we advertised yet
-						log.Debugf("%s has %d routes advertised of %d configured...", strings.ToUpper(proto), advertisedRoutes, routesPerProtocol[proto])
 						protocolState[proto] = false
 					}
 				} else {
