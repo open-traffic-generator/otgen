@@ -26,6 +26,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -44,6 +45,9 @@ var otgIgnoreX509 bool            // Ignore X.509 certificate validation of OTG 
 var otgYaml bool                  // Format of OTG input is YAML. Mutually exclusive with --json
 var otgJson bool                  // Format of OTG input is JSON. Mutually exclusive with --yaml
 var otgFile string                // OTG configuration file
+var otgRxBgpStr string            // How many BGP routes shall we receive to consider the protocol is up. In routes or multiples of routes advertised
+var otgRxBgpNumber int32          // Parsed number of BGP routes we shall receive
+var otgRxBgpMultiplier int        // Parsed multiplier of advertised BGP routes we shall receive
 var otgMetrics string             // Metrics type to report: "port" for PortMetrics, "flow" for FlowMetrics
 var otgPullIntervalStr string     // Interval to pull OTG metrics. Example: 1s (default 500ms)
 var otgPullInterval time.Duration // Parsed interval to pull OTG metrics
@@ -75,6 +79,7 @@ For more information, go to https://github.com/open-traffic-generator/otgen
 		stopProtocols(runTraffic(startProtocols(applyConfig(initOTG()))))
 	},
 	PreRunE: func(cmd *cobra.Command, args []string) error {
+		// Logging level
 		switch logLevel {
 		case "err":
 			log.SetLevel(logrus.ErrorLevel)
@@ -86,6 +91,26 @@ For more information, go to https://github.com/open-traffic-generator/otgen
 			log.SetLevel(logrus.DebugLevel)
 		default:
 			log.Fatalf("Unsupported log level: %s", logLevel)
+		}
+
+		// Number of routes to receive to consider BGP is up
+		if len(otgRxBgpStr) > 1 && strings.HasSuffix(otgRxBgpStr, "x") {
+			s := otgRxBgpStr[0 : len(otgRxBgpStr)-1]
+			x, err := strconv.Atoi(s)
+			if err != nil {
+				log.Fatalf("Incorrect format for --rxbgp multiplier: %s is not an integer", s)
+			}
+			otgRxBgpMultiplier = x
+			log.Debugf("Will use %dx of advertised routes for expected number of BGP routes to receive", otgRxBgpMultiplier)
+		} else if len(otgRxBgpStr) > 0 {
+			n, err := strconv.Atoi(otgRxBgpStr)
+			if err != nil {
+				log.Fatalf("Incorrect format for --rxbgp routes number: %s is not an integer", otgRxBgpStr)
+			}
+			otgRxBgpNumber = int32(n)
+			log.Debugf("Will use %d for number of expected number of BGP routes to receive", otgRxBgpNumber)
+		} else {
+			log.Fatalf("Incorrect format for --rxbgp parameter: %s has to be an integer or an integer with \"x\" suffix for a multiplier", otgRxBgpStr)
 		}
 		return nil
 	},
@@ -109,6 +134,7 @@ func init() {
 	runCmd.Flags().BoolVarP(&otgJson, "json", "j", false, "Format of OTG input is JSON. Mutually exclusive with --yaml")
 	runCmd.MarkFlagsMutuallyExclusive("json", "yaml")
 	runCmd.Flags().StringVarP(&otgFile, "file", "f", "", "OTG configuration file. If not provided, will use stdin")
+	runCmd.Flags().StringVarP(&otgRxBgpStr, "rxbgp", "", "1x", "How many BGP routes shall we receive to consider the protocol is up. In routes or multiples of routes advertised")
 	runCmd.Flags().StringVarP(&otgMetrics, "metrics", "m", "port", "Metrics type to report:\n  \"port\" for PortMetrics,\n  \"flow\" for FlowMetrics\n ")
 	runCmd.Flags().StringVarP(&otgPullIntervalStr, "interval", "i", "0.5s", "Interval to pull OTG metrics. Valid time units are 'ms', 's', 'm', 'h'. Example: 1s")
 	runCmd.Flags().Float32VarP(&xeta, "xeta", "x", float32(0.0), "How long to wait before forcing traffic to stop. In multiples of ETA. Example: 1.5 (default is no limit)")
@@ -165,11 +191,11 @@ func startProtocols(api gosnappi.GosnappiApi, config gosnappi.Config) (gosnappi.
 		ps := api.NewProtocolState().SetState(gosnappi.ProtocolStateState.START)
 		res, err := api.SetProtocolState(ps)
 		checkResponse(res, err)
-		log.Info("started...")
+		log.Info("waiting for protocols to come up...")
 
 		// Detect protocols present in the configuration
 		var configuredProtocols = make(map[string]bool)
-		var routesPerProtocol = make(map[string]int64)
+		var routesPerProtocol = make(map[string]int32)
 		for _, d := range config.Devices().Items() {
 			if d.Bgp().RouterId() != "" {
 				proto := "bgp4"
@@ -183,7 +209,7 @@ func startProtocols(api gosnappi.GosnappiApi, config gosnappi.Config) (gosnappi.
 						for _, p := range i.Peers().Items() {
 							for _, r := range p.V4Routes().Items() {
 								for _, a := range r.Addresses().Items() {
-									routesPerProtocol[proto] += int64(a.Count())
+									routesPerProtocol[proto] += a.Count()
 								}
 							}
 						}
@@ -195,7 +221,8 @@ func startProtocols(api gosnappi.GosnappiApi, config gosnappi.Config) (gosnappi.
 			log.Debugf("%s configuration has total of %d routes to announce", strings.ToUpper(p), r)
 		}
 
-		// Wait for configured procotols to come up
+		// Wait for configured protocols to come up
+		// TODO timeout
 		req := api.NewMetricsRequest()
 		for {
 			var protocolState = make(map[string]bool)
@@ -212,22 +239,30 @@ func startProtocols(api gosnappi.GosnappiApi, config gosnappi.Config) (gosnappi.
 					log.Fatal(err)
 				}
 				protocolState[proto] = true
-				advertisedRoutes := int64(0)
-				receivedRoutes := int64(0)
+				advertisedRoutes := int32(0)
+				receivedRoutes := int32(0)
 				for _, m := range res.Bgpv4Metrics().Items() {
 					// Check if protocol came up
 					if m.SessionState() != gosnappi.Bgpv4MetricSessionState.UP {
 						protocolState[proto] = false
 					} else {
-						advertisedRoutes += int64(m.RoutesAdvertised())
-						receivedRoutes += int64(m.RoutesReceived())
+						advertisedRoutes += m.RoutesAdvertised()
+						receivedRoutes += m.RoutesReceived()
 					}
 				}
 				if protocolState[proto] {
 					log.Debugf("%s has advertised %d routes of total %d configured, and received %d routes...", strings.ToUpper(proto), advertisedRoutes, routesPerProtocol[proto], receivedRoutes)
-					if advertisedRoutes < routesPerProtocol[proto] || receivedRoutes < 2*advertisedRoutes {
+					if advertisedRoutes < routesPerProtocol[proto] {
 						// Not all configured routes we advertised yet
 						protocolState[proto] = false
+					} else {
+						if otgRxBgpNumber > 0 && receivedRoutes < otgRxBgpNumber {
+							// Not all expected routes were received yet
+							protocolState[proto] = false
+						} else if otgRxBgpMultiplier > 0 && receivedRoutes < advertisedRoutes*int32(otgRxBgpMultiplier) {
+							// Not all expected routes were received yet
+							protocolState[proto] = false
+						}
 					}
 				} else {
 					log.Debugf("Waiting for %s protocol to come up...", strings.ToUpper(proto))
