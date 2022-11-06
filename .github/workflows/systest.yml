@@ -16,6 +16,9 @@ jobs:
   b2b-raw-traffic:
     name: B2B raw traffic test
     runs-on: ubuntu-20.04
+    defaults:
+      run:
+        working-directory: ./test/otg-examples/docker-compose/b2b
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -26,8 +29,10 @@ jobs:
         with:
           go-version: ${{ env.GOVER }}
       - name: Build otgen
-        run: go get && go mod tidy && go build && sudo cp otgen /usr/local/bin/otgen
-      - name: Run test
-        run:  cd test/otg-examples/docker-compose/b2b && make install network deploy otgen-run
+        run: cd ../../../.. && go get && go mod tidy && go build && sudo mv otgen /usr/local/bin/otgen
+      - name: Setup testbed
+        run:  make install network deploy
+      - name: Test1 "cat otg.yml | otgen run -k"
+        run:  cat otg.yml | otgen --log debug run -k
       - name: Cleanup
-        run:  cd test/otg-examples/docker-compose/b2b && make clean
+        run:  make clean
