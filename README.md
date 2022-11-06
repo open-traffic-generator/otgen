@@ -88,6 +88,7 @@ otgen run
   [--metrics port,flow,bgp4]          # Metrics types to report as a comma-separated list: "port" for PortMetrics, "flow" for FlowMetrics, "bgp4" for Bgpv4Metrics
   [--interval 0.5s]                   # Interval to pull OTG metrics. Valid time units are 'ms', 's', 'm', 'h'. Example: 1s (default 0.5s)
   [--xeta 2]                          # How long to wait before forcing traffic to stop. In multiples of ETA. Example: 1.5 (default 2)
+  [--timeout 120]                     # Maximum total run time, including protocols convergence and running traffic
 ````
 
 ### `transform`

@@ -53,6 +53,9 @@ var otgMetricsMap map[string]bool // Metrics to report parsed into a map
 var otgPullIntervalStr string     // Interval to pull OTG metrics. Example: 1s (default 500ms)
 var otgPullInterval time.Duration // Parsed interval to pull OTG metrics
 var xeta = float32(0.0)           // How long to wait before forcing traffic to stop. In multiples of ETA
+var timeoutStr string             // Maximum total run time, including protocols convergence and running traffic. Example: 2m (default unlimited)
+var timeout time.Duration         // Parsed maximum total run time, including protocols convergence and running traffic
+var startTime time.Time           // Start time
 
 // runCmd represents the run command
 var runCmd = &cobra.Command{
@@ -64,6 +67,7 @@ Requests OTG API endpoint to apply OTG configuration and run Traffic Flows.
 For more information, go to https://github.com/open-traffic-generator/otgen
 `,
 	Run: func(cmd *cobra.Command, args []string) {
+		startTime = time.Now()
 		stopProtocols(runTraffic(startProtocols(applyConfig(initOTG()))))
 	},
 	PreRunE: func(cmd *cobra.Command, args []string) error {
@@ -80,6 +84,7 @@ For more information, go to https://github.com/open-traffic-generator/otgen
 		default:
 			log.Fatalf("Unsupported log level: %s", logLevel)
 		}
+		log.Debug("Parsing parameters...")
 
 		// Number of routes to receive to consider BGP is up
 		if len(otgRxBgpStr) > 1 && strings.HasSuffix(otgRxBgpStr, "x") {
@@ -122,6 +127,15 @@ For more information, go to https://github.com/open-traffic-generator/otgen
 			log.Fatal(err)
 		}
 
+		// Maximum running time
+		if timeoutStr != "" {
+			timeout, err = time.ParseDuration(timeoutStr)
+			if err != nil {
+				log.Fatal(err)
+			}
+			log.Debugf("Maximum running time limit is set to %s", timeoutStr)
+		}
+
 		return nil
 	},
 }
@@ -148,6 +162,7 @@ func init() {
 	runCmd.Flags().StringVarP(&otgMetrics, "metrics", "m", "port", "Metrics types to report as a comma-separated list:\n  \"port\" for PortMetrics,\n  \"flow\" for FlowMetrics,\n  \"bgp4\" for Bgpv4Metrics.\n  Example: bgp4,flow\n ")
 	runCmd.Flags().StringVarP(&otgPullIntervalStr, "interval", "i", "0.5s", "Interval to pull OTG metrics. Valid time units are 'ms', 's', 'm', 'h'. Example: 1s")
 	runCmd.Flags().Float32VarP(&xeta, "xeta", "x", float32(0.0), "How long to wait before forcing traffic to stop. In multiples of ETA. Example: 1.5 (default is no limit)")
+	runCmd.Flags().StringVarP(&timeoutStr, "timeout", "", "", "Maximum total run time, including protocols convergence and running traffic. Valid time units are 'ms', 's', 'm', 'h'. Example: 2m (default unlimited)")
 }
 
 func initOTG() (gosnappi.GosnappiApi, gosnappi.Config) {
@@ -232,7 +247,6 @@ func startProtocols(api gosnappi.GosnappiApi, config gosnappi.Config) (gosnappi.
 		}
 
 		// Wait for configured protocols to come up
-		// TODO timeout
 		req := api.NewMetricsRequest()
 		for {
 			var protocolState = make(map[string]bool)
@@ -287,6 +301,11 @@ func startProtocols(api gosnappi.GosnappiApi, config gosnappi.Config) (gosnappi.
 			if waitIsOver {
 				break
 			}
+			if timeout > 0 && timeout < time.Since(startTime) {
+				log.Errorf("Exceeded maximum time limit, terminating at startProtocols after %s", time.Since(startTime))
+				stopProtocols(api, config)
+				os.Exit(1)
+			}
 			time.Sleep(otgPullInterval)
 		}
 	}
@@ -337,14 +356,25 @@ func runTraffic(api gosnappi.GosnappiApi, config gosnappi.Config) (gosnappi.Gosn
 			metrics, err = api.GetMetrics(req)
 			printMetricsResponse(metrics, err)
 		}
+		if timeout > 0 && timeout < time.Since(startTime) {
+			log.Errorf("Exceeded maximum time limit, terminating at runTraffic after %s", time.Since(startTime))
+			stopProtocols(stopTraffic(api, config))
+			os.Exit(1)
+		}
 		time.Sleep(otgPullInterval)
 	}
 
 	// stop transmitting traffic
+	stopTraffic(api, config)
+	return api, config
+}
+
+func stopTraffic(api gosnappi.GosnappiApi, config gosnappi.Config) (gosnappi.GosnappiApi, gosnappi.Config) {
+	// stop transmitting traffic
 	// TODO consider defer
 	log.Info("Stopping traffic...")
-	ts = api.NewTransmitState().SetState(gosnappi.TransmitStateState.STOP)
-	res, err = api.SetTransmitState(ts)
+	ts := api.NewTransmitState().SetState(gosnappi.TransmitStateState.STOP)
+	res, err := api.SetTransmitState(ts)
 	checkResponse(res, err)
 	log.Info("stopped.")
 	return api, config
