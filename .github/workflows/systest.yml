@@ -1,0 +1,33 @@
+name: System Test
+
+on:
+  pull_request:
+    branches: [ "main" ]
+    paths:
+      - '**'
+      - '!**.md'
+      - '!**.png'
+  workflow_dispatch:
+
+env:
+  GOVER: 1.17.2
+
+jobs:
+  b2b-raw-traffic:
+    name: B2B raw traffic test
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          submodules: 'true'
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ env.GOVER }}
+      - name: Build otgen
+        run: go get && go mod tidy && go build && sudo cp otgen /usr/local/bin/otgen
+      - name: Run test
+        run:  cd test/otg-examples/docker-compose/b2b && make install network deploy otgen-run
+      - name: Cleanup
+        run:  cd test/otg-examples/docker-compose/b2b && make clean
