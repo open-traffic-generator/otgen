@@ -17,3 +17,4 @@ otgen
 *.log
 
 dist/
+.DS_Store
