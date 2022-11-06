@@ -7,6 +7,12 @@ on:
       - '**'
       - '!**.md'
       - '!**.png'
+  push:
+    branches: [ "main" ]
+    paths:
+      - '**'
+      - '!**.md'
+      - '!**.png'
   workflow_dispatch:
 
 env:
