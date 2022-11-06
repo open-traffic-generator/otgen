@@ -48,7 +48,8 @@ var otgFile string                // OTG configuration file
 var otgRxBgpStr string            // How many BGP routes shall we receive to consider the protocol is up. In routes or multiples of routes advertised
 var otgRxBgpNumber int32          // Parsed number of BGP routes we shall receive
 var otgRxBgpMultiplier int        // Parsed multiplier of advertised BGP routes we shall receive
-var otgMetrics string             // Metrics type to report: "port" for PortMetrics, "flow" for FlowMetrics
+var otgMetrics string             // Metrics types to report as a comma-separated list: "port" for PortMetrics, "flow" for FlowMetrics, "bgp4" for Bgpv4Metrics
+var otgMetricsMap map[string]bool // Metrics to report parsed into a map
 var otgPullIntervalStr string     // Interval to pull OTG metrics. Example: 1s (default 500ms)
 var otgPullInterval time.Duration // Parsed interval to pull OTG metrics
 var xeta = float32(0.0)           // How long to wait before forcing traffic to stop. In multiples of ETA
@@ -63,19 +64,6 @@ Requests OTG API endpoint to apply OTG configuration and run Traffic Flows.
 For more information, go to https://github.com/open-traffic-generator/otgen
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		switch otgMetrics {
-		case "port":
-		case "flow":
-		default:
-			log.Fatalf("Unsupported metrics type requested: %s", otgMetrics)
-		}
-
-		var err error
-		otgPullInterval, err = time.ParseDuration(otgPullIntervalStr)
-		if err != nil {
-			log.Fatal(err)
-		}
-
 		stopProtocols(runTraffic(startProtocols(applyConfig(initOTG()))))
 	},
 	PreRunE: func(cmd *cobra.Command, args []string) error {
@@ -112,6 +100,28 @@ For more information, go to https://github.com/open-traffic-generator/otgen
 		} else {
 			log.Fatalf("Incorrect format for --rxbgp parameter: %s has to be an integer or an integer with \"x\" suffix for a multiplier", otgRxBgpStr)
 		}
+
+		// Metrics to report
+		otgMetricsMap = make(map[string]bool)
+		for _, m := range strings.Split(otgMetrics, ",") {
+			switch m {
+			case "port":
+			case "flow":
+			case "bgp4":
+			default:
+				log.Fatalf("Unsupported metrics type requested: %s", m)
+			}
+			otgMetricsMap[m] = true
+		}
+		log.Debug("Will print these metrics: ", otgMetricsMap)
+
+		// Metrics pull interval
+		var err error
+		otgPullInterval, err = time.ParseDuration(otgPullIntervalStr)
+		if err != nil {
+			log.Fatal(err)
+		}
+
 		return nil
 	},
 }
@@ -135,7 +145,7 @@ func init() {
 	runCmd.MarkFlagsMutuallyExclusive("json", "yaml")
 	runCmd.Flags().StringVarP(&otgFile, "file", "f", "", "OTG configuration file. If not provided, will use stdin")
 	runCmd.Flags().StringVarP(&otgRxBgpStr, "rxbgp", "", "1x", "How many BGP routes shall we receive to consider the protocol is up. In routes or multiples of routes advertised")
-	runCmd.Flags().StringVarP(&otgMetrics, "metrics", "m", "port", "Metrics type to report:\n  \"port\" for PortMetrics,\n  \"flow\" for FlowMetrics\n ")
+	runCmd.Flags().StringVarP(&otgMetrics, "metrics", "m", "port", "Metrics types to report as a comma-separated list:\n  \"port\" for PortMetrics,\n  \"flow\" for FlowMetrics,\n  \"bgp4\" for Bgpv4Metrics.\n  Example: bgp4,flow\n ")
 	runCmd.Flags().StringVarP(&otgPullIntervalStr, "interval", "i", "0.5s", "Interval to pull OTG metrics. Valid time units are 'ms', 's', 'm', 'h'. Example: 1s")
 	runCmd.Flags().Float32VarP(&xeta, "xeta", "x", float32(0.0), "How long to wait before forcing traffic to stop. In multiples of ETA. Example: 1.5 (default is no limit)")
 }
@@ -235,9 +245,7 @@ func startProtocols(api gosnappi.GosnappiApi, config gosnappi.Config) (gosnappi.
 			if configuredProtocols[proto] && !protocolState[proto] {
 				req.Bgpv4()
 				res, err := api.GetMetrics(req)
-				if err != nil {
-					log.Fatal(err)
-				}
+				printMetricsResponse(res, err)
 				protocolState[proto] = true
 				advertisedRoutes := int32(0)
 				receivedRoutes := int32(0)
@@ -297,20 +305,10 @@ func runTraffic(api gosnappi.GosnappiApi, config gosnappi.Config) (gosnappi.Gosn
 	targetTx, trafficETA := calculateTrafficTargets(config)
 	log.Infof("Total packets to transmit: %d, ETA is: %s\n", targetTx, trafficETA)
 
-	// initialize flow metrics
+	// use port metrics to initially determine if traffic is running
 	req := api.NewMetricsRequest()
-	switch otgMetrics {
-	case "port":
-		req.Port()
-	case "flow":
-		req.Flow()
-	default:
-		req.Port()
-	}
+	req.Port()
 	metrics, err := api.GetMetrics(req)
-	if err != nil {
-		log.Fatal(err)
-	}
 	checkResponse(metrics, err)
 
 	start := time.Now()
@@ -329,9 +327,17 @@ func runTraffic(api gosnappi.GosnappiApi, config gosnappi.Config) (gosnappi.Gosn
 	}
 
 	for trafficRunning() {
+		if otgMetricsMap["flow"] { // fetch flow metrics if requested
+			req.Flow()
+			metrics, err = api.GetMetrics(req)
+			printMetricsResponse(metrics, err)
+		}
+		if otgMetricsMap["port"] || !otgMetricsMap["flow"] { // fetch port metrics if requested, or if flow metrics are not being fetched
+			req.Port()
+			metrics, err = api.GetMetrics(req)
+			printMetricsResponse(metrics, err)
+		}
 		time.Sleep(otgPullInterval)
-		metrics, err = api.GetMetrics(req)
-		checkResponse(metrics, err)
 	}
 
 	// stop transmitting traffic
@@ -380,8 +386,7 @@ func calculateTrafficTargets(config gosnappi.Config) (int64, time.Duration) {
 func isTrafficRunning(mr gosnappi.MetricsResponse, targetTx int64) bool {
 	trafficRunning := false // we'll check if there are flows still running
 
-	switch otgMetrics {
-	case "port":
+	if mr.Choice() == "port_metrics" {
 		total_tx := int64(0)
 		for _, pm := range mr.PortMetrics().Items() {
 			total_tx += pm.FramesTx()
@@ -389,13 +394,13 @@ func isTrafficRunning(mr gosnappi.MetricsResponse, targetTx int64) bool {
 		if total_tx < targetTx {
 			trafficRunning = true
 		}
-	case "flow":
+	} else if mr.Choice() == "flow_metrics" {
 		for _, fm := range mr.FlowMetrics().Items() {
 			if !trafficRunning && fm.Transmit() != gosnappi.FlowMetricTransmit.STOPPED {
 				trafficRunning = true
 			}
 		}
-	default:
+	} else {
 		trafficRunning = false
 	}
 
@@ -405,8 +410,7 @@ func isTrafficRunning(mr gosnappi.MetricsResponse, targetTx int64) bool {
 func isTrafficRunningWithETA(mr gosnappi.MetricsResponse, targetTx int64, start time.Time, trafficETA time.Duration) bool {
 	trafficRunning := false // we'll check if there are flows still running
 
-	switch otgMetrics {
-	case "port":
+	if mr.Choice() == "port_metrics" {
 		total_tx := int64(0)
 		for _, pm := range mr.PortMetrics().Items() {
 			total_tx += pm.FramesTx()
@@ -417,9 +421,8 @@ func isTrafficRunningWithETA(mr gosnappi.MetricsResponse, targetTx int64, start 
 		if float32(trafficETA)*xeta < float32(time.Since(start)) {
 			log.Warnf("Traffic has been running for %.1fs: %.1f times longer than ETA. Forcing to stop", float32(time.Since(start).Seconds()), xeta)
 			trafficRunning = false
-			break
 		}
-	case "flow":
+	} else if mr.Choice() == "flow_metrics" {
 		for _, fm := range mr.FlowMetrics().Items() {
 			if !trafficRunning && fm.Transmit() != gosnappi.FlowMetricTransmit.STOPPED {
 				trafficRunning = true
@@ -427,10 +430,9 @@ func isTrafficRunningWithETA(mr gosnappi.MetricsResponse, targetTx int64, start 
 			if float32(trafficETA)*xeta < float32(time.Since(start)) {
 				log.Warnf("Traffic %s has been running for %.1fs: %.1f times longer than ETA. Forcing to stop", fm.Name(), float32(time.Since(start).Seconds()), xeta)
 				trafficRunning = false
-				break
 			}
 		}
-	default:
+	} else {
 		trafficRunning = false
 	}
 
@@ -444,13 +446,31 @@ func checkResponse(res interface{}, err error) {
 	}
 	switch v := res.(type) {
 	case gosnappi.MetricsResponse:
-		printMetricsResponseRawJson(v)
 	case gosnappi.ResponseWarning:
 		for _, w := range v.Warnings() {
 			log.Warn("WARNING:", w)
 		}
 	default:
 		log.Fatal("Unknown response type:", v)
+	}
+}
+
+func printMetricsResponse(mr gosnappi.MetricsResponse, err error) {
+	if err != nil {
+		log.Fatal(err)
+	}
+	print := false
+	if mr.Choice() == "bgpv4_metrics" && otgMetricsMap["bgp4"] {
+		print = true
+	} else if mr.Choice() == "port_metrics" && otgMetricsMap["port"] {
+		print = true
+	} else if mr.Choice() == "flow_metrics" && otgMetricsMap["flow"] {
+		print = true
+	} else if len(otgMetricsMap) == 0 {
+		print = true // print any metrics if no specific instructions were given
+	}
+	if print {
+		printMetricsResponseRawJson(mr)
 	}
 }
 

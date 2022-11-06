@@ -85,7 +85,7 @@ otgen run
   [--file otg.yml | --file otg.json]  # OTG configuration file. If not provided, will use stdin
   [--yaml | --json]                   # Format of OTG input
   [--rxbgp 10|2x]                     # How many BGP routes shall we receive to consider the protocol is up. In number routes or multiples of routes advertised (default 1x)
-  [--metrics port|flow]               # Metrics type to report: "port" for PortMetrics, "flow" for FlowMetrics
+  [--metrics port,flow,bgp4]          # Metrics types to report as a comma-separated list: "port" for PortMetrics, "flow" for FlowMetrics, "bgp4" for Bgpv4Metrics
   [--interval 0.5s]                   # Interval to pull OTG metrics. Valid time units are 'ms', 's', 'm', 'h'. Example: 1s (default 0.5s)
   [--xeta 2]                          # How long to wait before forcing traffic to stop. In multiples of ETA. Example: 1.5 (default 2)
 ````
