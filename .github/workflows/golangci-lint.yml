@@ -1,11 +1,21 @@
-name: golangci-lint
+name: Lint
 on:
   push:
     tags:
       - v*
     branches:
       - main
+    paths:
+      - '**'
+      - '!**.md'
+      - '!**.png'
   pull_request:
+    paths:
+      - '**'
+      - '!**.md'
+      - '!**.png'
+  workflow_dispatch:
+
 permissions:
   contents: read
   # Optional: allow read access to pull request. Use with `only-new-issues` option.
