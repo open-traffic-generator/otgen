@@ -1,7 +1,13 @@
-name: System Test
+name: System Tests
 
 on:
   pull_request:
+    branches: [ "main" ]
+    paths:
+      - '**'
+      - '!**.md'
+      - '!**.png'
+  push:
     branches: [ "main" ]
     paths:
       - '**'

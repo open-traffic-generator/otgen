@@ -1,10 +1,14 @@
-name: CI
+name: Builds
 
 on:
   push:
     # run only against version tags
     tags:
       - 'v*'
+    paths:
+      - '**'
+      - '!**.md'
+      - '!**.png'
 
 env:
   GOVER: 1.17.2
