@@ -32,7 +32,17 @@ jobs:
         run: cd ../../../.. && go get && go mod tidy && go build && sudo mv otgen /usr/local/bin/otgen
       - name: Setup testbed
         run:  make install network deploy
-      - name: Test1 "cat otg.yml | otgen run -k"
+      - name: Test1 RUN with STDIN YAML
         run:  cat otg.yml | otgen --log debug run -k
+      - name: Test2 RUN with --api
+        run:  cat otg.yml | otgen --log debug run -k --api https://127.0.0.1
+      - name: Test3 RUN with --file --yaml
+        run:  otgen --log debug run -k --file otg.yml --yaml
+      - name: Test4 RUN with --interval
+        run:  otgen --log debug run -k --file otg.yml --interval 2s
+      - name: Test5 RUN with --metrics flow
+        run:  otgen --log debug run -k --file otg.yml --metrics flow
+      - name: Test6 RUN with --xeta 1.5
+        run:  otgen --log debug run -k --file otg.yml --xeta 1.5
       - name: Cleanup
         run:  make clean
