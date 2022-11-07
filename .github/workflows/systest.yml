@@ -76,7 +76,7 @@ jobs:
       - name: Build otgen
         run: cd ../../../.. && go get && go mod tidy && go build && sudo mv otgen /usr/local/bin/otgen
       - name: Setup testbed
-        run:  make install deploy && sleep 5
+        run:  make install pull deploy && sleep 5
       - name: Test1 RUN --rxbgp 2x
         run:  otgen --log debug run -k --file otg.json --json --rxbgp 2x
       - name: Test2 RUN --rxbgp 2x --metrics bgp4
