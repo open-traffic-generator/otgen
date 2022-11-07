@@ -77,5 +77,17 @@ jobs:
         run: cd ../../../.. && go get && go mod tidy && go build && sudo mv otgen /usr/local/bin/otgen
       - name: Setup testbed
         run:  make install pull deploy
-      - name: Pre-test
-        run:  make run
+      - name: Test1 RUN --rxbgp 2x
+        run:  otgen --log debug run -k --file otg.json --json --rxbgp 2x
+      - name: Test2 RUN --rxbgp 2x --metrics bgp4
+        run:  otgen --log debug run -k --file otg.json --json --rxbgp 2x --metrics bgp4
+      - name: Test3 RUN --rxbgp 2x --metrics bgp4,port
+        run:  otgen --log debug run -k --file otg.json --json --rxbgp 2x --metrics bgp4,port
+      - name: Test4 RUN --rxbgp 2x --metrics bgp4,flow
+        run:  otgen --log debug run -k --file otg.json --json --rxbgp 2x --metrics bgp4,flow
+      - name: Test5 RUN --rxbgp 2x --metrics bgp4,flow,port
+        run:  otgen --log debug run -k --file otg.json --json --rxbgp 2x --metrics bgp4,flow,port
+      - name: Test5 RUN --rxbgp 2x --metrics flow,port
+        run:  otgen --log debug run -k --file otg.json --json --rxbgp 2x --metrics flow,port
+      - name: Cleanup
+        run:  make clean
