@@ -26,6 +26,8 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/open-traffic-generator/snappi/gosnappi"
@@ -42,11 +44,18 @@ var otgURL string                 // URL of OTG server API endpoint
 var otgIgnoreX509 bool            // Ignore X.509 certificate validation of OTG API endpoint
 var otgYaml bool                  // Format of OTG input is YAML. Mutually exclusive with --json
 var otgJson bool                  // Format of OTG input is JSON. Mutually exclusive with --yaml
-var otgFile string                // OTG model file
-var otgMetrics string             // Metrics type to report: "port" for PortMetrics, "flow" for FlowMetrics
+var otgFile string                // OTG configuration file
+var otgRxBgpStr string            // How many BGP routes shall we receive to consider the protocol is up. In routes or multiples of routes advertised
+var otgRxBgpNumber int32          // Parsed number of BGP routes we shall receive
+var otgRxBgpMultiplier int        // Parsed multiplier of advertised BGP routes we shall receive
+var otgMetrics string             // Metrics types to report as a comma-separated list: "port" for PortMetrics, "flow" for FlowMetrics, "bgp4" for Bgpv4Metrics
+var otgMetricsMap map[string]bool // Metrics to report parsed into a map
 var otgPullIntervalStr string     // Interval to pull OTG metrics. Example: 1s (default 500ms)
 var otgPullInterval time.Duration // Parsed interval to pull OTG metrics
 var xeta = float32(0.0)           // How long to wait before forcing traffic to stop. In multiples of ETA
+var timeoutStr string             // Maximum total run time, including protocols convergence and running traffic. Example: 2m (default unlimited)
+var timeout time.Duration         // Parsed maximum total run time, including protocols convergence and running traffic
+var startTime time.Time           // Start time
 
 // runCmd represents the run command
 var runCmd = &cobra.Command{
@@ -58,22 +67,11 @@ Requests OTG API endpoint to apply OTG configuration and run Traffic Flows.
 For more information, go to https://github.com/open-traffic-generator/otgen
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		switch otgMetrics {
-		case "port":
-		case "flow":
-		default:
-			log.Fatalf("Unsupported metrics type requested: %s", otgMetrics)
-		}
-
-		var err error
-		otgPullInterval, err = time.ParseDuration(otgPullIntervalStr)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		runTraffic(initOTG())
+		startTime = time.Now()
+		stopProtocols(runTraffic(startProtocols(applyConfig(initOTG()))))
 	},
 	PreRunE: func(cmd *cobra.Command, args []string) error {
+		// Logging level
 		switch logLevel {
 		case "err":
 			log.SetLevel(logrus.ErrorLevel)
@@ -86,6 +84,58 @@ For more information, go to https://github.com/open-traffic-generator/otgen
 		default:
 			log.Fatalf("Unsupported log level: %s", logLevel)
 		}
+		log.Debug("Parsing parameters...")
+
+		// Number of routes to receive to consider BGP is up
+		if len(otgRxBgpStr) > 1 && strings.HasSuffix(otgRxBgpStr, "x") {
+			s := otgRxBgpStr[0 : len(otgRxBgpStr)-1]
+			x, err := strconv.Atoi(s)
+			if err != nil {
+				log.Fatalf("Incorrect format for --rxbgp multiplier: %s is not an integer", s)
+			}
+			otgRxBgpMultiplier = x
+			log.Debugf("Will use %dx of advertised routes for expected number of BGP routes to receive", otgRxBgpMultiplier)
+		} else if len(otgRxBgpStr) > 0 {
+			n, err := strconv.Atoi(otgRxBgpStr)
+			if err != nil {
+				log.Fatalf("Incorrect format for --rxbgp routes number: %s is not an integer", otgRxBgpStr)
+			}
+			otgRxBgpNumber = int32(n)
+			log.Debugf("Will use %d for number of expected number of BGP routes to receive", otgRxBgpNumber)
+		} else {
+			log.Fatalf("Incorrect format for --rxbgp parameter: %s has to be an integer or an integer with \"x\" suffix for a multiplier", otgRxBgpStr)
+		}
+
+		// Metrics to report
+		otgMetricsMap = make(map[string]bool)
+		for _, m := range strings.Split(otgMetrics, ",") {
+			switch m {
+			case "port":
+			case "flow":
+			case "bgp4":
+			default:
+				log.Fatalf("Unsupported metrics type requested: %s", m)
+			}
+			otgMetricsMap[m] = true
+		}
+		log.Debug("Will print these metrics: ", otgMetricsMap)
+
+		// Metrics pull interval
+		var err error
+		otgPullInterval, err = time.ParseDuration(otgPullIntervalStr)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		// Maximum running time
+		if timeoutStr != "" {
+			timeout, err = time.ParseDuration(timeoutStr)
+			if err != nil {
+				log.Fatal(err)
+			}
+			log.Debugf("Maximum running time limit is set to %s", timeoutStr)
+		}
+
 		return nil
 	},
 }
@@ -107,10 +157,12 @@ func init() {
 	runCmd.Flags().BoolVarP(&otgYaml, "yaml", "y", false, "Format of OTG input is YAML. Mutually exclusive with --json. Assumed format by default")
 	runCmd.Flags().BoolVarP(&otgJson, "json", "j", false, "Format of OTG input is JSON. Mutually exclusive with --yaml")
 	runCmd.MarkFlagsMutuallyExclusive("json", "yaml")
-	runCmd.Flags().StringVarP(&otgFile, "file", "f", "", "OTG model file. If not provided, will use stdin")
-	runCmd.Flags().StringVarP(&otgMetrics, "metrics", "m", "port", "Metrics type to report:\n  \"port\" for PortMetrics,\n  \"flow\" for FlowMetrics\n ")
+	runCmd.Flags().StringVarP(&otgFile, "file", "f", "", "OTG configuration file. If not provided, will use stdin")
+	runCmd.Flags().StringVarP(&otgRxBgpStr, "rxbgp", "", "1x", "How many BGP routes shall we receive to consider the protocol is up. In routes or multiples of routes advertised")
+	runCmd.Flags().StringVarP(&otgMetrics, "metrics", "m", "port", "Metrics types to report as a comma-separated list:\n  \"port\" for PortMetrics,\n  \"flow\" for FlowMetrics,\n  \"bgp4\" for Bgpv4Metrics.\n  Example: bgp4,flow\n ")
 	runCmd.Flags().StringVarP(&otgPullIntervalStr, "interval", "i", "0.5s", "Interval to pull OTG metrics. Valid time units are 'ms', 's', 'm', 'h'. Example: 1s")
 	runCmd.Flags().Float32VarP(&xeta, "xeta", "x", float32(0.0), "How long to wait before forcing traffic to stop. In multiples of ETA. Example: 1.5 (default is no limit)")
+	runCmd.Flags().StringVarP(&timeoutStr, "timeout", "", "", "Maximum total run time, including protocols convergence and running traffic. Valid time units are 'ms', 's', 'm', 'h'. Example: 2m (default unlimited)")
 }
 
 func initOTG() (gosnappi.GosnappiApi, gosnappi.Config) {
@@ -150,37 +202,132 @@ func initOTG() (gosnappi.GosnappiApi, gosnappi.Config) {
 	return api, config
 }
 
-func runTraffic(api gosnappi.GosnappiApi, config gosnappi.Config) {
-	// push traffic configuration to otgHost
+func applyConfig(api gosnappi.GosnappiApi, config gosnappi.Config) (gosnappi.GosnappiApi, gosnappi.Config) {
 	log.Info("Applying OTG config...")
 	res, err := api.SetConfig(config)
 	checkResponse(res, err)
 	log.Info("ready.")
+	return api, config
+}
 
+func startProtocols(api gosnappi.GosnappiApi, config gosnappi.Config) (gosnappi.GosnappiApi, gosnappi.Config) {
+	if len(config.Devices().Items()) > 0 { // TODO also if LAGs are configured
+		log.Info("Starting protocols...")
+		ps := api.NewProtocolState().SetState(gosnappi.ProtocolStateState.START)
+		res, err := api.SetProtocolState(ps)
+		checkResponse(res, err)
+		log.Info("waiting for protocols to come up...")
+
+		// Detect protocols present in the configuration
+		var configuredProtocols = make(map[string]bool)
+		var routesPerProtocol = make(map[string]int32)
+		for _, d := range config.Devices().Items() {
+			if d.Bgp().RouterId() != "" {
+				proto := "bgp4"
+				if len(d.Bgp().Ipv4Interfaces().Items()) > 0 {
+					if !configuredProtocols[proto] {
+						log.Debugf("Configuration has %s protocol", strings.ToUpper(proto))
+						configuredProtocols[proto] = true
+					}
+					// Count number of announced routes
+					for _, i := range d.Bgp().Ipv4Interfaces().Items() {
+						for _, p := range i.Peers().Items() {
+							for _, r := range p.V4Routes().Items() {
+								for _, a := range r.Addresses().Items() {
+									routesPerProtocol[proto] += a.Count()
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		for p, r := range routesPerProtocol {
+			log.Debugf("%s configuration has total of %d routes to announce", strings.ToUpper(p), r)
+		}
+
+		// Wait for configured protocols to come up
+		req := api.NewMetricsRequest()
+		for {
+			var protocolState = make(map[string]bool)
+			for p, c := range configuredProtocols {
+				if c { // will wait for this protocol to come up
+					protocolState[p] = false
+				}
+			}
+			proto := "bgp4"
+			if configuredProtocols[proto] && !protocolState[proto] {
+				req.Bgpv4()
+				res, err := api.GetMetrics(req)
+				printMetricsResponse(res, err)
+				protocolState[proto] = true
+				advertisedRoutes := int32(0)
+				receivedRoutes := int32(0)
+				for _, m := range res.Bgpv4Metrics().Items() {
+					// Check if protocol came up
+					if m.SessionState() != gosnappi.Bgpv4MetricSessionState.UP {
+						protocolState[proto] = false
+					} else {
+						advertisedRoutes += m.RoutesAdvertised()
+						receivedRoutes += m.RoutesReceived()
+					}
+				}
+				if protocolState[proto] {
+					log.Debugf("%s has advertised %d routes of total %d configured, and received %d routes...", strings.ToUpper(proto), advertisedRoutes, routesPerProtocol[proto], receivedRoutes)
+					if advertisedRoutes < routesPerProtocol[proto] {
+						// Not all configured routes we advertised yet
+						protocolState[proto] = false
+					} else {
+						if otgRxBgpNumber > 0 && receivedRoutes < otgRxBgpNumber {
+							// Not all expected routes were received yet
+							protocolState[proto] = false
+						} else if otgRxBgpMultiplier > 0 && receivedRoutes < advertisedRoutes*int32(otgRxBgpMultiplier) {
+							// Not all expected routes were received yet
+							protocolState[proto] = false
+						}
+					}
+				} else {
+					log.Debugf("Waiting for %s protocol to come up...", strings.ToUpper(proto))
+				}
+			}
+			waitIsOver := true
+			for p, s := range protocolState {
+				if s {
+					log.Infof("%s protocol is up.", strings.ToUpper(p))
+				} else {
+					waitIsOver = false
+				}
+			}
+			if waitIsOver {
+				break
+			}
+			if timeout > 0 && timeout < time.Since(startTime) {
+				log.Errorf("Exceeded maximum time limit, terminating at startProtocols after %s", time.Since(startTime))
+				stopProtocols(api, config)
+				os.Exit(1)
+			}
+			time.Sleep(otgPullInterval)
+		}
+	}
+	return api, config
+}
+
+func runTraffic(api gosnappi.GosnappiApi, config gosnappi.Config) (gosnappi.GosnappiApi, gosnappi.Config) {
 	// start transmitting configured flows
+	// TODO check we have traffic flows
 	log.Info("Starting traffic...")
 	ts := api.NewTransmitState().SetState(gosnappi.TransmitStateState.START)
-	res, err = api.SetTransmitState(ts)
+	res, err := api.SetTransmitState(ts)
 	checkResponse(res, err)
 	log.Info("started...")
 
 	targetTx, trafficETA := calculateTrafficTargets(config)
 	log.Infof("Total packets to transmit: %d, ETA is: %s\n", targetTx, trafficETA)
 
-	// initialize flow metrics
+	// use port metrics to initially determine if traffic is running
 	req := api.NewMetricsRequest()
-	switch otgMetrics {
-	case "port":
-		req.Port()
-	case "flow":
-		req.Flow()
-	default:
-		req.Port()
-	}
+	req.Port()
 	metrics, err := api.GetMetrics(req)
-	if err != nil {
-		log.Fatal(err)
-	}
 	checkResponse(metrics, err)
 
 	start := time.Now()
@@ -199,17 +346,51 @@ func runTraffic(api gosnappi.GosnappiApi, config gosnappi.Config) {
 	}
 
 	for trafficRunning() {
+		if otgMetricsMap["flow"] { // fetch flow metrics if requested
+			req.Flow()
+			metrics, err = api.GetMetrics(req)
+			printMetricsResponse(metrics, err)
+		}
+		if otgMetricsMap["port"] || !otgMetricsMap["flow"] { // fetch port metrics if requested, or if flow metrics are not being fetched
+			req.Port()
+			metrics, err = api.GetMetrics(req)
+			printMetricsResponse(metrics, err)
+		}
+		if timeout > 0 && timeout < time.Since(startTime) {
+			log.Errorf("Exceeded maximum time limit, terminating at runTraffic after %s", time.Since(startTime))
+			stopProtocols(stopTraffic(api, config))
+			os.Exit(1)
+		}
 		time.Sleep(otgPullInterval)
-		metrics, err = api.GetMetrics(req)
-		checkResponse(metrics, err)
 	}
 
 	// stop transmitting traffic
+	stopTraffic(api, config)
+	return api, config
+}
+
+func stopTraffic(api gosnappi.GosnappiApi, config gosnappi.Config) (gosnappi.GosnappiApi, gosnappi.Config) {
+	// stop transmitting traffic
+	// TODO consider defer
 	log.Info("Stopping traffic...")
-	ts = api.NewTransmitState().SetState(gosnappi.TransmitStateState.STOP)
-	res, err = api.SetTransmitState(ts)
+	ts := api.NewTransmitState().SetState(gosnappi.TransmitStateState.STOP)
+	res, err := api.SetTransmitState(ts)
 	checkResponse(res, err)
 	log.Info("stopped.")
+	return api, config
+}
+
+func stopProtocols(api gosnappi.GosnappiApi, config gosnappi.Config) (gosnappi.GosnappiApi, gosnappi.Config) {
+	// stop protocols
+	// TODO consider defer
+	if len(config.Devices().Items()) > 0 { // TODO also if LAGs are configured
+		log.Info("Stopping protocols...")
+		ps := api.NewProtocolState().SetState(gosnappi.ProtocolStateState.STOP)
+		res, err := api.SetProtocolState(ps)
+		checkResponse(res, err)
+		log.Info("stopped.")
+	}
+	return api, config
 }
 
 func calculateTrafficTargets(config gosnappi.Config) (int64, time.Duration) {
@@ -235,8 +416,7 @@ func calculateTrafficTargets(config gosnappi.Config) (int64, time.Duration) {
 func isTrafficRunning(mr gosnappi.MetricsResponse, targetTx int64) bool {
 	trafficRunning := false // we'll check if there are flows still running
 
-	switch otgMetrics {
-	case "port":
+	if mr.Choice() == "port_metrics" {
 		total_tx := int64(0)
 		for _, pm := range mr.PortMetrics().Items() {
 			total_tx += pm.FramesTx()
@@ -244,13 +424,13 @@ func isTrafficRunning(mr gosnappi.MetricsResponse, targetTx int64) bool {
 		if total_tx < targetTx {
 			trafficRunning = true
 		}
-	case "flow":
+	} else if mr.Choice() == "flow_metrics" {
 		for _, fm := range mr.FlowMetrics().Items() {
 			if !trafficRunning && fm.Transmit() != gosnappi.FlowMetricTransmit.STOPPED {
 				trafficRunning = true
 			}
 		}
-	default:
+	} else {
 		trafficRunning = false
 	}
 
@@ -260,8 +440,7 @@ func isTrafficRunning(mr gosnappi.MetricsResponse, targetTx int64) bool {
 func isTrafficRunningWithETA(mr gosnappi.MetricsResponse, targetTx int64, start time.Time, trafficETA time.Duration) bool {
 	trafficRunning := false // we'll check if there are flows still running
 
-	switch otgMetrics {
-	case "port":
+	if mr.Choice() == "port_metrics" {
 		total_tx := int64(0)
 		for _, pm := range mr.PortMetrics().Items() {
 			total_tx += pm.FramesTx()
@@ -272,9 +451,8 @@ func isTrafficRunningWithETA(mr gosnappi.MetricsResponse, targetTx int64, start 
 		if float32(trafficETA)*xeta < float32(time.Since(start)) {
 			log.Warnf("Traffic has been running for %.1fs: %.1f times longer than ETA. Forcing to stop", float32(time.Since(start).Seconds()), xeta)
 			trafficRunning = false
-			break
 		}
-	case "flow":
+	} else if mr.Choice() == "flow_metrics" {
 		for _, fm := range mr.FlowMetrics().Items() {
 			if !trafficRunning && fm.Transmit() != gosnappi.FlowMetricTransmit.STOPPED {
 				trafficRunning = true
@@ -282,10 +460,9 @@ func isTrafficRunningWithETA(mr gosnappi.MetricsResponse, targetTx int64, start 
 			if float32(trafficETA)*xeta < float32(time.Since(start)) {
 				log.Warnf("Traffic %s has been running for %.1fs: %.1f times longer than ETA. Forcing to stop", fm.Name(), float32(time.Since(start).Seconds()), xeta)
 				trafficRunning = false
-				break
 			}
 		}
-	default:
+	} else {
 		trafficRunning = false
 	}
 
@@ -299,13 +476,31 @@ func checkResponse(res interface{}, err error) {
 	}
 	switch v := res.(type) {
 	case gosnappi.MetricsResponse:
-		printMetricsResponseRawJson(v)
 	case gosnappi.ResponseWarning:
 		for _, w := range v.Warnings() {
 			log.Warn("WARNING:", w)
 		}
 	default:
 		log.Fatal("Unknown response type:", v)
+	}
+}
+
+func printMetricsResponse(mr gosnappi.MetricsResponse, err error) {
+	if err != nil {
+		log.Fatal(err)
+	}
+	print := false
+	if mr.Choice() == "bgpv4_metrics" && otgMetricsMap["bgp4"] {
+		print = true
+	} else if mr.Choice() == "port_metrics" && otgMetricsMap["port"] {
+		print = true
+	} else if mr.Choice() == "flow_metrics" && otgMetricsMap["flow"] {
+		print = true
+	} else if len(otgMetricsMap) == 0 {
+		print = true // print any metrics if no specific instructions were given
+	}
+	if print {
+		printMetricsResponseRawJson(mr)
 	}
 }
 

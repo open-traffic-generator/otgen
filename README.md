@@ -74,17 +74,23 @@ otgen create device                   # Create OTG device configuration
 
 ### `run`
 
-Requests OTG API endpoint to apply OTG configuration and run Traffic Flows.
+Requests OTG API endpoint to:
+
+  * apply OTG configuration
+  * start Protocols, if any Devices are defined in the configuration
+  * run Traffic Flows
 
 ```Shell
 otgen run 
   [--api https://otg-api-endpoint]    # URL of OTG API endpoint. Overrides ENV:OTG_API (default "https://localhost")
   [--insecure]                        # Ignore X.509 certificate validation
-  [--file otg.yml | --file otg.json]  # OTG model file. If not provided, will use stdin
+  [--file otg.yml | --file otg.json]  # OTG configuration file. If not provided, will use stdin
   [--yaml | --json]                   # Format of OTG input
-  [--metrics port|flow]               # Metrics type to report: "port" for PortMetrics, "flow" for FlowMetrics
+  [--rxbgp 10|2x]                     # How many BGP routes shall we receive to consider the protocol is up. In number routes or multiples of routes advertised (default 1x)
+  [--metrics port,flow,bgp4]          # Metrics types to report as a comma-separated list: "port" for PortMetrics, "flow" for FlowMetrics, "bgp4" for Bgpv4Metrics
   [--interval 0.5s]                   # Interval to pull OTG metrics. Valid time units are 'ms', 's', 'm', 'h'. Example: 1s (default 0.5s)
   [--xeta 2]                          # How long to wait before forcing traffic to stop. In multiples of ETA. Example: 1.5 (default 2)
+  [--timeout 120]                     # Maximum total run time, including protocols convergence and running traffic
 ````
 
 ### `transform`
@@ -139,7 +145,7 @@ For example:
    * `location` string of the OTG `ports` section depends on traffic generator ports available for the test
    * MAC addresses for OTG `flows` change only after re-deployment of containerized traffic generator components, and don't change in hardware setups
 
-For such parameters it may be more convinient to change default values used by `otgen` instead of specifying them as command-line arguments.
+For such parameters it may be more convenient to change default values used by `otgen` instead of specifying them as command-line arguments.
 
 Environmental variables is one of the mechanisms used by `otgen` to control default values. See below the full list of the variables recognized by `otgen` to redefine default values.
 
