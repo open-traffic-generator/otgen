@@ -33,12 +33,11 @@ tests-create-devices-flow:
 
 	./otgen create device -n otg1 -p p1  | \
 	./otgen add    device -n otg2 -p p2  | \
-	./otgen add flow --tx otg1 --rx otg2 --swap | \
+	./otgen add flow --tx otg2 --rx otg1 --swap | \
 	diff test/create/flow-device.swap.yml -
 
-	OTG_FLOW_SMAC_P1="02:11:11:00:01:aa" OTG_FLOW_DMAC_P1="02:11:11:00:02:aa" \
-	./otgen create device -n otg1 -p p1  | \
-	./otgen add    device -n otg2 -p p2  | \
+	OTG_FLOW_SMAC_P1="02:11:11:00:01:aa" ./otgen create device -n otg1 -p p1  | \
+	OTG_FLOW_SMAC_P2="02:11:11:00:02:aa" ./otgen add    device -n otg2 -p p2  | \
 	./otgen add flow --tx otg1 --rx otg2 | \
 	diff test/create/flow-device.mac.env.yml -
 
@@ -49,6 +48,6 @@ tests-create-devices-flow:
 
 	./otgen create device -n otg1 -p p1  --mac "02:11:11:00:01:aa" | \
 	./otgen add    device -n otg2 -p p2  --mac "02:11:11:00:02:aa" | \
-	./otgen add flow --tx otg1 --rx otg2 --swap | \
+	./otgen add flow --tx otg2 --rx otg1 --swap | \
 	diff test/create/flow-device.mac.swap.yml -
 	@echo

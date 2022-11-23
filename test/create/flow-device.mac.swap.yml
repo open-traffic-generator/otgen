@@ -37,10 +37,10 @@ flows:
     ethernet:
       dst:
         choice: value
-        value: 02:00:00:00:01:aa
+        value: 02:11:11:00:01:aa
       src:
         choice: value
-        value: 02:11:11:00:01:aa
+        value: 02:11:11:00:02:aa
   - choice: ipv4
     ipv4:
       dst:
@@ -65,9 +65,9 @@ flows:
     device:
       mode: mesh
       rx_names:
-      - otg2.eth[0]
-      tx_names:
       - otg1.eth[0]
+      tx_names:
+      - otg2.eth[0]
 ports:
 - location: localhost:5555
   name: p1

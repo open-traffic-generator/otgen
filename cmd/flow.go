@@ -333,7 +333,6 @@ func newFlow(config gosnappi.Config) {
 	deviceRx := otgGetDevice(config, flowRxPort)
 	if deviceRx != nil { // found a device, use it as a Rx for the flow, but not its MAC address, as it would override --dmac parameter
 		flow.TxRx().Device().SetRxNames([]string{deviceRx.Ethernets().Items()[0].Name()})
-		eth.Dst().SetValue(flowDstMac) // TODO ARP option
 		/*
 			if flowIPv4 {
 				flow.TxRx().Device().SetRxNames([]string{deviceRx.Ethernets().Items()[0].Ipv4Addresses().Items()[0].Name()})
@@ -341,7 +340,7 @@ func newFlow(config gosnappi.Config) {
 				flow.TxRx().Device().SetRxNames([]string{deviceRx.Ethernets().Items()[0].Ipv6Addresses().Items()[0].Name()})
 			}
 		*/
-		//eth.Dst().SetValue(flowDstMac) // TODO ARP option
+		eth.Dst().SetValue(deviceRx.Ethernets().Items()[0].Mac()) // TODO ARP option, as well as --dmac override
 	} else {
 		portRx := otgGetOrCreatePort(config, flowRxPort, flowRxLocation)
 		if portRx != nil {

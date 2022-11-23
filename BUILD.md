@@ -42,49 +42,9 @@ go build -ldflags="-X 'github.com/open-traffic-generator/otgen/cmd.version=v0.0.
 
 ## Test
 
-### `create flow`
+### `create`
 
-1. Parameters
-
-   - MACs with raw traffic
-
-```Shell
-./otgen create flow | diff test/create/flow.defaults.yml -
-./otgen create flow --swap | diff test/create/flow.swap.yml -
-OTG_FLOW_SMAC_P1="02:11:11:00:01:aa" OTG_FLOW_DMAC_P1="02:11:11:00:02:aa" ./otgen create flow | diff test/create/flow.mac.yml -
-./otgen create flow --smac "02:11:11:00:01:aa" --dmac "02:11:11:00:02:aa" | diff test/create/flow.mac.yml -
-./otgen create flow --smac "02:11:11:00:01:aa" --dmac "02:11:11:00:02:aa" --swap | diff test/create/flow.mac.swap.yml -
-```
-
-   - MACs with devices TODO update test file with ARP changes
-
-```Shell
-./otgen create device -n otg1 -p p1  | \
-./otgen add    device -n otg2 -p p2  | \
-./otgen add flow --tx otg1 --rx otg2 | \
-diff test/create/flow-device.defaults.yml -
-
-./otgen create device -n otg1 -p p1  | \
-./otgen add    device -n otg2 -p p2  | \
-./otgen add flow --tx otg1 --rx otg2 --swap | \
-diff test/create/flow-device.swap.yml -
-
-OTG_FLOW_SMAC_P1="02:11:11:00:01:aa" OTG_FLOW_DMAC_P1="02:11:11:00:02:aa" \
-./otgen create device -n otg1 -p p1  | \
-./otgen add    device -n otg2 -p p2  | \
-./otgen add flow --tx otg1 --rx otg2 | \
-diff test/create/flow-device.mac.env.yml -
-
-./otgen create device -n otg1 -p p1  --mac "02:11:11:00:01:aa" | \
-./otgen add    device -n otg2 -p p2  --mac "02:11:11:00:02:aa" | \
-./otgen add flow --tx otg1 --rx otg2 | \
-diff test/create/flow-device.mac.yml -
-
-./otgen create device -n otg1 -p p1  --mac "02:11:11:00:01:aa" | \
-./otgen add    device -n otg2 -p p2  --mac "02:11:11:00:02:aa" | \
-./otgen add flow --tx otg1 --rx otg2 --swap | \
-diff test/create/flow-device.mac.swap.yml -
-```
+See `tests` in [`Makefile`](Makefile)
 
 ### `transform`
 
