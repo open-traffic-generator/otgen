@@ -4,7 +4,7 @@ devices:
     - address: 192.0.2.1
       gateway: 192.0.2.2
       name: otg1.eth[0].ipv4[0]
-      prefix: 24
+      prefix: 30
     mac: 02:00:00:00:01:aa
     mtu: 1500
     name: otg1.eth[0]
@@ -12,10 +12,10 @@ devices:
   name: otg1
 - ethernets:
   - ipv4_addresses:
-    - address: 192.0.2.1
-      gateway: 192.0.2.2
+    - address: 192.0.2.5
+      gateway: 192.0.2.6
       name: otg2.eth[0].ipv4[0]
-      prefix: 24
+      prefix: 30
     mac: 02:00:00:00:02:aa
     mtu: 1500
     name: otg2.eth[0]
@@ -36,16 +36,13 @@ flows:
   - choice: ethernet
     ethernet:
       dst:
-        choice: value
-        value: 02:11:11:00:02:aa
-      src:
-        choice: value
-        value: 02:11:11:00:01:aa
+        auto: "00:00:00:00:00:00"
+        choice: auto
   - choice: ipv4
     ipv4:
       dst:
         choice: value
-        value: 192.0.2.2
+        value: 192.0.2.5
       src:
         choice: value
         value: 192.0.2.1
@@ -69,7 +66,7 @@ flows:
       tx_names:
       - otg1.eth[0].ipv4[0]
 ports:
-- location: localhost:5555
+- location: localhost:5555+localhost:50071
   name: p1
-- location: localhost:5555
+- location: localhost:5556+localhost:50072
   name: p2

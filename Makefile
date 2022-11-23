@@ -56,4 +56,9 @@ tests-create-devices-flow:
 	./otgen add flow --tx otg1 --rx otg2 --smac "02:11:11:00:01:aa" --dmac "02:11:11:00:02:aa" | \
 	diff test/create/flow-device.flow.mac.yml -
 
+	./otgen create device -n otg1 -p p1 --ip 192.0.2.1 --gw 192.0.2.2 --prefix 30 --location "localhost:5555+localhost:50071" | \
+	./otgen add    device -n otg2 -p p2 --ip 192.0.2.5 --gw 192.0.2.6 --prefix 30 --location "localhost:5556+localhost:50072" | \
+	./otgen add flow --tx otg1 --rx otg2 --dmac auto --src 192.0.2.1 --dst 192.0.2.5 | \
+	diff test/create/flow-device.mac.auto.yml -
+
 	@echo

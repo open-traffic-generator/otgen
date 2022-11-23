@@ -238,7 +238,7 @@ func init() {
 	flowCmd.Flags().StringVarP(&flowRxLocation, "rxl", "", "", fmt.Sprintf("Test port location string for Rx (default \"%s\")", PORT_LOCATION_RX))
 
 	flowCmd.Flags().StringVarP(&flowSrcMac, "smac", "S", envSubstOrDefault(MAC_SRC_TX, MAC_DEFAULT_SRC), "Source MAC address")
-	flowCmd.Flags().StringVarP(&flowDstMac, "dmac", "D", envSubstOrDefault(MAC_DST_TX, MAC_DEFAULT_DST), "Destination MAC address")
+	flowCmd.Flags().StringVarP(&flowDstMac, "dmac", "D", envSubstOrDefault(MAC_DST_TX, MAC_DEFAULT_DST), "Destination MAC address. For device-bound flows, use \"auto\" to enable ARP for IPv4 / ND for IPv6")
 
 	flowCmd.Flags().BoolVarP(&flowIPv4, "ipv4", "4", true, "IP Version 4")
 	flowCmd.Flags().BoolVarP(&flowIPv6, "ipv6", "6", false, "IP Version 6")
@@ -329,14 +329,11 @@ func newFlow(config gosnappi.Config) {
 	// currently only single-ethernet devices are supported
 	deviceTx := otgGetDevice(config, flowTxPort)
 	if deviceTx != nil { // found a device, use it as Tx for the flow, as well as it's MAC address as a source MAC
-		flow.TxRx().Device().SetTxNames([]string{deviceTx.Ethernets().Items()[0].Name()})
-		/*
-			if flowIPv4 {
-				flow.TxRx().Device().SetTxNames([]string{deviceTx.Ethernets().Items()[0].Ipv4Addresses().Items()[0].Name()})
-			} else if flowIPv6 {
-				flow.TxRx().Device().SetTxNames([]string{deviceTx.Ethernets().Items()[0].Ipv6Addresses().Items()[0].Name()})
-			}
-		*/
+		if flowIPv4 {
+			flow.TxRx().Device().SetTxNames([]string{deviceTx.Ethernets().Items()[0].Ipv4Addresses().Items()[0].Name()})
+		} else if flowIPv6 {
+			flow.TxRx().Device().SetTxNames([]string{deviceTx.Ethernets().Items()[0].Ipv6Addresses().Items()[0].Name()})
+		}
 		// Do not set SRC MAC for flows bounded to devices, unless specified as --smac parameter for the flow
 		if flowSrcMacExplicit {
 			log.Debugf("Device-bound flow %s will use an explicitly defined source MAC %s", flowName, flowSrcMac)
@@ -355,25 +352,30 @@ func newFlow(config gosnappi.Config) {
 	// First, see if we have a device with a name specified as --rx
 	// currently only single-ethernet devices are supported
 	deviceRx := otgGetDevice(config, flowRxPort)
-	if deviceRx != nil { // found a device, use it as a Rx for the flow, but not its MAC address, as it would override --dmac parameter
-		flow.TxRx().Device().SetRxNames([]string{deviceRx.Ethernets().Items()[0].Name()})
-		/*
-			if flowIPv4 {
-				flow.TxRx().Device().SetRxNames([]string{deviceRx.Ethernets().Items()[0].Ipv4Addresses().Items()[0].Name()})
-			} else if flowIPv6 {
-				flow.TxRx().Device().SetRxNames([]string{deviceRx.Ethernets().Items()[0].Ipv6Addresses().Items()[0].Name()})
-			}
-		*/
+	if deviceRx != nil { // found a device, use it as a Rx for the flow
+		if flowIPv4 {
+			flow.TxRx().Device().SetRxNames([]string{deviceRx.Ethernets().Items()[0].Ipv4Addresses().Items()[0].Name()})
+		} else if flowIPv6 {
+			flow.TxRx().Device().SetRxNames([]string{deviceRx.Ethernets().Items()[0].Ipv6Addresses().Items()[0].Name()})
+		}
 		if flowDstMacExplicit {
-			log.Debugf("Device-bound flow %s will use an explicitly defined destination MAC %s", flowName, flowDstMac)
-			eth.Dst().SetValue(flowDstMac)
+			if flowDstMac == "auto" {
+				log.Debugf("Device-bound flow %s will use \"auto\" mode for the destination MAC", flowName)
+				eth.Dst().SetChoice("auto")
+			} else {
+				log.Debugf("Device-bound flow %s will use an explicitly defined destination MAC %s", flowName, flowDstMac)
+				eth.Dst().SetValue(flowDstMac)
+			}
 		} else {
-			eth.Dst().SetValue(deviceRx.Ethernets().Items()[0].Mac()) // TODO ARP option
+			eth.Dst().SetValue(deviceRx.Ethernets().Items()[0].Mac())
 		}
 	} else {
 		portRx := otgGetOrCreatePort(config, flowRxPort, flowRxLocation)
 		if portRx != nil {
 			flow.TxRx().Port().SetRxName(portRx.Name())
+			if flowDstMac == "auto" {
+				log.Fatalf("Flow %s is not associated with an emulated device, therefore it cannot use \"auto\" mode for the destination MAC", flowName)
+			}
 			eth.Dst().SetValue(flowDstMac)
 		} else {
 			log.Fatalf("Non-existent Rx port name: %s", flowRxPort)
