@@ -50,4 +50,10 @@ tests-create-devices-flow:
 	./otgen add    device -n otg2 -p p2  --mac "02:11:11:00:02:aa" | \
 	./otgen add flow --tx otg2 --rx otg1 --swap | \
 	diff test/create/flow-device.mac.swap.yml -
+
+	./otgen create device -n otg1 -p p1  | \
+	./otgen add    device -n otg2 -p p2  | \
+	./otgen add flow --tx otg1 --rx otg2 --smac "02:11:11:00:01:aa" --dmac "02:11:11:00:02:aa" | \
+	diff test/create/flow-device.flow.mac.yml -
+
 	@echo

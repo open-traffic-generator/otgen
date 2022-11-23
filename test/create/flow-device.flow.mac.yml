@@ -5,7 +5,7 @@ devices:
       gateway: 192.0.2.2
       name: otg1.eth[0].ipv4[0]
       prefix: 24
-    mac: 02:11:11:00:01:aa
+    mac: 02:00:00:00:01:aa
     mtu: 1500
     name: otg1.eth[0]
     port_name: p1
@@ -16,7 +16,7 @@ devices:
       gateway: 192.0.2.2
       name: otg2.eth[0].ipv4[0]
       prefix: 24
-    mac: 02:11:11:00:02:aa
+    mac: 02:00:00:00:02:aa
     mtu: 1500
     name: otg2.eth[0]
     port_name: p2
@@ -37,34 +37,37 @@ flows:
     ethernet:
       dst:
         choice: value
+        value: 02:11:11:00:02:aa
+      src:
+        choice: value
         value: 02:11:11:00:01:aa
   - choice: ipv4
     ipv4:
       dst:
         choice: value
-        value: 192.0.2.1
+        value: 192.0.2.2
       src:
         choice: value
-        value: 192.0.2.2
+        value: 192.0.2.1
   - choice: tcp
     tcp:
       dst_port:
+        choice: value
+        value: 7
+      src_port:
         choice: increment
         increment:
           count: 64511
           start: 1024
           step: 7
-      src_port:
-        choice: value
-        value: 7
   tx_rx:
     choice: device
     device:
       mode: mesh
       rx_names:
-      - otg1.eth[0]
-      tx_names:
       - otg2.eth[0]
+      tx_names:
+      - otg1.eth[0]
 ports:
 - location: localhost:5555
   name: p1

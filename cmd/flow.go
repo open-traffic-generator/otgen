@@ -26,6 +26,7 @@ import (
 	"strings"
 
 	"github.com/open-traffic-generator/snappi/gosnappi"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -47,9 +48,11 @@ var flowName string            // Flow name
 var flowTxPort string          // Test port name for Tx
 var flowRxPort string          // Test port name for Rx
 var flowTxLocation string      // Test port location string for Tx
-var flowRxLocation string      // Test port location srting for Rx
+var flowRxLocation string      // Test port location string for Rx
 var flowSrcMac string          // Source MAC address
+var flowSrcMacExplicit = false // Was source Mac set explicitly?
 var flowDstMac string          // Destination MAC address
+var flowDstMacExplicit = false // Was destination Mac set explicitly?
 var flowIPv4 bool              // IP version 4
 var flowIPv6 bool              // IP version 6
 var flowSrc string             // Source IP address
@@ -83,6 +86,20 @@ For more information, go to https://github.com/open-traffic-generator/otgen
 		}
 	},
 	PreRunE: func(cmd *cobra.Command, args []string) error {
+		// Logging level TODO call this via a function
+		switch logLevel {
+		case "err":
+			log.SetLevel(logrus.ErrorLevel)
+		case "warn":
+			log.SetLevel(logrus.WarnLevel)
+		case "info":
+			log.SetLevel(logrus.InfoLevel)
+		case "debug":
+			log.SetLevel(logrus.DebugLevel)
+		default:
+			log.Fatalf("Unsupported log level: %s", logLevel)
+		}
+		log.Debug("Parsing parameters...")
 		// set values of Tx/Rx names and locations; src and dst MACs, IPs and TCP/UDP ports from defaults if not explicitly provided
 		// with optional --swap logic to easily reverse defaults between Tx and Rx sides
 		switch flowTxRxSwap { // Done: ports, MACs, IPs, TCP/UDP ports. TODO consider to swap only if both Tx and Rx are defaults
@@ -107,9 +124,13 @@ For more information, go to https://github.com/open-traffic-generator/otgen
 
 			if flowSrcMac == envSubstOrDefault(MAC_SRC_RX, MAC_DEFAULT_SRC) { // no src MAC was provided, use swapped default value
 				flowSrcMac = envSubstOrDefault(MAC_SRC_RX, MAC_DEFAULT_DST)
+			} else {
+				flowSrcMacExplicit = true
 			}
 			if flowDstMac == envSubstOrDefault(MAC_DST_RX, MAC_DEFAULT_DST) { // no dst MAC was provided, use swapped default value
 				flowDstMac = envSubstOrDefault(MAC_DST_RX, MAC_DEFAULT_SRC)
+			} else {
+				flowDstMacExplicit = true
 			}
 
 			// IPv4 default values are initialized in init()
@@ -149,12 +170,11 @@ For more information, go to https://github.com/open-traffic-generator/otgen
 				flowRxLocation = envSubstOrDefault(stringFromTemplate(PORT_LOCATION_TEMPLATE, "NAME", strings.ToUpper(flowRxPort)), PORT_LOCATION_RX)
 			}
 
-			// TODO can we reuse the same approach as with IPs, so that default values taken from ENVs are shown in --help?
-			if flowSrcMac == "" { // TODO this would be the case if "" is set explicitly
-				flowSrcMac = envSubstOrDefault(MAC_SRC_TX, MAC_DEFAULT_SRC)
+			if flowSrcMac != envSubstOrDefault(MAC_SRC_TX, MAC_DEFAULT_SRC) {
+				flowSrcMacExplicit = true
 			}
-			if flowDstMac == "" {
-				flowDstMac = envSubstOrDefault(MAC_DST_TX, MAC_DEFAULT_DST)
+			if flowDstMac != envSubstOrDefault(MAC_DST_TX, MAC_DEFAULT_DST) {
+				flowDstMacExplicit = true
 			}
 
 			// IPv4 default values are initialized in init()
@@ -317,7 +337,11 @@ func newFlow(config gosnappi.Config) {
 				flow.TxRx().Device().SetTxNames([]string{deviceTx.Ethernets().Items()[0].Ipv6Addresses().Items()[0].Name()})
 			}
 		*/
-		eth.Src().SetValue(deviceTx.Ethernets().Items()[0].Mac()) // TODO this would override --smac parameter, is it OK?
+		// Do not set SRC MAC for flows bounded to devices, unless specified as --smac parameter for the flow
+		if flowSrcMacExplicit {
+			log.Debugf("Device-bound flow %s will use an explicitly defined source MAC %s", flowName, flowSrcMac)
+			eth.Src().SetValue(flowSrcMac)
+		}
 	} else { // no such device, use or create a test port with --tx name
 		portTx := otgGetOrCreatePort(config, flowTxPort, flowTxLocation)
 		if portTx != nil {
@@ -340,7 +364,12 @@ func newFlow(config gosnappi.Config) {
 				flow.TxRx().Device().SetRxNames([]string{deviceRx.Ethernets().Items()[0].Ipv6Addresses().Items()[0].Name()})
 			}
 		*/
-		eth.Dst().SetValue(deviceRx.Ethernets().Items()[0].Mac()) // TODO ARP option, as well as --dmac override
+		if flowDstMacExplicit {
+			log.Debugf("Device-bound flow %s will use an explicitly defined destination MAC %s", flowName, flowDstMac)
+			eth.Dst().SetValue(flowDstMac)
+		} else {
+			eth.Dst().SetValue(deviceRx.Ethernets().Items()[0].Mac()) // TODO ARP option
+		}
 	} else {
 		portRx := otgGetOrCreatePort(config, flowRxPort, flowRxLocation)
 		if portRx != nil {
