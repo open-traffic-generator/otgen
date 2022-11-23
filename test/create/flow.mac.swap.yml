@@ -1,0 +1,49 @@
+flows:
+- duration:
+    choice: fixed_packets
+    fixed_packets:
+      gap: 12
+      packets: 1000
+  metrics:
+    enable: true
+    loss: false
+    timestamps: false
+  name: f1
+  packet:
+  - choice: ethernet
+    ethernet:
+      dst:
+        choice: value
+        value: 02:11:11:00:02:aa
+      src:
+        choice: value
+        value: 02:11:11:00:01:aa
+  - choice: ipv4
+    ipv4:
+      dst:
+        choice: value
+        value: 192.0.2.1
+      src:
+        choice: value
+        value: 192.0.2.2
+  - choice: tcp
+    tcp:
+      dst_port:
+        choice: increment
+        increment:
+          count: 64511
+          start: 1024
+          step: 7
+      src_port:
+        choice: value
+        value: 7
+  tx_rx:
+    choice: port
+    port:
+      rx_name: p1
+      tx_name: p2
+ports:
+- location: localhost:5556
+  name: p2
+- location: localhost:5555
+  name: p1

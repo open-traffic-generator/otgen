@@ -105,10 +105,10 @@ For more information, go to https://github.com/open-traffic-generator/otgen
 				flowRxLocation = envSubstOrDefault(stringFromTemplate(PORT_LOCATION_TEMPLATE, "NAME", strings.ToUpper(flowRxPort)), PORT_LOCATION_TX)
 			}
 
-			if flowSrcMac == "" { // no src MAC was provided, use swapped default value
+			if flowSrcMac == envSubstOrDefault(MAC_SRC_RX, MAC_DEFAULT_SRC) { // no src MAC was provided, use swapped default value
 				flowSrcMac = envSubstOrDefault(MAC_SRC_RX, MAC_DEFAULT_DST)
 			}
-			if flowDstMac == "" { // no dst MAC was provided, use swapped default value
+			if flowDstMac == envSubstOrDefault(MAC_DST_RX, MAC_DEFAULT_DST) { // no dst MAC was provided, use swapped default value
 				flowDstMac = envSubstOrDefault(MAC_DST_RX, MAC_DEFAULT_SRC)
 			}
 
@@ -150,7 +150,7 @@ For more information, go to https://github.com/open-traffic-generator/otgen
 			}
 
 			// TODO can we reuse the same approach as with IPs, so that default values taken from ENVs are shown in --help?
-			if flowSrcMac == "" {
+			if flowSrcMac == "" { // TODO this would be the case if "" is set explicitly
 				flowSrcMac = envSubstOrDefault(MAC_SRC_TX, MAC_DEFAULT_SRC)
 			}
 			if flowDstMac == "" {
@@ -217,8 +217,8 @@ func init() {
 	flowCmd.Flags().StringVarP(&flowTxLocation, "txl", "", "", fmt.Sprintf("Test port location string for Tx (default \"%s\")", PORT_LOCATION_TX))
 	flowCmd.Flags().StringVarP(&flowRxLocation, "rxl", "", "", fmt.Sprintf("Test port location string for Rx (default \"%s\")", PORT_LOCATION_RX))
 
-	flowCmd.Flags().StringVarP(&flowSrcMac, "smac", "S", "", fmt.Sprintf("Source MAC address (default \"%s\")", MAC_DEFAULT_SRC))
-	flowCmd.Flags().StringVarP(&flowDstMac, "dmac", "D", "", fmt.Sprintf("Destination MAC address (default \"%s\")", MAC_DEFAULT_DST))
+	flowCmd.Flags().StringVarP(&flowSrcMac, "smac", "S", envSubstOrDefault(MAC_SRC_TX, MAC_DEFAULT_SRC), "Source MAC address")
+	flowCmd.Flags().StringVarP(&flowDstMac, "dmac", "D", envSubstOrDefault(MAC_DST_TX, MAC_DEFAULT_DST), "Destination MAC address")
 
 	flowCmd.Flags().BoolVarP(&flowIPv4, "ipv4", "4", true, "IP Version 4")
 	flowCmd.Flags().BoolVarP(&flowIPv6, "ipv6", "6", false, "IP Version 6")
@@ -310,6 +310,13 @@ func newFlow(config gosnappi.Config) {
 	deviceTx := otgGetDevice(config, flowTxPort)
 	if deviceTx != nil { // found a device, use it as Tx for the flow, as well as it's MAC address as a source MAC
 		flow.TxRx().Device().SetTxNames([]string{deviceTx.Ethernets().Items()[0].Name()})
+		/*
+			if flowIPv4 {
+				flow.TxRx().Device().SetTxNames([]string{deviceTx.Ethernets().Items()[0].Ipv4Addresses().Items()[0].Name()})
+			} else if flowIPv6 {
+				flow.TxRx().Device().SetTxNames([]string{deviceTx.Ethernets().Items()[0].Ipv6Addresses().Items()[0].Name()})
+			}
+		*/
 		eth.Src().SetValue(deviceTx.Ethernets().Items()[0].Mac()) // TODO this would override --smac parameter, is it OK?
 	} else { // no such device, use or create a test port with --tx name
 		portTx := otgGetOrCreatePort(config, flowTxPort, flowTxLocation)
@@ -327,6 +334,14 @@ func newFlow(config gosnappi.Config) {
 	if deviceRx != nil { // found a device, use it as a Rx for the flow, but not its MAC address, as it would override --dmac parameter
 		flow.TxRx().Device().SetRxNames([]string{deviceRx.Ethernets().Items()[0].Name()})
 		eth.Dst().SetValue(flowDstMac) // TODO ARP option
+		/*
+			if flowIPv4 {
+				flow.TxRx().Device().SetRxNames([]string{deviceRx.Ethernets().Items()[0].Ipv4Addresses().Items()[0].Name()})
+			} else if flowIPv6 {
+				flow.TxRx().Device().SetRxNames([]string{deviceRx.Ethernets().Items()[0].Ipv6Addresses().Items()[0].Name()})
+			}
+		*/
+		//eth.Dst().SetValue(flowDstMac) // TODO ARP option
 	} else {
 		portRx := otgGetOrCreatePort(config, flowRxPort, flowRxLocation)
 		if portRx != nil {
