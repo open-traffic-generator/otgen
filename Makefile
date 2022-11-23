@@ -1,0 +1,64 @@
+all: get build tests
+
+get:
+	go get
+	go mod tidy
+
+build:
+	go build -ldflags="-X 'github.com/open-traffic-generator/otgen/cmd.version=v0.0.0-${USER}'"
+
+tests: tests-create tests-create-devices-flow
+
+tests-create: tests-create-flow-raw
+
+tests-create-flow-raw:
+	@echo "#################################################################"
+	@echo "# Create raw flow"
+	@echo "#################################################################"
+	./otgen create flow | diff test/create/flow.defaults.yml -
+	./otgen create flow --swap | diff test/create/flow.swap.yml -
+	OTG_FLOW_SMAC_P1="02:11:11:00:01:aa" OTG_FLOW_DMAC_P1="02:11:11:00:02:aa" ./otgen create flow | diff test/create/flow.mac.yml -
+	./otgen create flow --smac "02:11:11:00:01:aa" --dmac "02:11:11:00:02:aa" | diff test/create/flow.mac.yml -
+	./otgen create flow --smac "02:11:11:00:01:aa" --dmac "02:11:11:00:02:aa" --swap | diff test/create/flow.mac.swap.yml -
+	@echo
+
+tests-create-devices-flow:
+	@echo "#################################################################"
+	@echo "# Create two devices with flow between them"
+	@echo "#################################################################"
+	./otgen create device -n otg1 -p p1  | \
+	./otgen add    device -n otg2 -p p2  | \
+	./otgen add flow --tx otg1 --rx otg2 | \
+	diff test/create/flow-device.defaults.yml -
+
+	./otgen create device -n otg1 -p p1  | \
+	./otgen add    device -n otg2 -p p2  | \
+	./otgen add flow --tx otg2 --rx otg1 --swap | \
+	diff test/create/flow-device.swap.yml -
+
+	OTG_FLOW_SMAC_P1="02:11:11:00:01:aa" ./otgen create device -n otg1 -p p1  | \
+	OTG_FLOW_SMAC_P2="02:11:11:00:02:aa" ./otgen add    device -n otg2 -p p2  | \
+	./otgen add flow --tx otg1 --rx otg2 | \
+	diff test/create/flow-device.mac.env.yml -
+
+	./otgen create device -n otg1 -p p1  --mac "02:11:11:00:01:aa" | \
+	./otgen add    device -n otg2 -p p2  --mac "02:11:11:00:02:aa" | \
+	./otgen add flow --tx otg1 --rx otg2 | \
+	diff test/create/flow-device.mac.yml -
+
+	./otgen create device -n otg1 -p p1  --mac "02:11:11:00:01:aa" | \
+	./otgen add    device -n otg2 -p p2  --mac "02:11:11:00:02:aa" | \
+	./otgen add flow --tx otg2 --rx otg1 --swap | \
+	diff test/create/flow-device.mac.swap.yml -
+
+	./otgen create device -n otg1 -p p1  | \
+	./otgen add    device -n otg2 -p p2  | \
+	./otgen add flow --tx otg1 --rx otg2 --smac "02:11:11:00:01:aa" --dmac "02:11:11:00:02:aa" | \
+	diff test/create/flow-device.flow.mac.yml -
+
+	./otgen create device -n otg1 -p p1 --ip 192.0.2.1 --gw 192.0.2.2 --prefix 30 --location "localhost:5555+localhost:50071" | \
+	./otgen add    device -n otg2 -p p2 --ip 192.0.2.5 --gw 192.0.2.6 --prefix 30 --location "localhost:5556+localhost:50072" | \
+	./otgen add flow --tx otg1 --rx otg2 --dmac auto --src 192.0.2.1 --dst 192.0.2.5 | \
+	diff test/create/flow-device.mac.auto.yml -
+
+	@echo

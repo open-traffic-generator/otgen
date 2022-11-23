@@ -21,7 +21,7 @@ cobra-cli add create --license mit --author "Open Traffic Generator"
 cobra-cli add add --license mit --author "Open Traffic Generator"
 cobra-cli add flow --license mit --author "Open Traffic Generator" # subcommand for create and add
 cobra-cli add device --license mit --author "Open Traffic Generator" # subcommand for create and add
-````
+```
 
 ### GoReleaser
 
@@ -29,7 +29,7 @@ cobra-cli add device --license mit --author "Open Traffic Generator" # subcomman
 goreleaser init
 goreleaser build --single-target --snapshot --rm-dist
 goreleaser release --snapshot --rm-dist
-````
+```
 
 ### Build
 
@@ -37,10 +37,14 @@ goreleaser release --snapshot --rm-dist
 go get
 go mod tidy
 go build -ldflags="-X 'github.com/open-traffic-generator/otgen/cmd.version=v0.0.0-${USER}'"
-````
+```
 
 
 ## Test
+
+### `create`
+
+See `tests` in [`Makefile`](Makefile)
 
 ### `transform`
 
@@ -65,7 +69,7 @@ cat test/transform/flow_metrics.json | ./otgen transform -m flow           | dif
 cat test/transform/flow_metrics.json | ./otgen transform -m flow -c frames | diff test/transform/flow_metrics_frames.json -
 cat test/transform/flow_metrics.json | ./otgen transform -m flow -c bytes  | diff test/transform/flow_metrics_bytes.json -
 cat test/transform/flow_metrics.json | ./otgen transform -m flow -c pps    | diff test/transform/flow_metrics_frame_rate.json -
-````
+```
 
 2. Templates - JSON
 
@@ -86,7 +90,7 @@ cat test/transform/flow_metrics.json | ./otgen transform -f templates/transformP
 cat test/transform/flow_metrics.json | ./otgen transform -f templates/transformFlowFrames.tmpl    | diff test/transform/flow_metrics_frames.json -
 cat test/transform/flow_metrics.json | ./otgen transform -f templates/transformFlowBytes.tmpl     | diff test/transform/flow_metrics_bytes.json -
 cat test/transform/flow_metrics.json | ./otgen transform -f templates/transformFlowFrameRate.tmpl | diff test/transform/flow_metrics_frame_rate.json -
-````
+```
 
 
 3. Templates - Tables
@@ -106,13 +110,13 @@ cat test/transform/port_metrics.json | ./otgen transform -f templates/transformP
 cat test/transform/flow_metrics.json | ./otgen transform -f templates/transformFlowFramesTable.tmpl    | diff test/transform/flow_metrics_frames_table.txt -
 cat test/transform/flow_metrics.json | ./otgen transform -f templates/transformFlowBytesTable.tmpl     | diff test/transform/flow_metrics_bytes_table.txt -
 cat test/transform/flow_metrics.json | ./otgen transform -f templates/transformFlowFrameRateTable.tmpl | diff test/transform/flow_metrics_frame_rate_table.txt -
-````
+```
 
 4. Full pipe with port metrics
 
 ```Shell
 cat ../otg.b2b.json | ./otgen run -k 2>/dev/null | ./otgen transform -m port
-````
+```
 
 ### `display`
 
@@ -129,7 +133,7 @@ cat test/transform/port_metrics.json | ./test/transform/delay.sh 0.5 | ./otgen t
 cat test/transform/flow_metrics.json | ./test/transform/delay.sh 0.5 | ./otgen transform -m flow -c frames | ./otgen display --mode chart --type line
 cat test/transform/flow_metrics.json | ./test/transform/delay.sh 0.5 | ./otgen transform -m flow -c bytes  | ./otgen display --mode chart --type line
 cat test/transform/flow_metrics.json | ./test/transform/delay.sh 0.5 | ./otgen transform -m flow -c pps    | ./otgen display --mode chart --type line
-````
+```
 
 2. Table
 
@@ -142,4 +146,4 @@ cat test/transform/port_metrics.json | ./test/transform/delay.sh 0.5 | ./otgen t
 cat test/transform/flow_metrics.json | ./test/transform/delay.sh 0.5 | ./otgen transform -m flow -c frames | ./otgen display --mode table
 cat test/transform/flow_metrics.json | ./test/transform/delay.sh 0.5 | ./otgen transform -m flow -c bytes  | ./otgen display --mode table
 cat test/transform/flow_metrics.json | ./test/transform/delay.sh 0.5 | ./otgen transform -m flow -c pps    | ./otgen display --mode table
-````
+```
