@@ -52,9 +52,12 @@ jobs:
         run:  otgen --log debug run -k --file otg.yml --xeta 1.5
       - name: Cleanup
         run:  make clean
-  dut-arp-traffic:
-    name: DUT ARP and traffic test
+  dut-arp-bgp-traffic:
+    name: DUT ARP BGP and traffic test
     runs-on: ubuntu-20.04
+    env:
+      OTG_LOCATION_P1: "localhost:5555+localhost:50071"
+      OTG_LOCATION_P2: "localhost:5556+localhost:50072"
     defaults:
       run:
         working-directory: ./test/otg-examples/docker-compose/cpdp-frr
@@ -78,43 +81,18 @@ jobs:
       - name: Setup testbed
         run:  make install pull deploy && sleep 5
       - name: Test1 CREATE --dmac auto | RUN 
-        run:  otgen create device -n otg1 -p p1 --ip 192.0.2.1 --gw 192.0.2.2 --prefix 30 --location "localhost:5555+localhost:50071" | otgen add device -n otg2 -p p2 --ip 192.0.2.5 --gw 192.0.2.6 --prefix 30 --location "localhost:5556+localhost:50072" | otgen --log debug add flow --tx otg1 --rx otg2 --dmac auto --src 192.0.2.1 --dst 192.0.2.5 | otgen --log debug run -k --metrics flow,port
-  dut-arp-bgp-traffic:
-    name: DUT ARP BGP and traffic test
-    runs-on: ubuntu-20.04
-    defaults:
-      run:
-        working-directory: ./test/otg-examples/docker-compose/cpdp-frr
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-        with:
-          submodules: 'true'
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v2
-        with:
-          registry: ghcr.io
-          username: ${{ secrets.ENV_GITHUB_USER }}
-          password: ${{ secrets.ENV_GITHUB_PAT }}
-      - name: Set up Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: ${{ env.GOVER }}
-      - name: Build otgen
-        run: cd ../../../.. && go get && go mod tidy && go build && sudo mv otgen /usr/local/bin/otgen
-      - name: Setup testbed
-        run:  make install pull deploy && sleep 5
-      - name: Test1 RUN --rxbgp 2x
+        run:  otgen create device -n otg1 -p p1 --ip 192.0.2.1 --gw 192.0.2.2 --prefix 30 | otgen add device -n otg2 -p p2 --ip 192.0.2.5 --gw 192.0.2.6 --prefix 30 | otgen --log debug add flow --tx otg1 --rx otg2 --dmac auto --src 192.0.2.1 --dst 192.0.2.5 | otgen --log debug run -k --metrics flow,port
+      - name: Test2 RUN --rxbgp 2x
         run:  otgen --log debug run -k --file otg.json --json --rxbgp 2x
-      - name: Test2 RUN --rxbgp 2x --metrics bgp4
+      - name: Test3 RUN --rxbgp 2x --metrics bgp4
         run:  otgen --log debug run -k --file otg.json --json --rxbgp 2x --metrics bgp4
-      - name: Test3 RUN --rxbgp 2x --metrics bgp4,port
+      - name: Test4 RUN --rxbgp 2x --metrics bgp4,port
         run:  otgen --log debug run -k --file otg.json --json --rxbgp 2x --metrics bgp4,port
-      - name: Test4 RUN --rxbgp 2x --metrics bgp4,flow
+      - name: Test5 RUN --rxbgp 2x --metrics bgp4,flow
         run:  otgen --log debug run -k --file otg.json --json --rxbgp 2x --metrics bgp4,flow
-      - name: Test5 RUN --rxbgp 2x --metrics bgp4,flow,port
+      - name: Test6 RUN --rxbgp 2x --metrics bgp4,flow,port
         run:  otgen --log debug run -k --file otg.json --json --rxbgp 2x --metrics bgp4,flow,port
-      - name: Test5 RUN --rxbgp 2x --metrics flow,port
+      - name: Test7 RUN --rxbgp 2x --metrics flow,port
         run:  otgen --log debug run -k --file otg.json --json --rxbgp 2x --metrics flow,port
       - name: Cleanup
         run:  make clean
