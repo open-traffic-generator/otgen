@@ -68,6 +68,7 @@ tests-add-bgp:
 	@echo "# Add BGP configuration to a device"
 	@echo "#################################################################"
 	./otgen create device  | \
-	./otgen add    bgp
+	./otgen add    bgp     | \
+	diff test/add/bgp-device.defaults.yml -
 
 	@echo

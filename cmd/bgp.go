@@ -24,6 +24,7 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/open-traffic-generator/snappi/gosnappi"
 	"github.com/spf13/cobra"
 )
 
@@ -37,7 +38,7 @@ Add a BGP configuration to an Emulated Device
 For more information, go to https://github.com/open-traffic-generator/otgen
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("bgp called")
+		addBgp()
 	},
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		setLogLevel(cmd, logLevel)
@@ -57,4 +58,21 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// bgpCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+}
+
+func addBgp() {
+	// Create a new API handle
+	api := gosnappi.NewApi()
+
+	// Read pre-existing traffic configuration from STDIN and then add a BGP
+	newBgp(readOtgStdin(api))
+}
+
+func newBgp(config gosnappi.Config) {
+	// Print the OTG configuration constructed
+	otgYaml, err := config.ToYaml()
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Print(otgYaml)
 }

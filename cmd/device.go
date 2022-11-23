@@ -117,7 +117,7 @@ func addDevice() {
 	// Create a new API handle
 	api := gosnappi.NewApi()
 
-	// Read pre-existing traffic configuration from STDIN and then create a flow
+	// Read pre-existing traffic configuration from STDIN and then create a device
 	newDevice(readOtgStdin(api))
 }
 
@@ -143,7 +143,7 @@ func newDevice(config gosnappi.Config) {
 		SetGateway(deviceGWv4).
 		SetPrefix(devicePrefixv4)
 
-	// Print traffic configuration constructed
+	// Print the OTG configuration constructed
 	otgYaml, err := config.ToYaml()
 	if err != nil {
 		log.Fatal(err)
