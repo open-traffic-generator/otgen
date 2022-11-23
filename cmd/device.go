@@ -40,9 +40,9 @@ var devicePrefixv4 int32      // Device IPv4 network prefix
 // deviceCmd represents the device command
 var deviceCmd = &cobra.Command{
 	Use:   "device",
-	Short: "New OTG device configuration",
+	Short: "Create a configuration for an Emulated Device",
 	Long: `
-New OTG device configuration.
+Create a configuration for an Emulated Device.
 
 For more information, go to https://github.com/open-traffic-generator/otgen
 `,
@@ -75,7 +75,6 @@ For more information, go to https://github.com/open-traffic-generator/otgen
 }
 
 func init() {
-	rootCmd.AddCommand(deviceCmd)
 
 	// Here you will define your flags and configuration settings.
 

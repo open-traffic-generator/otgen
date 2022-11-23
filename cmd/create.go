@@ -71,15 +71,15 @@ const (
 // createCmd represents the create command
 var createCmd = &cobra.Command{
 	Use:   "create",
-	Short: "Create OTG configuration with the specified item",
+	Short: "Create an OTG configuration with the specified item",
 	Long: `
-Create OTG configuration with the specified item.
+Create an OTG configuration with the specified item.
 The configuration can be passed to stdin of either "otgen run" or "otgen add" command.
 
   For more information, go to https://github.com/open-traffic-generator/otgen
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		log.Error("You must specify an OTG object to create, one from the set: flow")
+		log.Error("You must specify an OTG configuration object to create, one of the following: flow | device")
 	},
 }
 

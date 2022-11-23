@@ -35,7 +35,7 @@ Create a new OTG configuration item that can be further passed to stdin of `otge
 The `add` variant of the command first reads an OTG configuration from stdin.
 
 ```Shell
-otgen create flow                     # Create OTG flow configuration
+otgen create flow                     # Create a configuration for a Traffic Flow
   [--name string]                     # Flow name (default f1)
   [--tx string]                       # Test port name for TX (default p1) 
   [--rx string]                       # Test port name for RX (default p2) 
@@ -61,7 +61,7 @@ otgen create flow                     # Create OTG flow configuration
 ```
 
 ```Shell
-otgen create device                   # Create OTG device configuration
+otgen create device                   # Create a configuration for an Emulated Device
   [--name string]                     # Device name (default otg1)
   [--port string]                     # Test port name (default p1)
   [--location string]                 # Test port location string (default localhost:5555)
@@ -71,12 +71,22 @@ otgen create device                   # Create OTG device configuration
   [--prefix nn]                       # Device network prefix
 ```
 
+### `add bgp`
+
+```Shell
+otgen add bgp                         # Add a BGP configuration to an Emulated Device
+  [--device string]                   # Device name (default otg1)
+  [--asn N]                           # Autonomous System Number
+  [--peer x.x.x.x]                    # Peer IP address
+  [--route x.x.x.x/nn]                # Route to advertise
+```
+
 
 ### `run`
 
 Requests OTG API endpoint to:
 
-  * apply OTG configuration
+  * apply an OTG configuration
   * start Protocols, if any Devices are defined in the configuration
   * run Traffic Flows
 

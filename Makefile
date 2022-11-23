@@ -7,7 +7,7 @@ get:
 build:
 	go build -ldflags="-X 'github.com/open-traffic-generator/otgen/cmd.version=v0.0.0-${USER}'"
 
-tests: tests-create tests-create-devices-flow
+tests: tests-create tests-create-devices-flow tests-add-bgp
 
 tests-create: tests-create-flow-raw
 
@@ -60,5 +60,14 @@ tests-create-devices-flow:
 	./otgen add    device -n otg2 -p p2 --ip 192.0.2.5 --gw 192.0.2.6 --prefix 30 --location "localhost:5556+localhost:50072" | \
 	./otgen add flow --tx otg1 --rx otg2 --dmac auto --src 192.0.2.1 --dst 192.0.2.5 | \
 	diff test/create/flow-device.mac.auto.yml -
+
+	@echo
+
+tests-add-bgp:
+	@echo "#################################################################"
+	@echo "# Add BGP configuration to a device"
+	@echo "#################################################################"
+	./otgen create device  | \
+	./otgen add    bgp
 
 	@echo

@@ -72,9 +72,9 @@ var flowMetricsTimestamps bool // Enable metrics timestamps
 // flowCmd represents the flow command
 var flowCmd = &cobra.Command{
 	Use:   "flow",
-	Short: "New OTG flow configuration",
+	Short: "Create a configuration for a Traffic Flow",
 	Long: `
-New OTG flow configuration.
+Create a configuration for a Traffic Flow.
 
 For more information, go to https://github.com/open-traffic-generator/otgen
 `,

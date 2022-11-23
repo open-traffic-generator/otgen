@@ -22,34 +22,35 @@ THE SOFTWARE.
 package cmd
 
 import (
+	"fmt"
+
 	"github.com/spf13/cobra"
 )
 
-// addCmd represents the add command
-var addCmd = &cobra.Command{
-	Use:   "add",
-	Short: "Read an OTG configuration from stdin and add the specified item",
+// bgpCmd represents the bgp command
+var bgpCmd = &cobra.Command{
+	Use:   "bgp",
+	Short: "Add a BGP configuration to an Emulated Device",
 	Long: `
-Read an OTG configuration from stdin and add the specified item. 
-The output can be passed to stdin of "otgen run" or another "otgen add" command.
+Add a BGP configuration to an Emulated Device
 
-  For more information, go to https://github.com/open-traffic-generator/otgen
+For more information, go to https://github.com/open-traffic-generator/otgen
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		log.Error("You must specify an OTG configuration object to add, one of the following: flow | device | bgp")
+		fmt.Println("bgp called")
 	},
 }
 
 func init() {
-	rootCmd.AddCommand(addCmd)
+	addCmd.AddCommand(bgpCmd)
 
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	// addCmd.PersistentFlags().String("foo", "", "A help for foo")
+	// bgpCmd.PersistentFlags().String("foo", "", "A help for foo")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// addCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	// bgpCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
