@@ -79,7 +79,12 @@ func newBgp(config gosnappi.Config) {
 		log.Fatalf("No such device in the provided OTG configuration: %s", bgpDeviceName)
 	}
 	log.Debugf("Found matching device name: %s", bgpDeviceName)
-	device.Bgp().SetRouterId(device.Ethernets().Items()[0].Ipv4Addresses().Items()[0].Address())
+	bgpDeviceIPv4Interface := device.Ethernets().Items()[0].Ipv4Addresses().Items()[0]
+	if bgpDeviceIPv4Interface != nil { // TODO IPv6
+		log.Debugf("Adding BGP to the device's IPv4 interface: %s", bgpDeviceIPv4Interface.Address())
+		device.Bgp().SetRouterId(bgpDeviceIPv4Interface.Address()) // TODO parameterize router_id
+		device.Bgp().Ipv4Interfaces().Add().SetIpv4Name(bgpDeviceIPv4Interface.Name())
+	}
 
 	// Print the OTG configuration constructed
 	otgYaml, err := config.ToYaml()

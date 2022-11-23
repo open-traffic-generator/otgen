@@ -1,5 +1,7 @@
 devices:
 - bgp:
+    ipv4_interfaces:
+    - ipv4_name: otg1.eth[0].ipv4[0]
     router_id: 192.0.2.1
   ethernets:
   - ipv4_addresses:
