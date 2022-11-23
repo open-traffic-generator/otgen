@@ -28,6 +28,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var bgpDeviceName string // Device name to add BGP configuration to
+
 // bgpCmd represents the bgp command
 var bgpCmd = &cobra.Command{
 	Use:   "bgp",
@@ -58,6 +60,8 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// bgpCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+
+	bgpCmd.Flags().StringVarP(&bgpDeviceName, "device", "d", DEVICE_NAME_1, "Device name to add BGP configuration to ")
 }
 
 func addBgp() {
@@ -69,6 +73,14 @@ func addBgp() {
 }
 
 func newBgp(config gosnappi.Config) {
+	// First, see if we have a device with the specified name
+	device := otgGetDevice(config, bgpDeviceName)
+	if device == nil {
+		log.Fatalf("No such device in the provided OTG configuration: %s", bgpDeviceName)
+	}
+	log.Debugf("Found matching device name: %s", bgpDeviceName)
+	device.Bgp().SetRouterId(device.Ethernets().Items()[0].Ipv4Addresses().Items()[0].Address())
+
 	// Print the OTG configuration constructed
 	otgYaml, err := config.ToYaml()
 	if err != nil {

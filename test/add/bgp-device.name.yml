@@ -5,13 +5,13 @@ devices:
   - ipv4_addresses:
     - address: 192.0.2.1
       gateway: 192.0.2.2
-      name: otg1.eth[0].ipv4[0]
+      name: r1.eth[0].ipv4[0]
       prefix: 24
     mac: 02:00:00:00:01:aa
     mtu: 1500
-    name: otg1.eth[0]
+    name: r1.eth[0]
     port_name: p1
-  name: otg1
+  name: r1
 ports:
 - location: localhost:5555
   name: p1
