@@ -51,6 +51,10 @@ For more information, go to https://github.com/open-traffic-generator/otgen
 		fmt.Printf("   date: %s\n", date)
 		fmt.Printf(" source: %s\n", repoUrl)
 	},
+	PreRunE: func(cmd *cobra.Command, args []string) error {
+		setLogLevel(cmd, logLevel)
+		return nil
+	},
 }
 
 func init() {

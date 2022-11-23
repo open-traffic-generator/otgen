@@ -31,7 +31,6 @@ import (
 	"time"
 
 	"github.com/open-traffic-generator/snappi/gosnappi"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -71,20 +70,7 @@ For more information, go to https://github.com/open-traffic-generator/otgen
 		stopProtocols(runTraffic(startProtocols(applyConfig(initOTG()))))
 	},
 	PreRunE: func(cmd *cobra.Command, args []string) error {
-		// Logging level
-		switch logLevel {
-		case "err":
-			log.SetLevel(logrus.ErrorLevel)
-		case "warn":
-			log.SetLevel(logrus.WarnLevel)
-		case "info":
-			log.SetLevel(logrus.InfoLevel)
-		case "debug":
-			log.SetLevel(logrus.DebugLevel)
-		default:
-			log.Fatalf("Unsupported log level: %s", logLevel)
-		}
-		log.Debug("Parsing parameters...")
+		setLogLevel(cmd, logLevel)
 
 		// Number of routes to receive to consider BGP is up
 		if len(otgRxBgpStr) > 1 && strings.HasSuffix(otgRxBgpStr, "x") {

@@ -38,6 +38,10 @@ The output can be passed to stdin of "otgen run" or another "otgen add" command.
 	Run: func(cmd *cobra.Command, args []string) {
 		log.Error("You must specify an OTG configuration object to add, one of the following: flow | device | bgp")
 	},
+	PreRunE: func(cmd *cobra.Command, args []string) error {
+		setLogLevel(cmd, logLevel)
+		return nil
+	},
 }
 
 func init() {

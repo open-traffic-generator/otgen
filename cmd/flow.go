@@ -26,7 +26,6 @@ import (
 	"strings"
 
 	"github.com/open-traffic-generator/snappi/gosnappi"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -86,20 +85,7 @@ For more information, go to https://github.com/open-traffic-generator/otgen
 		}
 	},
 	PreRunE: func(cmd *cobra.Command, args []string) error {
-		// Logging level TODO call this via a function
-		switch logLevel {
-		case "err":
-			log.SetLevel(logrus.ErrorLevel)
-		case "warn":
-			log.SetLevel(logrus.WarnLevel)
-		case "info":
-			log.SetLevel(logrus.InfoLevel)
-		case "debug":
-			log.SetLevel(logrus.DebugLevel)
-		default:
-			log.Fatalf("Unsupported log level: %s", logLevel)
-		}
-		log.Debug("Parsing parameters...")
+		setLogLevel(cmd, logLevel)
 		// set values of Tx/Rx names and locations; src and dst MACs, IPs and TCP/UDP ports from defaults if not explicitly provided
 		// with optional --swap logic to easily reverse defaults between Tx and Rx sides
 		switch flowTxRxSwap { // Done: ports, MACs, IPs, TCP/UDP ports. TODO consider to swap only if both Tx and Rx are defaults

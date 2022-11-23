@@ -108,6 +108,7 @@ For more information, go to https://github.com/open-traffic-generator/otgen
 		transformStdInWithTemplate(template)
 	},
 	PreRunE: func(cmd *cobra.Command, args []string) error {
+		setLogLevel(cmd, logLevel)
 		switch transformMetrics {
 		case METRIC_PORT:
 		case METRIC_FLOW:

@@ -71,3 +71,32 @@ func init() {
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
 }
+
+func setLogLevel(cmd *cobra.Command, logLevel string) {
+
+	switch logLevel {
+	case "err":
+		log.SetLevel(logrus.ErrorLevel)
+	case "warn":
+		log.SetLevel(logrus.WarnLevel)
+	case "info":
+		log.SetLevel(logrus.InfoLevel)
+	case "debug":
+		log.SetLevel(logrus.DebugLevel)
+	default:
+		log.Fatalf("Unsupported log level: %s", logLevel)
+	}
+	log.Debugf("%s: log level set to %s", cmdFullName(cmd), logLevel)
+}
+
+func cmdFullName(cmd *cobra.Command) string {
+	var name string
+	if cmd == nil {
+		name = ""
+	} else if cmd.Parent() != nil {
+		name = cmdFullName(cmd.Parent()) + " " + cmd.Name()
+	} else {
+		name = cmd.Name()
+	}
+	return name
+}

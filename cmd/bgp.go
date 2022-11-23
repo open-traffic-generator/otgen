@@ -39,6 +39,10 @@ For more information, go to https://github.com/open-traffic-generator/otgen
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("bgp called")
 	},
+	PreRunE: func(cmd *cobra.Command, args []string) error {
+		setLogLevel(cmd, logLevel)
+		return nil
+	},
 }
 
 func init() {

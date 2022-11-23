@@ -54,6 +54,7 @@ For more information, go to https://github.com/open-traffic-generator/otgen
 		}
 	},
 	PreRunE: func(cmd *cobra.Command, args []string) error {
+		setLogLevel(cmd, logLevel)
 		// set default MACs depending on Tx test port
 		switch devicePort {
 		case PORT_NAME_RX: // swap default SRC and DST MACs. TODO use --swap parameter instead to do this explicitly

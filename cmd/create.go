@@ -81,6 +81,10 @@ The configuration can be passed to stdin of either "otgen run" or "otgen add" co
 	Run: func(cmd *cobra.Command, args []string) {
 		log.Error("You must specify an OTG configuration object to create, one of the following: flow | device")
 	},
+	PreRunE: func(cmd *cobra.Command, args []string) error {
+		setLogLevel(cmd, logLevel)
+		return nil
+	},
 }
 
 func init() {
