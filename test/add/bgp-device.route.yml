@@ -1,0 +1,36 @@
+devices:
+- bgp:
+    ipv4_interfaces:
+    - ipv4_name: otg1.eth[0].ipv4[0]
+      peers:
+      - as_number: 65535
+        as_number_width: four
+        as_type: ebgp
+        name: otg1.bgp4.peer[0]
+        peer_address: 192.0.2.2
+        v4_routes:
+        - addresses:
+          - address: 198.51.100.0
+            count: 1
+            prefix: 24
+            step: 1
+          name: otg1.bgp4.peer[0].rr4
+          next_hop_address_type: ipv4
+          next_hop_ipv4_address: 0.0.0.0
+          next_hop_ipv6_address: ::0
+          next_hop_mode: local_ip
+    router_id: 192.0.2.1
+  ethernets:
+  - ipv4_addresses:
+    - address: 192.0.2.1
+      gateway: 192.0.2.2
+      name: otg1.eth[0].ipv4[0]
+      prefix: 24
+    mac: 02:00:00:00:01:aa
+    mtu: 1500
+    name: otg1.eth[0]
+    port_name: p1
+  name: otg1
+ports:
+- location: localhost:5555
+  name: p1

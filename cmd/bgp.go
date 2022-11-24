@@ -23,14 +23,19 @@ package cmd
 
 import (
 	"fmt"
+	"strconv"
+	"strings"
 
 	"github.com/open-traffic-generator/snappi/gosnappi"
 	"github.com/spf13/cobra"
 )
 
-var bgpDeviceName string // Device name to add BGP configuration to
-var bgpASN int32         // Autonomous System Number
-var bgpPeerIP string     // Peer IP address
+var bgpDeviceName string   // Device name to add BGP configuration to
+var bgpASN int32           // Autonomous System Number
+var bgpPeerIP string       // Peer IP address
+var bgpRoute string        // Route to advertise
+var bgpRouteAddress string // Address part of the route to advertise
+var bgpRoutePrefix int32   // Prefix mask part of the route to advertise
 
 // bgpCmd represents the bgp command
 var bgpCmd = &cobra.Command{
@@ -46,6 +51,23 @@ For more information, go to https://github.com/open-traffic-generator/otgen
 	},
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		setLogLevel(cmd, logLevel)
+		if bgpRoute != "" {
+			bgpRouteArray := strings.Split(bgpRoute, "/")
+			if len(bgpRouteArray) == 2 {
+				bgpRouteAddress = bgpRouteArray[0]
+				p, err := strconv.Atoi(bgpRouteArray[1])
+				if err != nil {
+					log.Fatalf("Wrong netmask prefix format in the route: %s", bgpRoute)
+				}
+				if 0 <= p && p <= 32 {
+					bgpRoutePrefix = int32(p)
+				} else {
+					log.Fatalf("Netmask prefix has to be from 0 to 32 in the route: %s", bgpRoute)
+				}
+			} else {
+				log.Fatalf("Route parameter does not follow x.x.x.x/nn format: %s", bgpRoute)
+			}
+		}
 		return nil
 	},
 }
@@ -66,6 +88,7 @@ func init() {
 	bgpCmd.Flags().StringVarP(&bgpDeviceName, "device", "d", DEVICE_NAME_1, "Device name to add BGP configuration to")
 	bgpCmd.Flags().Int32VarP(&bgpASN, "asn", "a", 65535, "Autonomous System Number")
 	bgpCmd.Flags().StringVarP(&bgpPeerIP, "peer", "p", IPV4_DEFAULT_GW, "Peer IP address")
+	bgpCmd.Flags().StringVarP(&bgpRoute, "route", "r", "", "Route to advertise")
 }
 
 func addBgp() {
@@ -89,8 +112,17 @@ func newBgp(config gosnappi.Config) {
 		device.Bgp().SetRouterId(bgpDeviceIPv4Interface.Address())                                         // TODO parameterize router_id
 		bgpIPv4Interface := device.Bgp().Ipv4Interfaces().Add().SetIpv4Name(bgpDeviceIPv4Interface.Name()) // TODO check if already exists
 		bgpIPv4Peer := bgpIPv4Interface.Peers().Add().SetName(bgpDeviceName + ".bgp4.peer[0]")             // TODO check if already exists
-		bgpIPv4Peer.SetAsNumber(bgpASN).SetAsType(gosnappi.BgpV4PeerAsType.EBGP)
-		bgpIPv4Peer.SetPeerAddress(bgpPeerIP) // TODO check if it is IPv6
+		bgpIPv4Peer.SetAsNumber(bgpASN).SetAsType(gosnappi.BgpV4PeerAsType.EBGP)                           // TODO parameterize type
+		bgpIPv4Peer.SetPeerAddress(bgpPeerIP)                                                              // TODO check if it is IPv6
+		if bgpRoute != "" {                                                                                // TODO IPv6
+			bgpIPv4PeerRoutes := bgpIPv4Peer.V4Routes().Add().SetName(bgpDeviceName + ".bgp4.peer[0].rr4")
+			bgpIPv4PeerRoutes.SetNextHopMode(gosnappi.BgpV4RouteRangeNextHopMode.LOCAL_IP)
+			bgpIPv4PeerRoutesAddresses := bgpIPv4PeerRoutes.Addresses().Add()
+			bgpIPv4PeerRoutesAddresses.SetAddress(bgpRouteAddress)
+			bgpIPv4PeerRoutesAddresses.SetPrefix(bgpRoutePrefix)
+			bgpIPv4PeerRoutesAddresses.SetCount(1)
+			bgpIPv4PeerRoutesAddresses.SetStep(1)
+		}
 	}
 
 	// Print the OTG configuration constructed

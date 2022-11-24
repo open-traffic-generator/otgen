@@ -87,4 +87,24 @@ tests-add-bgp:
 	./otgen --log debug add bgp --peer 192.0.2.200 | \
 	diff test/add/bgp-device.peer.yml -
 
+	./otgen create device | \
+	./otgen --log debug add bgp --route 198.51.100.0 || \
+	echo "Passed"
+
+	./otgen create device | \
+	./otgen --log debug add bgp --route /24 || \
+	echo "Passed"
+
+	./otgen create device | \
+	./otgen --log debug add bgp --route 198.51.100.0/33 || \
+	echo "Passed"
+
+	./otgen create device | \
+	./otgen --log debug add bgp --route 198.51.100.256/32 || \
+	echo "Passed"
+
+	./otgen create device | \
+	./otgen --log debug add bgp --route 198.51.100.0/24 | \
+	diff test/add/bgp-device.route.yml -
+
 	@echo
