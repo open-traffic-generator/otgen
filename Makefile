@@ -79,4 +79,12 @@ tests-add-bgp:
 	./otgen --log debug add bgp --device r1 | \
 	diff test/add/bgp-device.name.yml -
 
+	./otgen create device | \
+	./otgen --log debug add bgp --asn 1111 | \
+	diff test/add/bgp-device.asn.yml -
+
+	./otgen create device | \
+	./otgen --log debug add bgp --peer 192.0.2.200 | \
+	diff test/add/bgp-device.peer.yml -
+
 	@echo

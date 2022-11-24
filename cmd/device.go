@@ -126,7 +126,7 @@ func newDevice(config gosnappi.Config) {
 	otgGetOrCreatePort(config, devicePort, devicePortLocation)
 
 	// Device name
-	device := config.Devices().Add().SetName(deviceName)
+	device := config.Devices().Add().SetName(deviceName) // TODO check if device already exists, and fail if so
 
 	// Device ethernets
 	deviceEth := device.Ethernets().Add().
