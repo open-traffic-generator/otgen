@@ -30,6 +30,12 @@ import (
 	"github.com/spf13/cobra"
 )
 
+const (
+	BGP_ASN_MIN     = int32(1)     // Minimum value for ASN
+	BGP_ASN_MAX     = int32(65535) // Maximin value for ASN
+	BGP_ASN_DEFAULT = int32(65535) // Default ASN value
+)
+
 var bgpDeviceName string                     // Device name to add BGP configuration to
 var bgpRouterID string                       // Router ID
 var bgpASN int32                             // Autonomous System Number
@@ -54,6 +60,9 @@ For more information, go to https://github.com/open-traffic-generator/otgen
 	},
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		setLogLevel(cmd, logLevel)
+		if bgpASN < BGP_ASN_MIN || bgpASN > BGP_ASN_MAX {
+			log.Fatalf("ASN provided is out of range %d-%d: %d", BGP_ASN_MIN, BGP_ASN_MAX, bgpASN)
+		}
 		switch bgpType {
 		case "ebgp", "eBGP", "EBGP", "e":
 			bgpTypeEnum = gosnappi.BgpV4PeerAsType.EBGP
@@ -98,7 +107,7 @@ func init() {
 
 	bgpCmd.Flags().StringVarP(&bgpRouterID, "id", "", "", "Router ID (default is an IP address of the interface the BGP configuration is attached to)")
 	bgpCmd.Flags().StringVarP(&bgpDeviceName, "device", "d", DEVICE_NAME_1, "Device name to add BGP configuration to")
-	bgpCmd.Flags().Int32VarP(&bgpASN, "asn", "", 65535, "Autonomous System Number")
+	bgpCmd.Flags().Int32VarP(&bgpASN, "asn", "", BGP_ASN_DEFAULT, "Autonomous System Number")
 	bgpCmd.Flags().StringVarP(&bgpPeerIP, "peer", "p", IPV4_DEFAULT_GW, "Peer IP address")
 	bgpCmd.Flags().StringVarP(&bgpType, "type", "t", string(gosnappi.BgpV4PeerAsType.EBGP), "BGP peering type: ebgp | ibgp")
 	bgpCmd.Flags().StringVarP(&bgpRoute, "route", "r", "", "Route to advertise")
@@ -151,9 +160,9 @@ func newBgp(config gosnappi.Config) {
 			bgpIPv4Peer = bgpIPv4Interface.Peers().Add().SetName(bgpDeviceIPv4Interface.Name() + ".bgp.peer." + bgpPeerIP)
 		}
 
-		bgpIPv4Peer.SetAsNumber(bgpASN).SetAsType(bgpTypeEnum)
-		bgpIPv4Peer.SetPeerAddress(bgpPeerIP) // TODO check if it is IPv6
-		if bgpRoute != "" {                   // TODO IPv6
+		bgpIPv4Peer.SetAsNumber(bgpASN).SetAsType(bgpTypeEnum) // TODO update as_number_width for longer ASNs
+		bgpIPv4Peer.SetPeerAddress(bgpPeerIP)                  // TODO check if it is IPv6
+		if bgpRoute != "" {                                    // TODO IPv6
 			var bgpIPv4PeerRouteRange gosnappi.BgpV4RouteRange
 			for _, v := range bgpIPv4Peer.V4Routes().Items() {
 				if v.HasNextHopMode() && v.NextHopMode() == gosnappi.BgpV4RouteRangeNextHopMode.LOCAL_IP {

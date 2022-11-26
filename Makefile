@@ -100,9 +100,16 @@ tests-add-bgp:
 	./otgen --log debug add bgp --id 1.1.1.1 | \
 	diff test/add/bgp-device.id.yml -
 
+	@echo
+	@echo "# ASN parameter"
 	./otgen create device | \
 	./otgen --log debug add bgp --asn 1111 | \
 	diff test/add/bgp-device.asn.yml -
+
+	@echo
+	@echo "# Incorrect ASN parameter"
+	./otgen create device | \
+	./otgen --log debug add bgp --asn 11111111 && echo "Expected to fail" && exit 1 || echo Passed
 
 	@echo
 	@echo "# Updating ASN"
