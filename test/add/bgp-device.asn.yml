@@ -6,7 +6,7 @@ devices:
       - as_number: 1111
         as_number_width: four
         as_type: ebgp
-        name: otg1.bgp4.peer[0]
+        name: otg1.eth[0].ipv4[0].bgp.peer.192.0.2.2
         peer_address: 192.0.2.2
     router_id: 192.0.2.1
   ethernets:

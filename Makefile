@@ -150,3 +150,17 @@ tests-add-bgp:
 	diff test/add/bgp-device.route.yml -
 
 	@echo
+	@echo "# Adding same route twice"
+	./otgen create device | \
+	./otgen add bgp --route 198.51.100.0/24 | \
+	./otgen --log debug add bgp --route 198.51.100.0/24 | \
+	diff test/add/bgp-device.route.yml -
+
+	@echo
+	@echo "# Adding second route"
+	./otgen create device | \
+	./otgen add bgp --route 198.51.100.0/24 | \
+	./otgen --log debug add bgp --route 198.51.101.0/24 | \
+	diff test/add/bgp-device.2route.yml -
+
+	@echo

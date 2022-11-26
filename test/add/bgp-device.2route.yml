@@ -8,7 +8,22 @@ devices:
         as_type: ebgp
         name: otg1.eth[0].ipv4[0].bgp.peer.192.0.2.2
         peer_address: 192.0.2.2
-    router_id: 1.1.1.1
+        v4_routes:
+        - addresses:
+          - address: 198.51.100.0
+            count: 1
+            prefix: 24
+            step: 1
+          - address: 198.51.101.0
+            count: 1
+            prefix: 24
+            step: 1
+          name: otg1.eth[0].ipv4[0].bgp.peer.192.0.2.2.rr4[0]
+          next_hop_address_type: ipv4
+          next_hop_ipv4_address: 0.0.0.0
+          next_hop_ipv6_address: ::0
+          next_hop_mode: local_ip
+    router_id: 192.0.2.1
   ethernets:
   - ipv4_addresses:
     - address: 192.0.2.1

@@ -6,7 +6,7 @@ devices:
       - as_number: 65535
         as_number_width: four
         as_type: ebgp
-        name: otg1.bgp4.peer[0]
+        name: otg1.eth[0].ipv4[0].bgp.peer.192.0.2.2
         peer_address: 192.0.2.2
         v4_routes:
         - addresses:
@@ -14,7 +14,7 @@ devices:
             count: 1
             prefix: 24
             step: 1
-          name: otg1.bgp4.peer[0].rr4
+          name: otg1.eth[0].ipv4[0].bgp.peer.192.0.2.2.rr4[0]
           next_hop_address_type: ipv4
           next_hop_ipv4_address: 0.0.0.0
           next_hop_ipv6_address: ::0
