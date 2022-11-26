@@ -80,6 +80,13 @@ tests-add-bgp:
 	diff test/add/bgp-device.name.yml -
 
 	./otgen create device | \
+	./otgen --log debug add bgp --id 1111 && echo "Expected to fail" && exit 1 || echo Passed
+
+	./otgen create device | \
+	./otgen --log debug add bgp --id 1.1.1.1 | \
+	diff test/add/bgp-device.id.yml -
+
+	./otgen create device | \
 	./otgen --log debug add bgp --asn 1111 | \
 	diff test/add/bgp-device.asn.yml -
 
