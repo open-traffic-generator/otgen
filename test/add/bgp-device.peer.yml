@@ -3,7 +3,7 @@ devices:
     ipv4_interfaces:
     - ipv4_name: otg1.eth[0].ipv4[0]
       peers:
-      - as_number: 65535
+      - as_number: 65534
         as_number_width: four
         as_type: ebgp
         name: otg1.eth[0].ipv4[0].bgp.peer.192.0.2.200

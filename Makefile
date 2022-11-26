@@ -109,7 +109,7 @@ tests-add-bgp:
 	@echo
 	@echo "# Incorrect ASN parameter"
 	./otgen create device | \
-	./otgen --log debug add bgp --asn 11111111 && echo "Expected to fail" && exit 1 || echo Passed
+	./otgen --log debug add bgp --asn 4294967296 && echo "Expected to fail" && exit 1 || echo Passed
 
 	@echo
 	@echo "# Updating ASN"
