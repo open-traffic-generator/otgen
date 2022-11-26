@@ -78,6 +78,7 @@ otgen add bgp                         # Add a BGP configuration to an Emulated D
   [--device string]                   # Device name to add BGP configuration to (default "otg1")
   [--asn N]                           # Autonomous System Number (default 65535)
   [--peer x.x.x.x]                    # Peer IP address (default "192.0.2.2")
+  [--type ebgp|ibgp]                  # BGP peering type: ebgp | ibgp (default "ebgp")
   [--route x.x.x.x/nn]                # Route to advertise
 ```
 

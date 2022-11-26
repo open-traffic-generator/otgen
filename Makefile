@@ -88,6 +88,13 @@ tests-add-bgp:
 	diff test/add/bgp-device.peer.yml -
 
 	./otgen create device | \
+	./otgen --log debug add bgp --peer 192.0.2.200 --type wrong && echo "Expected to fail" && exit 1 || echo Passed
+
+	./otgen create device | \
+	./otgen --log debug add bgp --peer 192.0.2.200 --type ibgp | \
+	diff test/add/bgp-device.type.yml -
+
+	./otgen create device | \
 	./otgen --log debug add bgp --route 198.51.100.0 || \
 	echo "Passed"
 

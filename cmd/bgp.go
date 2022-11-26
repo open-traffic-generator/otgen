@@ -30,12 +30,14 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var bgpDeviceName string   // Device name to add BGP configuration to
-var bgpASN int32           // Autonomous System Number
-var bgpPeerIP string       // Peer IP address
-var bgpRoute string        // Route to advertise
-var bgpRouteAddress string // Address part of the route to advertise
-var bgpRoutePrefix int32   // Prefix mask part of the route to advertise
+var bgpDeviceName string                     // Device name to add BGP configuration to
+var bgpASN int32                             // Autonomous System Number
+var bgpType string                           // BGP peering type: ebgp | ibgp
+var bgpTypeEnum gosnappi.BgpV4PeerAsTypeEnum // BGP peering type as gosnappi enum
+var bgpPeerIP string                         // Peer IP address
+var bgpRoute string                          // Route to advertise
+var bgpRouteAddress string                   // Address part of the route to advertise
+var bgpRoutePrefix int32                     // Prefix mask part of the route to advertise
 
 // bgpCmd represents the bgp command
 var bgpCmd = &cobra.Command{
@@ -51,6 +53,14 @@ For more information, go to https://github.com/open-traffic-generator/otgen
 	},
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		setLogLevel(cmd, logLevel)
+		switch bgpType {
+		case "ebgp", "eBGP", "EBGP", "e":
+			bgpTypeEnum = gosnappi.BgpV4PeerAsType.EBGP
+		case "ibgp", "iBGP", "IBGP", "i":
+			bgpTypeEnum = gosnappi.BgpV4PeerAsType.IBGP
+		default:
+			log.Fatalf("Unsupported BGP peer type: %s", bgpType)
+		}
 		if bgpRoute != "" {
 			bgpRouteArray := strings.Split(bgpRoute, "/")
 			if len(bgpRouteArray) == 2 {
@@ -88,6 +98,7 @@ func init() {
 	bgpCmd.Flags().StringVarP(&bgpDeviceName, "device", "d", DEVICE_NAME_1, "Device name to add BGP configuration to")
 	bgpCmd.Flags().Int32VarP(&bgpASN, "asn", "a", 65535, "Autonomous System Number")
 	bgpCmd.Flags().StringVarP(&bgpPeerIP, "peer", "p", IPV4_DEFAULT_GW, "Peer IP address")
+	bgpCmd.Flags().StringVarP(&bgpType, "type", "t", string(gosnappi.BgpV4PeerAsType.EBGP), "BGP peering type: ebgp | ibgp")
 	bgpCmd.Flags().StringVarP(&bgpRoute, "route", "r", "", "Route to advertise")
 }
 
@@ -112,9 +123,9 @@ func newBgp(config gosnappi.Config) {
 		device.Bgp().SetRouterId(bgpDeviceIPv4Interface.Address())                                         // TODO parameterize router_id
 		bgpIPv4Interface := device.Bgp().Ipv4Interfaces().Add().SetIpv4Name(bgpDeviceIPv4Interface.Name()) // TODO check if already exists
 		bgpIPv4Peer := bgpIPv4Interface.Peers().Add().SetName(bgpDeviceName + ".bgp4.peer[0]")             // TODO check if already exists
-		bgpIPv4Peer.SetAsNumber(bgpASN).SetAsType(gosnappi.BgpV4PeerAsType.EBGP)                           // TODO parameterize type
-		bgpIPv4Peer.SetPeerAddress(bgpPeerIP)                                                              // TODO check if it is IPv6
-		if bgpRoute != "" {                                                                                // TODO IPv6
+		bgpIPv4Peer.SetAsNumber(bgpASN).SetAsType(bgpTypeEnum)
+		bgpIPv4Peer.SetPeerAddress(bgpPeerIP) // TODO check if it is IPv6
+		if bgpRoute != "" {                   // TODO IPv6
 			bgpIPv4PeerRoutes := bgpIPv4Peer.V4Routes().Add().SetName(bgpDeviceName + ".bgp4.peer[0].rr4")
 			bgpIPv4PeerRoutes.SetNextHopMode(gosnappi.BgpV4RouteRangeNextHopMode.LOCAL_IP)
 			bgpIPv4PeerRoutesAddresses := bgpIPv4PeerRoutes.Addresses().Add()
