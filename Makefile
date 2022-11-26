@@ -79,6 +79,13 @@ tests-add-bgp:
 	./otgen --log debug add bgp --device r1 | \
 	diff test/add/bgp-device.name.yml -
 
+	@echo
+	@echo "# Adding the same BGP twice"
+	./otgen create device | \
+	./otgen add bgp | \
+	./otgen --log debug add bgp | \
+	diff test/add/bgp-device.defaults.yml -
+
 	./otgen create device | \
 	./otgen --log debug add bgp --id 1111 && echo "Expected to fail" && exit 1 || echo Passed
 
@@ -86,7 +93,21 @@ tests-add-bgp:
 	./otgen --log debug add bgp --id 1.1.1.1 | \
 	diff test/add/bgp-device.id.yml -
 
+	@echo
+	@echo "# Updating BGP router id"
 	./otgen create device | \
+	./otgen add bgp | \
+	./otgen --log debug add bgp --id 1.1.1.1 | \
+	diff test/add/bgp-device.id.yml -
+
+	./otgen create device | \
+	./otgen --log debug add bgp --asn 1111 | \
+	diff test/add/bgp-device.asn.yml -
+
+	@echo
+	@echo "# Updating ASN"
+	./otgen create device | \
+	./otgen add bgp | \
 	./otgen --log debug add bgp --asn 1111 | \
 	diff test/add/bgp-device.asn.yml -
 
@@ -98,6 +119,13 @@ tests-add-bgp:
 	./otgen --log debug add bgp --peer 192.0.2.200 --type wrong && echo "Expected to fail" && exit 1 || echo Passed
 
 	./otgen create device | \
+	./otgen --log debug add bgp --peer 192.0.2.200 --type ibgp | \
+	diff test/add/bgp-device.type.yml -
+
+	@echo
+	@echo "# Updating BGP peering type"
+	./otgen create device | \
+	./otgen add bgp --peer 192.0.2.200 | \
 	./otgen --log debug add bgp --peer 192.0.2.200 --type ibgp | \
 	diff test/add/bgp-device.type.yml -
 

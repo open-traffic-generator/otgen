@@ -121,18 +121,40 @@ func newBgp(config gosnappi.Config) {
 	log.Debugf("Found matching device name: %s", bgpDeviceName)
 	bgpDeviceIPv4Interface := device.Ethernets().Items()[0].Ipv4Addresses().Items()[0]
 	if bgpDeviceIPv4Interface != nil { // TODO IPv6
-		log.Debugf("Adding BGP to the device's IPv4 interface: %s with ASN %d and Peer IP %s", bgpDeviceIPv4Interface.Address(), bgpASN, bgpPeerIP)
 		if bgpRouterID == "" {
 			device.Bgp().SetRouterId(bgpDeviceIPv4Interface.Address())
 		} else {
 			device.Bgp().SetRouterId(bgpRouterID)
 		}
-		bgpIPv4Interface := device.Bgp().Ipv4Interfaces().Add().SetIpv4Name(bgpDeviceIPv4Interface.Name()) // TODO check if already exists
-		bgpIPv4Peer := bgpIPv4Interface.Peers().Add().SetName(bgpDeviceName + ".bgp4.peer[0]")             // TODO check if already exists
+		var bgpIPv4Interface gosnappi.BgpV4Interface
+		for _, v := range device.Bgp().Ipv4Interfaces().Items() {
+			if v.Ipv4Name() == bgpDeviceIPv4Interface.Name() {
+				log.Debugf("BGP configuration already exists on %s, will update", bgpDeviceIPv4Interface.Address())
+				bgpIPv4Interface = v
+				break
+			}
+		}
+		if bgpIPv4Interface == nil {
+			bgpIPv4Interface = device.Bgp().Ipv4Interfaces().Add().SetIpv4Name(bgpDeviceIPv4Interface.Name())
+		}
+
+		var bgpIPv4Peer gosnappi.BgpV4Peer
+		for _, v := range bgpIPv4Interface.Peers().Items() {
+			if v.PeerAddress() == bgpPeerIP {
+				log.Debugf("BGP configuration for peer %s already exists on %s, will update", bgpPeerIP, bgpDeviceIPv4Interface.Address())
+				bgpIPv4Peer = v
+				break
+			}
+		}
+		if bgpIPv4Peer == nil {
+			log.Debugf("Adding BGP to the device's IPv4 interface: %s with ASN %d and Peer IP %s", bgpDeviceIPv4Interface.Address(), bgpASN, bgpPeerIP)
+			bgpIPv4Peer = bgpIPv4Interface.Peers().Add().SetName(bgpDeviceName + ".bgp4.peer[0]") // TODO change to peer IP as suffix?
+		}
+
 		bgpIPv4Peer.SetAsNumber(bgpASN).SetAsType(bgpTypeEnum)
 		bgpIPv4Peer.SetPeerAddress(bgpPeerIP) // TODO check if it is IPv6
 		if bgpRoute != "" {                   // TODO IPv6
-			bgpIPv4PeerRoutes := bgpIPv4Peer.V4Routes().Add().SetName(bgpDeviceName + ".bgp4.peer[0].rr4")
+			bgpIPv4PeerRoutes := bgpIPv4Peer.V4Routes().Add().SetName(bgpDeviceName + ".bgp4.peer[0].rr4") // TODO check if already exists
 			bgpIPv4PeerRoutes.SetNextHopMode(gosnappi.BgpV4RouteRangeNextHopMode.LOCAL_IP)
 			bgpIPv4PeerRoutesAddresses := bgpIPv4PeerRoutes.Addresses().Add()
 			bgpIPv4PeerRoutesAddresses.SetAddress(bgpRouteAddress)
