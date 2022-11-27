@@ -67,94 +67,116 @@ tests-add-bgp:
 	@echo "#################################################################"
 	@echo "# Add BGP configuration to a device"
 	@echo "#################################################################"
-	./otgen create device --name r1 | \
-	./otgen --log debug add bgp || \
-	echo "Passed"
 
+	@echo
+	@echo "# Add bgp defaults"
 	./otgen create device | \
 	./otgen --log debug add bgp | \
 	diff test/add/bgp-device.defaults.yml -
 
+	@echo
+	@echo "# Add bgp with --device"
 	./otgen create device --name r1 | \
 	./otgen --log debug add bgp --device r1 | \
 	diff test/add/bgp-device.name.yml -
 
 	@echo
-	@echo "# Adding the same BGP twice"
+	@echo "# Add BGP to a non-existent device"
+	./otgen create device --name r1 | \
+	./otgen --log debug add bgp && echo "Expected to fail" && exit 1 || echo Passed
+
+	@echo
+	@echo "# Adding the same BGP configuration twice"
 	./otgen create device | \
 	./otgen add bgp | \
 	./otgen --log debug add bgp | \
 	diff test/add/bgp-device.defaults.yml -
 
-	./otgen create device | \
-	./otgen --log debug add bgp --id 1111 && echo "Expected to fail" && exit 1 || echo Passed
-
+	@echo
+	@echo "# Add BGP with router --id"
 	./otgen create device | \
 	./otgen --log debug add bgp --id 1.1.1.1 | \
 	diff test/add/bgp-device.id.yml -
 
 	@echo
-	@echo "# Updating BGP router id"
+	@echo "# Add BGP with non-IPv4 router --id"
+	./otgen create device | \
+	./otgen --log debug add bgp --id 1111 && echo "Expected to fail" && exit 1 || echo Passed
+
+	@echo
+	@echo "# Updating BGP router --id"
 	./otgen create device | \
 	./otgen add bgp | \
 	./otgen --log debug add bgp --id 1.1.1.1 | \
 	diff test/add/bgp-device.id.yml -
 
 	@echo
-	@echo "# ASN parameter"
+	@echo "# Add BGP with --asn"
 	./otgen create device | \
 	./otgen --log debug add bgp --asn 1111 | \
 	diff test/add/bgp-device.asn.yml -
 
 	@echo
-	@echo "# Incorrect ASN parameter"
+	@echo "# Add BGP with incorrect --asn ASN"
 	./otgen create device | \
 	./otgen --log debug add bgp --asn 4294967296 && echo "Expected to fail" && exit 1 || echo Passed
 
 	@echo
-	@echo "# Updating ASN"
+	@echo "# Updating BGP --asn"
 	./otgen create device | \
 	./otgen add bgp | \
 	./otgen --log debug add bgp --asn 1111 | \
 	diff test/add/bgp-device.asn.yml -
 
+	@echo
+	@echo "# Add BGP with --peer"
 	./otgen create device | \
 	./otgen --log debug add bgp --peer 192.0.2.200 | \
 	diff test/add/bgp-device.peer.yml -
 
-	./otgen create device | \
-	./otgen --log debug add bgp --peer 192.0.2.200 --type wrong && echo "Expected to fail" && exit 1 || echo Passed
-
+	@echo
+	@echo "# Add BGP with peering --type"
 	./otgen create device | \
 	./otgen --log debug add bgp --peer 192.0.2.200 --type ibgp | \
 	diff test/add/bgp-device.type.yml -
 
 	@echo
-	@echo "# Updating BGP peering type"
+	@echo "# Add BGP with wrong peering --type"
+	./otgen create device | \
+	./otgen --log debug add bgp --peer 192.0.2.200 --type wrong && echo "Expected to fail" && exit 1 || echo Passed
+
+	@echo
+	@echo "# Updating BGP peering --type"
 	./otgen create device | \
 	./otgen add bgp --peer 192.0.2.200 | \
 	./otgen --log debug add bgp --peer 192.0.2.200 --type ibgp | \
 	diff test/add/bgp-device.type.yml -
 
-	./otgen create device | \
-	./otgen --log debug add bgp --route 198.51.100.0 || \
-	echo "Passed"
-
-	./otgen create device | \
-	./otgen --log debug add bgp --route /24 || \
-	echo "Passed"
-
-	./otgen create device | \
-	./otgen --log debug add bgp --route 198.51.100.0/33 || \
-	echo "Passed"
-
-	./otgen create device | \
-	./otgen --log debug add bgp --route 198.51.100.256/32 || \
-	echo "Passed"
-
+	@echo
+	@echo "# Add BGP with --route"
 	./otgen create device | \
 	./otgen --log debug add bgp --route 198.51.100.0/24 | \
 	diff test/add/bgp-device.route.yml -
+
+	@echo
+	@echo "# Add BGP with --route w/o netmask prefix"
+	./otgen create device | \
+	./otgen --log debug add bgp --route 198.51.100.0 && echo "Expected to fail" && exit 1 || echo Passed
+
+	@echo
+	@echo "# Add BGP with --route w/o address part"
+	./otgen create device | \
+	./otgen --log debug add bgp --route /24 && echo "Expected to fail" && exit 1 || echo Passed
+
+	@echo
+	@echo "# Add BGP with --route with wrong netmask prefix"
+	./otgen create device | \
+	./otgen --log debug add bgp --route 198.51.100.0/33 && echo "Expected to fail" && exit 1 || echo Passed
+
+	@echo
+	@echo "# Add BGP with --route with wrong address"
+	./otgen create device | \
+	./otgen --log debug add bgp --route 198.51.100.256/32 && echo "Expected to fail" && exit 1 || echo Passed
 
 	@echo
 	@echo "# Adding same route twice"
