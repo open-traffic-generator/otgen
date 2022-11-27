@@ -63,6 +63,7 @@ tests-create-devices-flow:
 
 	@echo
 
+tests-add-bgp: export OTG_LOCATION_P1 = localhost:5555+localhost:50071
 tests-add-bgp:
 	@echo "#################################################################"
 	@echo "# Add BGP configuration to a device"

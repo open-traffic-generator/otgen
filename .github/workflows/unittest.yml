@@ -22,9 +22,6 @@ jobs:
   make-tests:
     name: Make tests
     runs-on: ubuntu-20.04
-    env:
-      OTG_LOCATION_P1: "localhost:5555+localhost:50071"
-      OTG_LOCATION_P2: "localhost:5556+localhost:50072"
     steps:
       - name: Checkout
         uses: actions/checkout@v3

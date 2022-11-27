@@ -32,5 +32,5 @@ devices:
     port_name: p1
   name: otg1
 ports:
-- location: localhost:5555
+- location: localhost:5555+localhost:50071
   name: p1
