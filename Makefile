@@ -136,6 +136,12 @@ tests-add-bgp:
 	diff test/add/bgp-device.peer.yml -
 
 	@echo
+	@echo "# Use default gw as a peer by default"
+	./otgen create device --gw 192.0.2.200 | \
+	./otgen --log debug add bgp | \
+	diff test/add/bgp-device.peer-default-gw.yml -
+
+	@echo
 	@echo "# Add BGP with peering --type"
 	./otgen create device | \
 	./otgen --log debug add bgp --peer 192.0.2.200 --type ibgp | \

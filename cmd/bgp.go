@@ -108,7 +108,7 @@ func init() {
 	bgpCmd.Flags().StringVarP(&bgpRouterID, "id", "", "", "Router ID (default is an IP address of the interface the BGP configuration is attached to)")
 	bgpCmd.Flags().StringVarP(&bgpDeviceName, "device", "d", DEVICE_NAME_1, "Device name to add BGP configuration to")
 	bgpCmd.Flags().Uint32VarP(&bgpASN, "asn", "", BGP_ASN_DEFAULT, "Autonomous System Number")
-	bgpCmd.Flags().StringVarP(&bgpPeerIP, "peer", "p", IPV4_DEFAULT_GW, "Peer IP address")
+	bgpCmd.Flags().StringVarP(&bgpPeerIP, "peer", "p", "", "Peer IP address (default is a GW address of the interface the BGP configuration is attached to)")
 	bgpCmd.Flags().StringVarP(&bgpType, "type", "t", string(gosnappi.BgpV4PeerAsType.EBGP), "BGP peering type: ebgp | ibgp")
 	bgpCmd.Flags().StringVarP(&bgpRoute, "route", "r", "", "Route to advertise")
 }
@@ -145,6 +145,10 @@ func newBgp(config gosnappi.Config) {
 		}
 		if bgpIPv4Interface == nil {
 			bgpIPv4Interface = device.Bgp().Ipv4Interfaces().Add().SetIpv4Name(bgpDeviceIPv4Interface.Name())
+		}
+		if bgpPeerIP == "" {
+			// use default gw from the linked interface as a default peer IP
+			bgpPeerIP = bgpDeviceIPv4Interface.Gateway()
 		}
 
 		var bgpIPv4Peer gosnappi.BgpV4Peer
