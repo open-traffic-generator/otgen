@@ -60,6 +60,7 @@ For more information, go to https://github.com/open-traffic-generator/otgen
 		}
 	},
 	PreRunE: func(cmd *cobra.Command, args []string) error {
+		setLogLevel(cmd, logLevel)
 		if displayType != TYPE_TABLE && displayType != TYPE_CHART {
 			return fmt.Errorf("unsupported display type: %s", displayType)
 		}

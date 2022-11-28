@@ -40,9 +40,9 @@ var devicePrefixv4 int32      // Device IPv4 network prefix
 // deviceCmd represents the device command
 var deviceCmd = &cobra.Command{
 	Use:   "device",
-	Short: "New OTG device configuration",
+	Short: "Create a configuration for an Emulated Device",
 	Long: `
-New OTG device configuration.
+Create a configuration for an Emulated Device.
 
 For more information, go to https://github.com/open-traffic-generator/otgen
 `,
@@ -54,6 +54,7 @@ For more information, go to https://github.com/open-traffic-generator/otgen
 		}
 	},
 	PreRunE: func(cmd *cobra.Command, args []string) error {
+		setLogLevel(cmd, logLevel)
 		// set default MACs depending on Tx test port
 		switch devicePort {
 		case PORT_NAME_RX: // swap default SRC and DST MACs. TODO use --swap parameter instead to do this explicitly
@@ -75,7 +76,6 @@ For more information, go to https://github.com/open-traffic-generator/otgen
 }
 
 func init() {
-	rootCmd.AddCommand(deviceCmd)
 
 	// Here you will define your flags and configuration settings.
 
@@ -117,7 +117,7 @@ func addDevice() {
 	// Create a new API handle
 	api := gosnappi.NewApi()
 
-	// Read pre-existing traffic configuration from STDIN and then create a flow
+	// Read pre-existing traffic configuration from STDIN and then create a device
 	newDevice(readOtgStdin(api))
 }
 
@@ -126,7 +126,7 @@ func newDevice(config gosnappi.Config) {
 	otgGetOrCreatePort(config, devicePort, devicePortLocation)
 
 	// Device name
-	device := config.Devices().Add().SetName(deviceName)
+	device := config.Devices().Add().SetName(deviceName) // TODO check if device already exists, and fail if so
 
 	// Device ethernets
 	deviceEth := device.Ethernets().Add().
@@ -143,7 +143,7 @@ func newDevice(config gosnappi.Config) {
 		SetGateway(deviceGWv4).
 		SetPrefix(devicePrefixv4)
 
-	// Print traffic configuration constructed
+	// Print the OTG configuration constructed
 	otgYaml, err := config.ToYaml()
 	if err != nil {
 		log.Fatal(err)

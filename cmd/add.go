@@ -28,15 +28,19 @@ import (
 // addCmd represents the add command
 var addCmd = &cobra.Command{
 	Use:   "add",
-	Short: "Read OTG configuration from stdin and add the specified item",
+	Short: "Read an OTG configuration from stdin and add the specified item",
 	Long: `
-Read OTG configuration from stdin and add the specified item. 
+Read an OTG configuration from stdin and add the specified item. 
 The output can be passed to stdin of "otgen run" or another "otgen add" command.
 
   For more information, go to https://github.com/open-traffic-generator/otgen
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		log.Error("You must specify an OTG object to add, one from the set: flow")
+		log.Error("You must specify an OTG configuration object to add, one of the following: flow | device | bgp")
+	},
+	PreRunE: func(cmd *cobra.Command, args []string) error {
+		setLogLevel(cmd, logLevel)
+		return nil
 	},
 }
 

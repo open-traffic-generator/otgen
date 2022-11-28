@@ -21,6 +21,7 @@ cobra-cli add create --license mit --author "Open Traffic Generator"
 cobra-cli add add --license mit --author "Open Traffic Generator"
 cobra-cli add flow --license mit --author "Open Traffic Generator" # subcommand for create and add
 cobra-cli add device --license mit --author "Open Traffic Generator" # subcommand for create and add
+cobra-cli add bgp --license mit --author "Open Traffic Generator" # subcommand for add
 ```
 
 ### GoReleaser

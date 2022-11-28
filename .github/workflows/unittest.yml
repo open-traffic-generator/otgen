@@ -1,0 +1,37 @@
+name: Unit Tests
+
+on:
+  pull_request:
+    branches: [ "main" ]
+    paths:
+      - '**'
+      - '!**.md'
+      - '!**.png'
+  push:
+    branches: [ "main" ]
+    paths:
+      - '**'
+      - '!**.md'
+      - '!**.png'
+  workflow_dispatch:
+
+env:
+  GOVER: 1.17.2
+
+jobs:
+  make-tests:
+    name: Make tests
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          submodules: 'true'
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ env.GOVER }}
+      - name: Build
+        run: make get build
+      - name: Tests
+        run:  make tests
