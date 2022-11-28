@@ -77,7 +77,7 @@ otgen create device                   # Create a configuration for an Emulated D
 otgen add bgp                         # Add a BGP configuration to an Emulated Device
   [--device string]                   # Device name to add BGP configuration to (default "otg1")
   [--id]                              # Router ID (default is an IP address of the interface the BGP configuration is attached to)
-  [--asn N]                           # Autonomous System Number (default 65535)
+  [--asn N]                           # Autonomous System Number (default 65534)
   [--peer x.x.x.x]                    # Peer IP address (default is a GW address of the interface the BGP configuration is attached to)
   [--type ebgp|ibgp]                  # BGP peering type: ebgp | ibgp (default "ebgp")
   [--route x.x.x.x/nn]                # Route to advertise
