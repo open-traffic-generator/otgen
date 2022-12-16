@@ -45,7 +45,7 @@ otgen create flow                     # Create a configuration for a Traffic Flo
   [--ipv6 ]                           # IP version 6
   [--proto icmp | tcp | udp]          # IP transport protocol
   [--smac xx.xx.xx.xx.xx.xx]          # Source MAC address. For device-bound flows, default value is copied from the Tx device
-  [--dmac xx.xx.xx.xx.xx.xx]          # Destination MAC address. For device-bound flows, use auto to enable ARP for IPv4 / ND for IPv6
+  [--dmac xx.xx.xx.xx.xx.xx]          # Destination MAC address. For device-bound flows, default value "auto" enables ARP for IPv4 / ND for IPv6
   [--src x.x.x.x]                     # Source IP address
   [--dst x.x.x.x]                     # Destination IP address
   [--sport N]                         # Source TCP or UDP port. If not specified, incrementing source port numbers would be used for each new packet

@@ -224,7 +224,7 @@ func init() {
 	flowCmd.Flags().StringVarP(&flowRxLocation, "rxl", "", "", fmt.Sprintf("Test port location string for Rx (default \"%s\")", PORT_LOCATION_RX))
 
 	flowCmd.Flags().StringVarP(&flowSrcMac, "smac", "S", envSubstOrDefault(MAC_SRC_TX, MAC_DEFAULT_SRC), "Source MAC address. For device-bound flows, default value is copied from the Tx device")
-	flowCmd.Flags().StringVarP(&flowDstMac, "dmac", "D", envSubstOrDefault(MAC_DST_TX, MAC_DEFAULT_DST), "Destination MAC address. For device-bound flows, use \"auto\" to enable ARP for IPv4 / ND for IPv6")
+	flowCmd.Flags().StringVarP(&flowDstMac, "dmac", "D", envSubstOrDefault(MAC_DST_TX, MAC_DEFAULT_DST), "Destination MAC address. For device-bound flows, default value \"auto\" enables ARP for IPv4 / ND for IPv6")
 
 	flowCmd.Flags().BoolVarP(&flowIPv4, "ipv4", "4", true, "IP Version 4")
 	flowCmd.Flags().BoolVarP(&flowIPv6, "ipv6", "6", false, "IP Version 6")
@@ -356,7 +356,8 @@ func newFlow(config gosnappi.Config) {
 				eth.Dst().SetValue(flowDstMac)
 			}
 		} else {
-			eth.Dst().SetValue(deviceRx.Ethernets().Items()[0].Mac())
+			log.Debugf("Device-bound flow %s will use \"auto\" mode for the destination MAC by default", flowName)
+			eth.Dst().SetChoice("auto")
 		}
 	} else {
 		portRx := otgGetOrCreatePort(config, flowRxPort, flowRxLocation)
