@@ -22,6 +22,16 @@ tests-create-flow-raw:
 	./otgen create flow --smac "02:11:11:00:01:aa" --dmac "02:11:11:00:02:aa" --swap | diff test/create/flow.mac.swap.yml -
 	@echo
 
+tests-create-device:
+	@echo "#################################################################"
+	@echo "# Create a device"
+	@echo "#################################################################"
+	./otgen create device | \
+	diff test/create/device.defaults.yml -
+
+	./otgen create device -p p2 | \
+	diff test/create/device.port.yml -
+
 tests-create-devices-flow:
 	@echo "#################################################################"
 	@echo "# Create two devices with flow between them"

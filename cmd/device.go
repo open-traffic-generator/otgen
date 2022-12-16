@@ -58,17 +58,21 @@ For more information, go to https://github.com/open-traffic-generator/otgen
 		// set default MACs depending on Tx test port
 		switch devicePort {
 		case PORT_NAME_RX: // swap default SRC and DST MACs. TODO use --swap parameter instead to do this explicitly
+			if devicePortLocation == "" {
+				devicePortLocation = envSubstOrDefault(stringFromTemplate(PORT_LOCATION_TEMPLATE, "NAME", strings.ToUpper(devicePort)), PORT_LOCATION_RX)
+			}
+
 			if deviceMac == "" {
 				deviceMac = envSubstOrDefault(MAC_SRC_RX, MAC_DEFAULT_DST)
 			}
 		default: // PORT_NAME_TX
+			if devicePortLocation == "" {
+				devicePortLocation = envSubstOrDefault(stringFromTemplate(PORT_LOCATION_TEMPLATE, "NAME", strings.ToUpper(devicePort)), PORT_LOCATION_TX)
+			}
+
 			if deviceMac == "" {
 				deviceMac = envSubstOrDefault(MAC_SRC_TX, MAC_DEFAULT_SRC)
 			}
-		}
-
-		if devicePortLocation == "" {
-			devicePortLocation = envSubstOrDefault(stringFromTemplate(PORT_LOCATION_TEMPLATE, "NAME", strings.ToUpper(devicePort)), PORT_LOCATION_TX)
 		}
 
 		return nil
