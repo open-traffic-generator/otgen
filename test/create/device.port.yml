@@ -1,0 +1,15 @@
+devices:
+- ethernets:
+  - ipv4_addresses:
+    - address: 192.0.2.1
+      gateway: 192.0.2.2
+      name: otg1.eth[0].ipv4[0]
+      prefix: 24
+    mac: 02:00:00:00:02:aa
+    mtu: 1500
+    name: otg1.eth[0]
+    port_name: p2
+  name: otg1
+ports:
+- location: localhost:5556
+  name: p2

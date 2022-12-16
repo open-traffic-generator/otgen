@@ -36,8 +36,11 @@ flows:
   - choice: ethernet
     ethernet:
       dst:
+        auto: "00:00:00:00:00:00"
+        choice: auto
+      src:
         choice: value
-        value: 02:00:00:00:02:aa
+        value: 02:00:00:00:01:aa
   - choice: ipv4
     ipv4:
       dst:
@@ -66,7 +69,7 @@ flows:
       tx_names:
       - otg1.eth[0].ipv4[0]
 ports:
-- location: localhost:5555
+- location: localhost:5555+localhost:50071
   name: p1
-- location: localhost:5555
+- location: localhost:5556+localhost:50072
   name: p2

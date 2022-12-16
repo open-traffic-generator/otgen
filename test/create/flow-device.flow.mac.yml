@@ -71,5 +71,5 @@ flows:
 ports:
 - location: localhost:5555
   name: p1
-- location: localhost:5555
+- location: localhost:5556
   name: p2
