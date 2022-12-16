@@ -216,14 +216,14 @@ func init() {
 	// is called directly, e.g.:
 	// flowCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 
-	flowCmd.Flags().StringVarP(&flowName, "name", "n", "f1", "Flow name") // TODO when creating multiple flows, iterrate for the next available flow index
+	flowCmd.Flags().StringVarP(&flowName, "name", "n", "f1", "Flow name") // TODO when creating multiple flows, iterate for the next available flow index
 
 	flowCmd.Flags().StringVarP(&flowTxPort, "tx", "", PORT_NAME_TX, "Test port name for Tx")
 	flowCmd.Flags().StringVarP(&flowRxPort, "rx", "", PORT_NAME_RX, "Test port name for Rx")
 	flowCmd.Flags().StringVarP(&flowTxLocation, "txl", "", "", fmt.Sprintf("Test port location string for Tx (default \"%s\")", PORT_LOCATION_TX))
 	flowCmd.Flags().StringVarP(&flowRxLocation, "rxl", "", "", fmt.Sprintf("Test port location string for Rx (default \"%s\")", PORT_LOCATION_RX))
 
-	flowCmd.Flags().StringVarP(&flowSrcMac, "smac", "S", envSubstOrDefault(MAC_SRC_TX, MAC_DEFAULT_SRC), "Source MAC address")
+	flowCmd.Flags().StringVarP(&flowSrcMac, "smac", "S", envSubstOrDefault(MAC_SRC_TX, MAC_DEFAULT_SRC), "Source MAC address. For device-bound flows, default value is copied from the Tx device")
 	flowCmd.Flags().StringVarP(&flowDstMac, "dmac", "D", envSubstOrDefault(MAC_DST_TX, MAC_DEFAULT_DST), "Destination MAC address. For device-bound flows, use \"auto\" to enable ARP for IPv4 / ND for IPv6")
 
 	flowCmd.Flags().BoolVarP(&flowIPv4, "ipv4", "4", true, "IP Version 4")
@@ -243,10 +243,10 @@ func init() {
 
 	flowCmd.Flags().Int64VarP(&flowRate, "rate", "r", 0, "Packet per second rate. If not specified, default rate decision would be left to the traffic engine")
 
-	// We use 1000 as a default value for packet count instead of continous mode per OTG spec,
+	// We use 1000 as a default value for packet count instead of continuos mode per OTG spec,
 	// as we want to prevent situations when unsuspecting user end up with non-stopping traffic
 	// if no parameter was specified
-	flowCmd.Flags().Int32VarP(&flowFixedPackets, "count", "c", 1000, "Number of packets to transmit. Use 0 for continous mode")
+	flowCmd.Flags().Int32VarP(&flowFixedPackets, "count", "c", 1000, "Number of packets to transmit. Use 0 for continuos mode")
 	flowCmd.Flags().Int32VarP(&flowFixedSize, "size", "", 0, "Frame size in bytes. If not specified, the minimum supported by the traffic engine will be used")
 
 	// Metrics
@@ -286,7 +286,7 @@ func newFlow(config gosnappi.Config) {
 	if flowFixedSize > 0 {
 		flow.Size().SetFixed(flowFixedSize)
 	}
-	if flowFixedPackets > 0 { // If set to 0, no duration would be specified. According to OTG spec, continous mode would be used
+	if flowFixedPackets > 0 { // If set to 0, no duration would be specified. According to OTG spec, continuos mode would be used
 		flow.Duration().FixedPackets().SetPackets(flowFixedPackets)
 	}
 	if flowRate > 0 {
@@ -322,8 +322,11 @@ func newFlow(config gosnappi.Config) {
 		}
 		// Do not set SRC MAC for flows bounded to devices, unless specified as --smac parameter for the flow
 		if flowSrcMacExplicit {
-			log.Debugf("Device-bound flow %s will use an explicitly defined source MAC %s", flowName, flowSrcMac)
 			eth.Src().SetValue(flowSrcMac)
+		} else {
+			smac := deviceTx.Ethernets().Items()[0].Mac()
+			log.Debugf("Device-bound flow %s will use a source MAC %s copied from Tx device %s", flowName, smac, deviceTx.Name())
+			eth.Src().SetValue(smac)
 		}
 	} else { // no such device, use or create a test port with --tx name
 		portTx := otgGetOrCreatePort(config, flowTxPort, flowTxLocation)

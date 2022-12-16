@@ -38,6 +38,9 @@ flows:
       dst:
         choice: value
         value: 02:00:00:00:02:aa
+      src:
+        choice: value
+        value: 02:00:00:00:01:aa
   - choice: ipv4
     ipv4:
       dst:
