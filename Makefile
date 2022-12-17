@@ -7,6 +7,9 @@ get:
 build:
 	go build -ldflags="-X 'github.com/open-traffic-generator/otgen/cmd.version=v0.0.0-${USER}'"
 
+install: otgen
+	cp otgen /usr/local/bin/
+
 tests: tests-create tests-create-devices-flow tests-add-bgp
 
 tests-create: tests-create-flow-raw
