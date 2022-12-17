@@ -103,6 +103,7 @@ otgen run
   [--interval 0.5s]                   # Interval to pull OTG metrics. Valid time units are 'ms', 's', 'm', 'h'. Example: 1s (default 0.5s)
   [--xeta 2]                          # How long to wait before forcing traffic to stop. In multiples of ETA. Example: 1.5 (default 2)
   [--timeout 120]                     # Maximum total run time, including protocols convergence and running traffic
+  [--protocols auto|ignore|keep]      # Protocols control mode: auto - detect, start and stop; ignore - do not detect, start or stop; keep - detect, start but do not stop
 ````
 
 ### `transform`

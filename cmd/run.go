@@ -55,6 +55,7 @@ var xeta = float32(0.0)           // How long to wait before forcing traffic to 
 var timeoutStr string             // Maximum total run time, including protocols convergence and running traffic. Example: 2m (default unlimited)
 var timeout time.Duration         // Parsed maximum total run time, including protocols convergence and running traffic
 var startTime time.Time           // Start time
+var protoMode string              // Protocols control mode
 
 // runCmd represents the run command
 var runCmd = &cobra.Command{
@@ -122,6 +123,18 @@ For more information, go to https://github.com/open-traffic-generator/otgen
 			log.Debugf("Maximum running time limit is set to %s", timeoutStr)
 		}
 
+		// Protocols control mode
+		switch protoMode {
+		case "auto":
+			log.Debug("Protocols control mode: auto - detect, start and stop")
+		case "ignore":
+			log.Debug("Protocols control mode: ignore - do not detect, start or stop")
+		case "keep":
+			log.Debug("Protocols control mode: keep - detect, start but do not stop")
+		default:
+			log.Fatalf("Unsupported protocols control mode requested: %s", protoMode)
+		}
+
 		return nil
 	},
 }
@@ -149,6 +162,7 @@ func init() {
 	runCmd.Flags().StringVarP(&otgPullIntervalStr, "interval", "i", "0.5s", "Interval to pull OTG metrics. Valid time units are 'ms', 's', 'm', 'h'. Example: 1s")
 	runCmd.Flags().Float32VarP(&xeta, "xeta", "x", float32(0.0), "How long to wait before forcing traffic to stop. In multiples of ETA. Example: 1.5 (default is no limit)")
 	runCmd.Flags().StringVarP(&timeoutStr, "timeout", "", "", "Maximum total run time, including protocols convergence and running traffic. Valid time units are 'ms', 's', 'm', 'h'. Example: 2m (default unlimited)")
+	runCmd.Flags().StringVarP(&protoMode, "protocols", "", "auto", "Protocols control mode:\n  \"auto\" - detect, start and stop\n  \"ignore\" - do not detect, start or stop,\n  \"keep\" - detect, start but do not stop\n ")
 }
 
 func initOTG() (gosnappi.GosnappiApi, gosnappi.Config) {
@@ -197,6 +211,9 @@ func applyConfig(api gosnappi.GosnappiApi, config gosnappi.Config) (gosnappi.Gos
 }
 
 func startProtocols(api gosnappi.GosnappiApi, config gosnappi.Config) (gosnappi.GosnappiApi, gosnappi.Config) {
+	if protoMode == "ignore" {
+		return api, config
+	}
 	if len(config.Devices().Items()) > 0 { // TODO also if LAGs are configured
 		log.Info("Starting protocols...")
 		ps := api.NewProtocolState().SetState(gosnappi.ProtocolStateState.START)
@@ -368,6 +385,9 @@ func stopTraffic(api gosnappi.GosnappiApi, config gosnappi.Config) (gosnappi.Gos
 
 func stopProtocols(api gosnappi.GosnappiApi, config gosnappi.Config) (gosnappi.GosnappiApi, gosnappi.Config) {
 	// stop protocols
+	if protoMode == "ignore" || protoMode == "keep" {
+		return api, config
+	}
 	// TODO consider defer
 	if len(config.Devices().Items()) > 0 { // TODO also if LAGs are configured
 		log.Info("Stopping protocols...")
