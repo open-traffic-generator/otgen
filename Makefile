@@ -10,6 +10,9 @@ build:
 install: otgen
 	cp otgen /usr/local/bin/
 
+update-submodules:
+	git submodule update --remote
+
 tests: tests-create tests-create-devices-flow tests-add-bgp
 
 tests-create: tests-create-flow-raw
