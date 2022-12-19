@@ -21,6 +21,14 @@ otgen transform --metrics flow --counters frames | \
 otgen display --mode table
 ```
 
+Port locations are read from `ENV:OTG_LOCATION_P1` and `ENV:OTG_LOCATION_P2`.
+
+See [Environmental variables](#environmental-variables) section for more options.
+
+## Installation
+
+`otgen` is available as [source code](https://github.com/open-traffic-generator/otgen) with [build instructions](https://github.com/open-traffic-generator/otgen/blob/main/BUILD.md), as well as [precompiled binaries](https://github.com/open-traffic-generator/otgen/releases).
+
 ## Command reference
 
 ### Global options
