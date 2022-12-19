@@ -5,13 +5,13 @@
 
 ## How to use
 
-The idea behind `otgen` is to leverage shell pipe capabilities to break OTG API interaction into multiple stages with output of one feeding to the next. This way, each individual stage can be:
+The idea behind `otgen` is to leverage shell pipe capabilities to break OTG API interactions into multiple stages with output of one feeding to the next. This way, each individual stage can be:
 
 * easily parameterized, 
 * individually re-used,
 * when needed, substituted by a custom implementation
 
-The pipe workflow on `otgen` looks the following:
+The shell pipe workflow on `otgen` looks the following:
 
 ```Shell
 otgen create flow -s 1.1.1.1 -d 2.2.2.2 -p 80 --rate 1000 | \
@@ -73,6 +73,15 @@ otgen create device                   # Create a configuration for an Emulated D
 ```
 
 ### `add bgp`
+
+Adds a BGP router to an emulated device in the existing OTG configuration. Typical usage:
+
+```Shell
+otgen create device --name r1 | \
+otgen add bgp --device r1 --route 203.0.113.0/24
+```
+
+Available parameters:
 
 ```Shell
 otgen add bgp                         # Add a BGP configuration to an Emulated Device
