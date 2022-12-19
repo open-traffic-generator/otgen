@@ -5,12 +5,13 @@
 
 ## How to use
 
-The idea behind `otgen` is to leverage shell pipe capabilities to break OTG API interaction into multiple stages with output of one feeding to the next. This way, each individual stage can be:
+The idea behind `otgen` is to leverage shell pipe capabilities to break OTG API interactions into multiple stages with output of one feeding to the next. This way, each individual stage can be:
+
 * easily parameterized, 
 * individually re-used,
 * when needed, substituted by a custom implementation
 
-The pipe workflow on `otgen` looks the following:
+The shell pipe workflow on `otgen` looks the following:
 
 ```Shell
 otgen create flow -s 1.1.1.1 -d 2.2.2.2 -p 80 --rate 1000 | \
@@ -18,7 +19,15 @@ otgen add flow -n f2 -s 2.2.2.2 -d 1.1.1.1 --sport 80 --dport 1024 --tx p2 --rx 
 otgen run --metrics flow | \
 otgen transform --metrics flow --counters frames | \
 otgen display --mode table
-````
+```
+
+Port locations are read from `ENV:OTG_LOCATION_P1` and `ENV:OTG_LOCATION_P2`.
+
+See [Environmental variables](#environmental-variables) section for more options.
+
+## Installation
+
+`otgen` is available as [source code](https://github.com/open-traffic-generator/otgen) with [build instructions](https://github.com/open-traffic-generator/otgen/blob/main/BUILD.md), as well as [precompiled binaries](https://github.com/open-traffic-generator/otgen/releases).
 
 ## Command reference
 
@@ -73,6 +82,15 @@ otgen create device                   # Create a configuration for an Emulated D
 
 ### `add bgp`
 
+Adds a BGP router to an emulated device in the existing OTG configuration. Typical usage:
+
+```Shell
+otgen create device --name r1 | \
+otgen add bgp --device r1 --route 203.0.113.0/24
+```
+
+Available parameters:
+
 ```Shell
 otgen add bgp                         # Add a BGP configuration to an Emulated Device
   [--device string]                   # Device name to add BGP configuration to (default "otg1")
@@ -104,7 +122,7 @@ otgen run
   [--xeta 2]                          # How long to wait before forcing traffic to stop. In multiples of ETA. Example: 1.5 (default 2)
   [--timeout 120]                     # Maximum total run time, including protocols convergence and running traffic
   [--protocols auto|ignore|keep]      # Protocols control mode: auto - detect, start and stop; ignore - do not detect, start or stop; keep - detect, start but do not stop
-````
+```
 
 ### `transform`
 
@@ -121,7 +139,7 @@ otgen transform
                                       #   "pps" for frame rate, in packets per second
                                       #   "tput" for throughput, in bytes per second (PortMetrics only)
   [--file template.tmpl]              # Go template file. If not provided, built-in templates will be used based on provided parameters
-````
+```
 
 ### `display`
 
@@ -131,7 +149,7 @@ Displays metrics of a running test as charts or a table.
 otgen display
   [--mode chart|table]               # Display type to show metrics as
   [--type line]                      # Type of the chart displayed. Currently, only line charts are supported.
-````
+```
 
 ### `help`
 
@@ -139,7 +157,7 @@ For built-in help, use
 
 ```Shell
 otgen run --help
-````
+```
 
 ### `version`
 
@@ -147,7 +165,7 @@ To check `otgen` version you have, use
 
 ```Shell
 otgen version
-````
+```
 
 ## Environmental variables
 
