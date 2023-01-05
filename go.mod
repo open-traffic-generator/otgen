@@ -9,7 +9,7 @@ require (
 	github.com/lucasb-eyer/go-colorful v1.2.0
 	github.com/mum4k/termdash v0.17.0
 	github.com/olekukonko/tablewriter v0.0.5
-	github.com/open-traffic-generator/snappi/gosnappi v0.10.3
+	github.com/open-traffic-generator/snappi/gosnappi v0.10.4
 	github.com/openconfig/gnmi v0.0.0-20220920173703-480bf53a74d2
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/cobra v1.6.1
