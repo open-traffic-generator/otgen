@@ -9,11 +9,11 @@ require (
 	github.com/lucasb-eyer/go-colorful v1.2.0
 	github.com/mum4k/termdash v0.17.0
 	github.com/olekukonko/tablewriter v0.0.5
-	github.com/open-traffic-generator/snappi/gosnappi v0.10.3
+	github.com/open-traffic-generator/snappi/gosnappi v0.10.4
 	github.com/openconfig/gnmi v0.0.0-20220920173703-480bf53a74d2
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/cobra v1.6.1
-	golang.org/x/crypto v0.4.0
+	golang.org/x/crypto v0.5.0
 	google.golang.org/protobuf v1.28.1
 )
 
@@ -34,10 +34,10 @@ require (
 	github.com/openconfig/ygot v0.6.0 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
-	golang.org/x/net v0.3.0 // indirect
-	golang.org/x/sys v0.3.0 // indirect
-	golang.org/x/term v0.3.0 // indirect
-	golang.org/x/text v0.5.0 // indirect
+	golang.org/x/net v0.5.0 // indirect
+	golang.org/x/sys v0.4.0 // indirect
+	golang.org/x/term v0.4.0 // indirect
+	golang.org/x/text v0.6.0 // indirect
 	google.golang.org/genproto v0.0.0-20220527130721-00d5c0f3be58 // indirect
 	google.golang.org/grpc v1.51.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
