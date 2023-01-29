@@ -3,29 +3,6 @@
 ![System Tests](https://github.com/open-traffic-generator/otgen/actions/workflows/systest.yml/badge.svg)
 ![Builds](https://github.com/open-traffic-generator/otgen/actions/workflows/ci.yml/badge.svg)
 
-## Installation
-
-`otgen` is distributed as a precompiled binary for Linux and MacOS. You can also [build it from source](BUILD.md) for any other platform supported by Go language.
-
-### Install script
-
-`otgen` can be installed using the installation script which detects the operating system type and installs the relevant binary:
-
-```Shell
-# download and install the latest release (may require sudo)
-bash -c "$(curl -sL http://get.otg.dev/otgen)"
-
-# download a specific version - 0.3.0 in this example (may require sudo)
-bash -c "$(curl -sL http://get.otg.dev/otgen)" -- -v 0.3.0
-
-# with wget
-bash -c "$(wget -qO - http://get.otg.dev/otgen)"
-```
-
-### Manually download
-
-To manually select and download a TAR archive with a precompiled `otgen` binary for your platform use [`otgen releases`](https://github.com/open-traffic-generator/otgen/releases) page.
-
 ## How to use
 
 The idea behind `otgen` is to leverage shell pipe capabilities to break OTG API interactions into multiple stages with output of one feeding to the next. This way, each individual stage can be:
@@ -50,7 +27,26 @@ See [Environmental variables](#environmental-variables) section for more options
 
 ## Installation
 
-`otgen` is available as [source code](https://github.com/open-traffic-generator/otgen) with [build instructions](https://github.com/open-traffic-generator/otgen/blob/main/BUILD.md), as well as [precompiled binaries](https://github.com/open-traffic-generator/otgen/releases).
+`otgen` is distributed as a precompiled binary for Linux and MacOS. You can also [build it from source](BUILD.md) for any other platform supported by Go language.
+
+### Install script
+
+`otgen` can be installed using the installation script which detects the operating system type and installs the relevant binary:
+
+```Shell
+# download and install the latest release (may require sudo)
+bash -c "$(curl -sL http://get.otg.dev/otgen)"
+
+# download a specific version - 0.3.0 in this example (may require sudo)
+bash -c "$(curl -sL http://get.otg.dev/otgen)" -- -v 0.3.0
+
+# with wget
+bash -c "$(wget -qO - http://get.otg.dev/otgen)"
+```
+
+### Manually download
+
+To manually select and download a TAR archive with a precompiled `otgen` binary for your platform use [`otgen releases`](https://github.com/open-traffic-generator/otgen/releases) page.
 
 ## Command reference
 
