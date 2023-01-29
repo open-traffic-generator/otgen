@@ -117,7 +117,7 @@ checkDesiredVersion() {
       TAG=$(wget $latest_release_url -O - 2>&1 | grep 'href="/open-traffic-generator/otgen/releases/tag/v[0-9]*.[0-9]*.[0-9]*\"' | sed -E 's/.*\/open-traffic-generator\/otgen\/releases\/tag\/(v[0-9\.]+)".*/\1/g' | head -1)
     fi
   else
-    TAG="v${DESIRED_VERSION}"
+    TAG="v$(echo ${DESIRED_VERSION} | sed 's/^v//')"
   fi
   VERSION="$(echo $TAG | sed 's/^v//')"
 }
