@@ -117,7 +117,7 @@ checkDesiredVersion() {
       TAG=$(wget $latest_release_url -O - 2>&1 | grep 'href="/open-traffic-generator/otgen/releases/tag/v[0-9]*.[0-9]*.[0-9]*\"' | sed -E 's/.*\/open-traffic-generator\/otgen\/releases\/tag\/(v[0-9\.]+)".*/\1/g' | head -1)
     fi
   else
-    TAG=$DESIRED_VERSION
+    TAG="v${DESIRED_VERSION}"
   fi
   VERSION="$(echo $TAG | sed 's/^v//')"
 }
@@ -126,12 +126,12 @@ checkDesiredVersion() {
 # if it needs to be changed.
 checkInstalledVersion() {
   if [[ -f "${INSTALL_DIR}/${BINARY_NAME}" ]]; then
-    local version=$("${INSTALL_DIR}/${BINARY_NAME}" version --template="{{ .Version }}")
-    if [[ "$version" == "$TAG" ]]; then
-      echo "${BINARY_NAME} ${version} is already ${DESIRED_VERSION:-latest}"
+    local ver=$("${INSTALL_DIR}/${BINARY_NAME}" version | grep version | awk '{print $2}')
+    if [[ "$ver" == "$VERSION" ]]; then
+      echo "${BINARY_NAME} ${ver} is already ${DESIRED_VERSION:-latest}"
       return 0
     else
-      echo "${BINARY_NAME} ${TAG} is available. Changing from version ${version}."
+      echo "${BINARY_NAME} ${VERSION} is available. Changing from version ${ver}."
       return 1
     fi
   else
@@ -271,7 +271,7 @@ help () {
   echo "Accepted cli arguments are:"
   echo -e "\t[--help|-h ] ->> prints this help"
   echo -e "\t[--version|-v <desired_version>] . When not defined it fetches the latest release from GitHub"
-  echo -e "\te.g. --version v3.0.0 or -v canary"
+  echo -e "\te.g. --version 0.4.0"
   echo -e "\t[--no-sudo]  ->> install without sudo"
 }
 
@@ -303,7 +303,7 @@ while [[ $# -gt 0 ]]; do
        if [[ $# -ne 0 ]]; then
            export DESIRED_VERSION="${1}"
        else
-           echo -e "Please provide the desired version. e.g. --version v3.0.0 or -v canary"
+           echo -e "Please provide the desired version. e.g. --version 0.4.0"
            exit 0
        fi
        ;;
