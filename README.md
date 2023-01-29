@@ -16,7 +16,7 @@ The shell pipe workflow on `otgen` looks the following:
 ```Shell
 otgen create flow -s 1.1.1.1 -d 2.2.2.2 -p 80 --rate 1000 | \
 otgen add flow -n f2 -s 2.2.2.2 -d 1.1.1.1 --sport 80 --dport 1024 --tx p2 --rx p1 | \
-otgen run --metrics flow | \
+otgen run -k --metrics flow | \
 otgen transform --metrics flow --counters frames | \
 otgen display --mode table
 ```
@@ -27,7 +27,26 @@ See [Environmental variables](#environmental-variables) section for more options
 
 ## Installation
 
-`otgen` is available as [source code](https://github.com/open-traffic-generator/otgen) with [build instructions](https://github.com/open-traffic-generator/otgen/blob/main/BUILD.md), as well as [precompiled binaries](https://github.com/open-traffic-generator/otgen/releases).
+`otgen` is distributed as a precompiled binary for Linux and MacOS. You can also [build it from source](BUILD.md) for any other platform supported by Go language.
+
+### Install script
+
+`otgen` can be installed using the installation script which detects the operating system type and installs the relevant binary:
+
+```Shell
+# download and install the latest release (may require sudo)
+bash -c "$(curl -sL http://get.otg.dev/otgen)"
+
+# download a specific version - 0.3.0 in this example (may require sudo)
+bash -c "$(curl -sL http://get.otg.dev/otgen)" -- -v 0.3.0
+
+# with wget
+bash -c "$(wget -qO - http://get.otg.dev/otgen)"
+```
+
+### Manually download
+
+To manually select and download a TAR archive with a precompiled `otgen` binary for your platform use [`otgen releases`](https://github.com/open-traffic-generator/otgen/releases) page.
 
 ## Command reference
 
