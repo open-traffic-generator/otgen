@@ -177,6 +177,7 @@ installFile() {
   tar xf "$TMP_FILE" -C "$TMP_INSTALL_DIR"
   TMP_BIN="$TMP_INSTALL_DIR/${BINARY_NAME}"
   echo "Preparing to install $BINARY_NAME into ${INSTALL_DIR}"
+  runAsRoot mkdir -p "${INSTALL_DIR}"
   runAsRoot cp "$TMP_BIN" "$INSTALL_DIR/$BINARY_NAME"
   echo "$BINARY_NAME installed into $INSTALL_DIR/$BINARY_NAME"
 }
