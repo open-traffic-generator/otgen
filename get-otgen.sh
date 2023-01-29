@@ -41,10 +41,10 @@ initArch() {
     armv6*) ARCH="armv6";;
     armv7*) ARCH="arm";;
     aarch64) ARCH="arm64";;
-    x86) ARCH="386";;
+    x86) ARCH="i386";;
     x86_64) ARCH="x86_64";;
-    i686) ARCH="386";;
-    i386) ARCH="386";;
+    i686) ARCH="i386";;
+    i386) ARCH="i386";;
   esac
 }
 
@@ -70,7 +70,7 @@ runAsRoot() {
 # verifySupported checks that the os/arch combination is supported for
 # binary builds, as well whether or not necessary tools are present.
 verifySupported() {
-  local supported="Darwin_x86_64\nDarwin_arm64\nLinux_i386\nLinux_x86_64\nLinux_arm64\nWindows_arm64\nWindows_i386\nWindows_x86_64"
+  local supported="Darwin_x86_64\nDarwin_arm64\nLinux_x86_64\nLinux_arm64"
   if ! echo "${supported}" | grep -q "${OS}_${ARCH}"; then
     echo "No prebuilt binary for ${OS}_${ARCH}."
     echo "To build from source, go to ${REPO_URL}"
