@@ -35,13 +35,13 @@ See [Environmental variables](#environmental-variables) section for more options
 
 ```Shell
 # download and install the latest release (may require sudo)
-bash -c "$(curl -sL http://get.otg.dev/otgen)"
+bash -c "$(curl -sL https://get.otgcdn.net/otgen)"
 
 # download a specific version - 0.3.0 in this example (may require sudo)
-bash -c "$(curl -sL http://get.otg.dev/otgen)" -- -v 0.3.0
+bash -c "$(curl -sL https://get.otgcdn.net/otgen)" -- -v 0.3.0
 
 # with wget
-bash -c "$(wget -qO - http://get.otg.dev/otgen)"
+bash -c "$(wget -qO - https://get.otgcdn.net/otgen)"
 ```
 
 ### Manually download
