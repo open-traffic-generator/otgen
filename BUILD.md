@@ -43,6 +43,14 @@ go build -ldflags="-X 'github.com/open-traffic-generator/otgen/cmd.version=v0.0.
 
 ## Test
 
+### Submodules
+
+Parts of the `test` hierarchy are coming from submodules. To update content of the submodules to the most recent one, use:
+
+```Shell
+git submodule update --remote
+```
+
 ### `create`
 
 See `tests` in [`Makefile`](Makefile)
