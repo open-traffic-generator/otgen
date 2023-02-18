@@ -10,7 +10,7 @@ require (
 	github.com/mum4k/termdash v0.17.0
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/open-traffic-generator/snappi/gosnappi v0.10.4
-	github.com/openconfig/gnmi v0.9.0
+	github.com/openconfig/gnmi v0.9.1
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/cobra v1.6.1
 	golang.org/x/crypto v0.6.0
