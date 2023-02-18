@@ -41,7 +41,7 @@ jobs:
       - name: Test1 RUN with STDIN YAML
         run:  cat otg.yml | otgen --log debug run -k
       - name: Test2 RUN with --api
-        run:  cat otg.yml | otgen --log debug run -k --api https://127.0.0.1
+        run:  cat otg.yml | otgen --log debug run -k --api https://127.0.0.1:8443
       - name: Test3 RUN with --file --yaml
         run:  otgen --log debug run -k --file otg.yml --yaml
       - name: Test4 RUN with --interval
