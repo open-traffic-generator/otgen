@@ -37,8 +37,8 @@ See [Environmental variables](#environmental-variables) section for more options
 # download and install the latest release (may require sudo)
 bash -c "$(curl -sL https://get.otgcdn.net/otgen)"
 
-# download a specific version - 0.3.0 in this example (may require sudo)
-bash -c "$(curl -sL https://get.otgcdn.net/otgen)" -- -v 0.3.0
+# download a specific version - 0.4.0 in this example (may require sudo)
+bash -c "$(curl -sL https://get.otgcdn.net/otgen)" -- -v 0.4.0
 
 # with wget
 bash -c "$(wget -qO - https://get.otgcdn.net/otgen)"
@@ -131,7 +131,7 @@ Requests OTG API endpoint to:
 
 ```Shell
 otgen run 
-  [--api https://otg-api-endpoint]    # URL of OTG API endpoint. Overrides ENV:OTG_API (default "https://localhost")
+  [--api https://otg-api-endpoint]    # URL of OTG API endpoint. Overrides ENV:OTG_API (default "https://localhost:8443")
   [--insecure]                        # Ignore X.509 certificate validation
   [--file otg.yml | --file otg.json]  # OTG configuration file. If not provided, will use stdin
   [--yaml | --json]                   # Format of OTG input
@@ -220,7 +220,7 @@ OTG_FLOW_DST_IPV6                     # Destination IPv6 address to use for flow
 These are the values `otgen` uses if no variables or arguments were provided.
 
 ```Shell
-export OTG_API="https://localhost"
+export OTG_API="https://localhost:8443"
 export OTG_LOCATION_P1="localhost:5555"     # ixia-c-traffic-engine for p1 (tx) listening on localhost:5555
 export OTG_LOCATION_P2="localhost:5556"     # ixia-c-traffic-engine for p2 (rx) listening on localhost:5556
 export OTG_FLOW_SMAC_P1="02:00:00:00:01:aa"

@@ -35,8 +35,8 @@ import (
 )
 
 const (
-	OTG_API         = "${OTG_API}"        // Env var for API endpoint
-	OTG_DEFAULT_API = "https://localhost" // Default API endpoint value
+	OTG_API         = "${OTG_API}"             // Env var for API endpoint
+	OTG_DEFAULT_API = "https://localhost:8443" // Default API endpoint value
 )
 
 var otgURL string                 // URL of OTG server API endpoint
