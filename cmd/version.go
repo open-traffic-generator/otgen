@@ -25,6 +25,7 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+	"github.com/usrbinapp/usrbin-go"
 )
 
 var (
@@ -33,8 +34,11 @@ var (
 	date    = "unknown"
 )
 
+var versionNoCheck bool // Check for a new version
+
 const (
-	repoUrl = "https://github.com/open-traffic-generator/otgen"
+	repo    = "github.com/open-traffic-generator/otgen"
+	repoUrl = "https://" + repo
 )
 
 // versionCmd represents the version command
@@ -46,15 +50,47 @@ var versionCmd = &cobra.Command{
 For more information, go to https://github.com/open-traffic-generator/otgen
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Printf("version: %s\n", version)
-		fmt.Printf(" commit: %s\n", commit)
-		fmt.Printf("   date: %s\n", date)
-		fmt.Printf(" source: %s\n", repoUrl)
+		runVersion()
 	},
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		setLogLevel(cmd, logLevel)
 		return nil
 	},
+}
+
+func runVersion() {
+	printVersion()
+	if !versionNoCheck {
+		checkUpdate()
+	}
+}
+
+func printVersion() {
+	fmt.Printf("version: %s\n", version)
+	fmt.Printf(" commit: %s\n", commit)
+	fmt.Printf("   date: %s\n", date)
+	fmt.Printf(" source: %s\n", repoUrl)
+}
+
+func checkUpdate() {
+	usrbinsdk, err := NewUsrBinSDK(version)
+	if err != nil {
+		log.Fatalf("Error initializing update checker: %s", err)
+	}
+	updateInfo, err := usrbinsdk.GetUpdateInfo()
+	if err != nil {
+		log.Fatalf("Error getting update info: %s", err)
+	}
+	if updateInfo != nil {
+		fmt.Printf("Update available. Version %s is available to install.\n", updateInfo.LatestVersion)
+	}
+}
+
+func NewUsrBinSDK(currentVersion string) (*usrbin.SDK, error) {
+	return usrbin.New(
+		currentVersion,
+		usrbin.UsingGitHubUpdateChecker(repo),
+	)
 }
 
 func init() {
@@ -69,4 +105,5 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// versionCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	versionCmd.Flags().BoolVarP(&versionNoCheck, "nocheck", "n", false, "Do not check for updates")
 }

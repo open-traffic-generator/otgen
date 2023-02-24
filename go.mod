@@ -15,9 +15,12 @@ require (
 	github.com/spf13/cobra v1.6.1
 	golang.org/x/crypto v0.6.0
 	google.golang.org/protobuf v1.28.1
+	github.com/usrbinapp/usrbin-go v0.0.3
 )
 
 require (
+	aead.dev/minisign v0.2.0 // indirect
+	github.com/Masterminds/semver v1.5.0 // indirect
 	github.com/cenkalti/backoff/v4 v4.1.1 // indirect
 	github.com/gdamore/encoding v1.0.0 // indirect
 	github.com/gdamore/tcell/v2 v2.5.4 // indirect
@@ -29,11 +32,16 @@ require (
 	github.com/kylelemons/godebug v1.1.0 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect
 	github.com/mattn/go-runewidth v0.0.14 // indirect
+	github.com/minio/selfupdate v0.6.0 // indirect
 	github.com/openconfig/goyang v0.0.0-20200115183954-d0a48929f0ea // indirect
 	github.com/openconfig/grpctunnel v0.0.0-20220819142823-6f5422b8ca70 // indirect
 	github.com/openconfig/ygot v0.6.0 // indirect
+	github.com/pkg/errors v0.9.1 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
+	go.uber.org/atomic v1.7.0 // indirect
+	go.uber.org/multierr v1.6.0 // indirect
+	go.uber.org/zap v1.24.0 // indirect
 	golang.org/x/net v0.7.0 // indirect
 	golang.org/x/sys v0.5.0 // indirect
 	golang.org/x/term v0.5.0 // indirect

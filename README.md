@@ -180,10 +180,11 @@ otgen run --help
 
 ### `version`
 
-To check `otgen` version you have, use
+To display `otgen` version you have, use
 
 ```Shell
 otgen version
+  [--nocheck]                      # Do not check for updates
 ```
 
 ## Environmental variables
