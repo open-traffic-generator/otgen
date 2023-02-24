@@ -75,12 +75,15 @@ func printVersion() {
 func checkUpdate() {
 	checker, err := NewUpdatesChecker(version)
 	if err != nil {
-		log.Fatalf("Error initializing update checker: %s", err)
+		log.Warningf("Error initializing update checker: %s", err)
+		return
 	}
 	updateInfo, err := checker.GetUpdateInfo()
 	if err != nil {
 		log.Warningf("Error getting update info: %s", err)
-	} else if updateInfo != nil {
+		return
+	}
+	if updateInfo != nil {
 		fmt.Println()
 		fmt.Printf("Update available: version %s is the latest, released on %s\n", updateInfo.LatestVersion, updateInfo.LatestReleaseAt.Format("2006-1-2"))
 		fmt.Printf("Release notes:    %s/releases/tag/%s\n", repoUrl, updateInfo.LatestVersion)
