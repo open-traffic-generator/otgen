@@ -73,20 +73,21 @@ func printVersion() {
 }
 
 func checkUpdate() {
-	usrbinsdk, err := NewUsrBinSDK(version)
+	checker, err := NewUpdatesChecker(version)
 	if err != nil {
 		log.Fatalf("Error initializing update checker: %s", err)
 	}
-	updateInfo, err := usrbinsdk.GetUpdateInfo()
+	updateInfo, err := checker.GetUpdateInfo()
 	if err != nil {
-		log.Fatalf("Error getting update info: %s", err)
-	}
-	if updateInfo != nil {
-		fmt.Printf("Update available. Version %s is available to install.\n", updateInfo.LatestVersion)
+		log.Warningf("Error getting update info: %s", err)
+	} else if updateInfo != nil {
+		fmt.Println()
+		fmt.Printf("Update available: version %s is the latest, released on %s\n", updateInfo.LatestVersion, updateInfo.LatestReleaseAt.Format("2006-1-2"))
+		fmt.Printf("Release notes:    %s/releases/tag/%s\n", repoUrl, updateInfo.LatestVersion)
 	}
 }
 
-func NewUsrBinSDK(currentVersion string) (*usrbin.SDK, error) {
+func NewUpdatesChecker(currentVersion string) (*usrbin.SDK, error) {
 	return usrbin.New(
 		currentVersion,
 		usrbin.UsingGitHubUpdateChecker(repo),
