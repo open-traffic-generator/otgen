@@ -35,7 +35,7 @@ jobs:
         with:
           go-version: ${{ env.GOVER }}
       - name: Build otgen
-        run: cd ../../../.. && go get && go mod tidy && go build && sudo mv otgen /usr/local/bin/otgen
+        run: cd ../../.. && go get && go mod tidy && go build && sudo mv otgen /usr/local/bin/otgen
       - name: Setup testbed
         run:  make install network deploy
       - name: Test1 RUN with STDIN YAML
