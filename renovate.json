@@ -6,11 +6,5 @@
   ],
   "git-submodules": {
     "enabled": false
-  },
-  "dockerfile": {
-    "fileMatch": [
-      "(^|/)(?:docker-)?compose[^/]*\\.ya?ml$",
-      "(^|/)*\\.clab\\.ya?ml$"
-    ]
   }
 }
