@@ -79,7 +79,7 @@ jobs:
       - name: Build otgen
         run: cd ../../.. && make get build && sudo mv otgen /usr/local/bin/otgen
       - name: Setup testbed
-        run:  make install pull deploy && sleep 5
+        run:  make install deploy && sleep 5
       - name: Test1 CREATE --dmac auto | RUN
         run:  otgen create device -n otg1 -p p1 --ip 192.0.2.1 --gw 192.0.2.2 --prefix 30 | otgen add device -n otg2 -p p2 --ip 192.0.2.5 --gw 192.0.2.6 --prefix 30 | otgen --log debug add flow --tx otg1 --rx otg2 --dmac auto --src 192.0.2.1 --dst 192.0.2.5 | otgen --log debug run -k --metrics flow,port
       - name: Test2 RUN --rxbgp 2x
