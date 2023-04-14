@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-20.04
     defaults:
       run:
-        working-directory: ./test/systest/b2b-dp
+        working-directory: ./test/systest/dp-b2b
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -60,7 +60,7 @@ jobs:
       OTG_LOCATION_P2: "localhost:5556+localhost:50072"
     defaults:
       run:
-        working-directory: ./test/otg-examples/docker-compose/cpdp-frr
+        working-directory: ./test/systest/cpdp-frr
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -77,7 +77,7 @@ jobs:
         with:
           go-version: ${{ env.GOVER }}
       - name: Build otgen
-        run: cd ../../../.. && make get build && sudo mv otgen /usr/local/bin/otgen
+        run: cd ../../.. && make get build && sudo mv otgen /usr/local/bin/otgen
       - name: Setup testbed
         run:  make install pull deploy && sleep 5
       - name: Test1 CREATE --dmac auto | RUN
