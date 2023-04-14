@@ -24,18 +24,16 @@ jobs:
     runs-on: ubuntu-20.04
     defaults:
       run:
-        working-directory: ./test/otg-examples/docker-compose/b2b
+        working-directory: ./test/systest/dp-b2b
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-        with:
-          submodules: 'true'
       - name: Set up Go
         uses: actions/setup-go@v3
         with:
           go-version: ${{ env.GOVER }}
       - name: Build otgen
-        run: cd ../../../.. && go get && go mod tidy && go build && sudo mv otgen /usr/local/bin/otgen
+        run: cd ../../.. && go get && go mod tidy && go build && sudo mv otgen /usr/local/bin/otgen
       - name: Setup testbed
         run:  make install network deploy
       - name: Test1 RUN with STDIN YAML
@@ -60,12 +58,10 @@ jobs:
       OTG_LOCATION_P2: "localhost:5556+localhost:50072"
     defaults:
       run:
-        working-directory: ./test/otg-examples/docker-compose/cpdp-frr
+        working-directory: ./test/systest/cpdp-frr
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-        with:
-          submodules: 'true'
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v2
         with:
@@ -77,10 +73,10 @@ jobs:
         with:
           go-version: ${{ env.GOVER }}
       - name: Build otgen
-        run: cd ../../../.. && make get build && sudo mv otgen /usr/local/bin/otgen
+        run: cd ../../.. && make get build && sudo mv otgen /usr/local/bin/otgen
       - name: Setup testbed
-        run:  make install pull deploy && sleep 5
-      - name: Test1 CREATE --dmac auto | RUN 
+        run:  make install deploy && sleep 5
+      - name: Test1 CREATE --dmac auto | RUN
         run:  otgen create device -n otg1 -p p1 --ip 192.0.2.1 --gw 192.0.2.2 --prefix 30 | otgen add device -n otg2 -p p2 --ip 192.0.2.5 --gw 192.0.2.6 --prefix 30 | otgen --log debug add flow --tx otg1 --rx otg2 --dmac auto --src 192.0.2.1 --dst 192.0.2.5 | otgen --log debug run -k --metrics flow,port
       - name: Test2 RUN --rxbgp 2x
         run:  otgen --log debug run -k --file otg.json --json --rxbgp 2x

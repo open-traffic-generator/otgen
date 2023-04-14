@@ -1,4 +1,0 @@
-[submodule "test/otg-examples"]
-	path = test/otg-examples
-	url = https://github.com/open-traffic-generator/otg-examples.git
-	update = merge
