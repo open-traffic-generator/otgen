@@ -25,7 +25,10 @@ devices:
           next_hop_mode: local_ip
     router_id: 192.0.2.1
   ethernets:
-  - ipv4_addresses:
+  - connection:
+      choice: port_name
+      port_name: p1
+    ipv4_addresses:
     - address: 192.0.2.1
       gateway: 192.0.2.2
       name: otg1.eth[0].ipv4[0]
@@ -33,7 +36,6 @@ devices:
     mac: 02:00:00:00:01:aa
     mtu: 1500
     name: otg1.eth[0]
-    port_name: p1
   name: otg1
 ports:
 - location: localhost:5555+localhost:50071

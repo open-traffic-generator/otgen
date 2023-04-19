@@ -13,9 +13,9 @@ install: otgen
 update-submodules:
 	git submodule update --remote
 
-tests: tests-create tests-create-devices-flow tests-add-bgp
+tests: tests-create tests-add-bgp
 
-tests-create: tests-create-flow-raw
+tests-create: tests-create-flow-raw tests-create-device tests-create-devices-flow
 
 tests-create-flow-raw:
 	@echo "#################################################################"

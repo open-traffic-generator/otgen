@@ -137,9 +137,8 @@ func newDevice(config gosnappi.Config) {
 		SetName(deviceName + ".eth[0]").
 		SetMac(deviceMac)
 
-	// Connection is not yes available, tested with Ixia-c 0.0.1-3383
-	//deviceEth.Connection().SetPortName(devicePort)
-	deviceEth.SetPortName(devicePort)
+	// Connection to test port
+	deviceEth.Connection().SetPortName(devicePort)
 
 	deviceEth.Ipv4Addresses().Add().
 		SetName(deviceEth.Name() + ".ipv4[0]").
