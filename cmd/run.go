@@ -203,8 +203,8 @@ func initOTG() (gosnappi.GosnappiApi, gosnappi.Config) {
 
 func applyConfig(api gosnappi.GosnappiApi, config gosnappi.Config) (gosnappi.GosnappiApi, gosnappi.Config) {
 	log.Info("Applying OTG config...")
-	_, err := api.SetConfig(config)
-	checkOTGError(api, err)
+	res, err := api.SetConfig(config)
+	checkResponse(api, res, err)
 	log.Info("ready.")
 	return api, config
 }
@@ -217,8 +217,8 @@ func startProtocols(api gosnappi.GosnappiApi, config gosnappi.Config) (gosnappi.
 		log.Info("Starting protocols...")
 		ps := api.NewControlState()
 		ps.Protocol().All().SetState(gosnappi.StateProtocolAllState.START)
-		_, err := api.SetControlState(ps)
-		checkOTGError(api, err)
+		res, err := api.SetControlState(ps)
+		checkResponse(api, res, err)
 		log.Info("waiting for protocols to come up...")
 
 		// Detect protocols present in the configuration
@@ -321,8 +321,8 @@ func runTraffic(api gosnappi.GosnappiApi, config gosnappi.Config) (gosnappi.Gosn
 	log.Info("Starting traffic...")
 	ts := api.NewControlState()
 	ts.Traffic().FlowTransmit().SetState(gosnappi.StateTrafficFlowTransmitState.START)
-	_, err := api.SetControlState(ts)
-	checkOTGError(api, err)
+	res, err := api.SetControlState(ts)
+	checkResponse(api, res, err)
 	log.Info("started...")
 
 	targetTx, trafficETA := calculateTrafficTargets(config)
@@ -332,7 +332,7 @@ func runTraffic(api gosnappi.GosnappiApi, config gosnappi.Config) (gosnappi.Gosn
 	req := api.NewMetricsRequest()
 	req.Port()
 	metrics, err := api.GetMetrics(req)
-	checkOTGError(api, err)
+	checkResponse(api, metrics, err)
 
 	start := time.Now()
 
@@ -379,8 +379,8 @@ func stopTraffic(api gosnappi.GosnappiApi, config gosnappi.Config) (gosnappi.Gos
 	log.Info("Stopping traffic...")
 	ts := api.NewControlState()
 	ts.Traffic().FlowTransmit().SetState(gosnappi.StateTrafficFlowTransmitState.STOP)
-	_, err := api.SetControlState(ts)
-	checkOTGError(api, err)
+	res, err := api.SetControlState(ts)
+	checkResponse(api, res, err)
 	log.Info("stopped.")
 	return api, config
 }
@@ -395,8 +395,8 @@ func stopProtocols(api gosnappi.GosnappiApi, config gosnappi.Config) (gosnappi.G
 		log.Info("Stopping protocols...")
 		ps := api.NewControlState()
 		ps.Protocol().All().SetState(gosnappi.StateProtocolAllState.STOP)
-		_, err := api.SetControlState(ps)
-		checkOTGError(api, err)
+		res, err := api.SetControlState(ps)
+		checkResponse(api, res, err)
 		log.Info("stopped.")
 	}
 	return api, config
@@ -498,6 +498,20 @@ func checkOTGError(api gosnappi.GosnappiApi, err error) {
 			log.Errorf("Fatal OTG error: %v\n", err)
 			log.Fatalln("Exiting...")
 		}
+	}
+}
+
+// print otg api response content
+func checkResponse(api gosnappi.GosnappiApi, res interface{}, err error) {
+	checkOTGError(api, err)
+	switch v := res.(type) {
+	case gosnappi.MetricsResponse:
+	case gosnappi.Warning:
+		for _, w := range v.Warnings() {
+			log.Warn("WARNING:", w)
+		}
+	default:
+		log.Fatal("Unknown response type:", v)
 	}
 }
 
