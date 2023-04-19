@@ -24,7 +24,6 @@ package cmd
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"strconv"
 	"strings"
@@ -169,7 +168,7 @@ func initOTG() (gosnappi.GosnappiApi, gosnappi.Config) {
 	var otgbytes []byte
 	var err error
 	if otgFile != "" { // Read OTG config from file
-		otgbytes, err = ioutil.ReadFile(otgFile)
+		otgbytes, err = os.ReadFile(otgFile)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -205,7 +204,7 @@ func initOTG() (gosnappi.GosnappiApi, gosnappi.Config) {
 func applyConfig(api gosnappi.GosnappiApi, config gosnappi.Config) (gosnappi.GosnappiApi, gosnappi.Config) {
 	log.Info("Applying OTG config...")
 	res, err := api.SetConfig(config)
-	checkResponse(res, err)
+	checkResponse(api, res, err)
 	log.Info("ready.")
 	return api, config
 }
@@ -216,9 +215,10 @@ func startProtocols(api gosnappi.GosnappiApi, config gosnappi.Config) (gosnappi.
 	}
 	if len(config.Devices().Items()) > 0 { // TODO also if LAGs are configured
 		log.Info("Starting protocols...")
-		ps := api.NewProtocolState().SetState(gosnappi.ProtocolStateState.START)
-		res, err := api.SetProtocolState(ps)
-		checkResponse(res, err)
+		ps := api.NewControlState()
+		ps.Protocol().All().SetState(gosnappi.StateProtocolAllState.START)
+		res, err := api.SetControlState(ps)
+		checkResponse(api, res, err)
 		log.Info("waiting for protocols to come up...")
 
 		// Detect protocols present in the configuration
@@ -319,9 +319,10 @@ func runTraffic(api gosnappi.GosnappiApi, config gosnappi.Config) (gosnappi.Gosn
 	// start transmitting configured flows
 	// TODO check we have traffic flows
 	log.Info("Starting traffic...")
-	ts := api.NewTransmitState().SetState(gosnappi.TransmitStateState.START)
-	res, err := api.SetTransmitState(ts)
-	checkResponse(res, err)
+	ts := api.NewControlState()
+	ts.Traffic().FlowTransmit().SetState(gosnappi.StateTrafficFlowTransmitState.START)
+	res, err := api.SetControlState(ts)
+	checkResponse(api, res, err)
 	log.Info("started...")
 
 	targetTx, trafficETA := calculateTrafficTargets(config)
@@ -331,7 +332,7 @@ func runTraffic(api gosnappi.GosnappiApi, config gosnappi.Config) (gosnappi.Gosn
 	req := api.NewMetricsRequest()
 	req.Port()
 	metrics, err := api.GetMetrics(req)
-	checkResponse(metrics, err)
+	checkResponse(api, metrics, err)
 
 	start := time.Now()
 
@@ -376,9 +377,10 @@ func stopTraffic(api gosnappi.GosnappiApi, config gosnappi.Config) (gosnappi.Gos
 	// stop transmitting traffic
 	// TODO consider defer
 	log.Info("Stopping traffic...")
-	ts := api.NewTransmitState().SetState(gosnappi.TransmitStateState.STOP)
-	res, err := api.SetTransmitState(ts)
-	checkResponse(res, err)
+	ts := api.NewControlState()
+	ts.Traffic().FlowTransmit().SetState(gosnappi.StateTrafficFlowTransmitState.STOP)
+	res, err := api.SetControlState(ts)
+	checkResponse(api, res, err)
 	log.Info("stopped.")
 	return api, config
 }
@@ -391,9 +393,10 @@ func stopProtocols(api gosnappi.GosnappiApi, config gosnappi.Config) (gosnappi.G
 	// TODO consider defer
 	if len(config.Devices().Items()) > 0 { // TODO also if LAGs are configured
 		log.Info("Stopping protocols...")
-		ps := api.NewProtocolState().SetState(gosnappi.ProtocolStateState.STOP)
-		res, err := api.SetProtocolState(ps)
-		checkResponse(res, err)
+		ps := api.NewControlState()
+		ps.Protocol().All().SetState(gosnappi.StateProtocolAllState.STOP)
+		res, err := api.SetControlState(ps)
+		checkResponse(api, res, err)
 		log.Info("stopped.")
 	}
 	return api, config
@@ -475,14 +478,35 @@ func isTrafficRunningWithETA(mr gosnappi.MetricsResponse, targetTx int64, start 
 	return trafficRunning
 }
 
-// print otg api response content
-func checkResponse(res interface{}, err error) {
+// check for OTG error and print it
+func checkOTGError(api gosnappi.GosnappiApi, err error) {
 	if err != nil {
-		log.Fatal(err)
+		errData, ok := api.FromError(err)
+		// helper function to parse error
+		// returns a bool with err, indicating weather the error was of otg error format
+		if ok {
+			log.Errorf("OTG API error code: %d", errData.Code())
+			if errData.HasKind() {
+				log.Errorf("OTG API error kind: %v", errData.Kind())
+			}
+			log.Errorf("OTG API error messages:")
+			for _, e := range errData.Errors() {
+				log.Errorf(e)
+			}
+			log.Fatalln("Fatal OTG error, exiting...")
+		} else {
+			log.Errorf("Fatal OTG error: %v\n", err)
+			log.Fatalln("Exiting...")
+		}
 	}
+}
+
+// print otg api response content
+func checkResponse(api gosnappi.GosnappiApi, res interface{}, err error) {
+	checkOTGError(api, err)
 	switch v := res.(type) {
 	case gosnappi.MetricsResponse:
-	case gosnappi.ResponseWarning:
+	case gosnappi.Warning:
 		for _, w := range v.Warnings() {
 			log.Warn("WARNING:", w)
 		}

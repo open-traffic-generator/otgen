@@ -24,7 +24,6 @@ package cmd
 import (
 	"bufio"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"text/template"
 
@@ -65,7 +64,7 @@ For more information, go to https://github.com/open-traffic-generator/otgen
 		var err error
 
 		if transformTemplateFile != "" { // Read template from file
-			templatebytes, err = ioutil.ReadFile(transformTemplateFile)
+			templatebytes, err = os.ReadFile(transformTemplateFile)
 			if err != nil {
 				log.Fatal(err)
 			}

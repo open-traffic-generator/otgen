@@ -1,5 +1,11 @@
 all: get build tests
 
+prereq:
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.52.2
+
+lint:
+	golangci-lint run
+
 get:
 	go get
 	go mod tidy
@@ -13,9 +19,9 @@ install: otgen
 update-submodules:
 	git submodule update --remote
 
-tests: tests-create tests-create-devices-flow tests-add-bgp
+tests: tests-create tests-add-bgp
 
-tests-create: tests-create-flow-raw
+tests-create: tests-create-flow-raw tests-create-device tests-create-devices-flow
 
 tests-create-flow-raw:
 	@echo "#################################################################"
