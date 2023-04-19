@@ -11,7 +11,7 @@ on:
       - '!**.png'
 
 env:
-  GOVER: 1.17.2
+  GOVER: 1.19
   GORELEASER_VER: v1.6.3
 
 permissions:
@@ -31,7 +31,7 @@ jobs:
       -
         name: Fetch all tags
         run: git fetch --force --tags
-      - 
+      -
         name: Set up Go
         uses: actions/setup-go@v4
         with:
