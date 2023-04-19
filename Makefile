@@ -1,5 +1,11 @@
 all: get build tests
 
+prereq:
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.52.2
+
+lint:
+	golangci-lint run
+
 get:
 	go get
 	go mod tidy

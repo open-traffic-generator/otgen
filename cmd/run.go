@@ -24,7 +24,6 @@ package cmd
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"strconv"
 	"strings"
@@ -169,7 +168,7 @@ func initOTG() (gosnappi.GosnappiApi, gosnappi.Config) {
 	var otgbytes []byte
 	var err error
 	if otgFile != "" { // Read OTG config from file
-		otgbytes, err = ioutil.ReadFile(otgFile)
+		otgbytes, err = os.ReadFile(otgFile)
 		if err != nil {
 			log.Fatal(err)
 		}
