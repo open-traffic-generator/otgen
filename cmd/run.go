@@ -216,8 +216,9 @@ func startProtocols(api gosnappi.GosnappiApi, config gosnappi.Config) (gosnappi.
 	}
 	if len(config.Devices().Items()) > 0 { // TODO also if LAGs are configured
 		log.Info("Starting protocols...")
-		ps := api.NewProtocolState().SetState(gosnappi.ProtocolStateState.START)
-		_, err := api.SetProtocolState(ps)
+		ps := api.NewControlState()
+		ps.Protocol().All().SetState(gosnappi.StateProtocolAllState.START)
+		_, err := api.SetControlState(ps)
 		checkOTGError(api, err)
 		log.Info("waiting for protocols to come up...")
 
@@ -393,8 +394,9 @@ func stopProtocols(api gosnappi.GosnappiApi, config gosnappi.Config) (gosnappi.G
 	// TODO consider defer
 	if len(config.Devices().Items()) > 0 { // TODO also if LAGs are configured
 		log.Info("Stopping protocols...")
-		ps := api.NewProtocolState().SetState(gosnappi.ProtocolStateState.STOP)
-		_, err := api.SetProtocolState(ps)
+		ps := api.NewControlState()
+		ps.Protocol().All().SetState(gosnappi.StateProtocolAllState.STOP)
+		_, err := api.SetControlState(ps)
 		checkOTGError(api, err)
 		log.Info("stopped.")
 	}
