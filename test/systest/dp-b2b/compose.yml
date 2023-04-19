@@ -1,6 +1,6 @@
 services:
   controller:
-    image: ghcr.io/open-traffic-generator/ixia-c-controller:0.0.1-3841
+    image: ghcr.io/open-traffic-generator/ixia-c-controller:0.0.1-3865
     command: --accept-eula --http-port 8443
     network_mode: "host"
     restart: always
