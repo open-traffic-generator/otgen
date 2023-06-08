@@ -9,7 +9,7 @@ require (
 	github.com/mum4k/termdash v0.18.0
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/open-traffic-generator/snappi/gosnappi v0.11.6
-	github.com/sirupsen/logrus v1.9.0
+	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/cobra v1.7.0
 	google.golang.org/protobuf v1.30.0
 )
