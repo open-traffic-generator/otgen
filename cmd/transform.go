@@ -221,13 +221,13 @@ func convertByteRateToBps(f string, c float32) float32 {
 	case "bps":
 		c = c * 8
 	case "Kbps":
-		c = c * 8 / 1024
+		c = c * 8 / 1000
 	case "Mbps":
-		c = c * 8 / (1024 * 1024)
+		c = c * 8 / (1000 * 1000)
 	case "Gbps":
-		c = c * 8 / (1024 * 1024 * 1024)
+		c = c * 8 / (1000 * 1000 * 1000)
 	case "Tbps":
-		c = c * 8 / (1024 * 1024 * 1024 * 1024)
+		c = c * 8 / (1000 * 1000 * 1000 * 1000)
 	default:
 		log.Fatalf("Unsupported format string for byteRateToBits: %s", f)
 	}
