@@ -19,7 +19,7 @@ install: otgen
 update-submodules:
 	git submodule update --remote
 
-tests: tests-create tests-add-bgp
+tests: tests-create tests-add-bgp tests-transform
 
 tests-create: tests-create-flow-raw tests-create-device tests-create-devices-flow
 
@@ -222,3 +222,51 @@ tests-add-bgp:
 	diff test/add/bgp-device.2route.yml -
 
 	@echo
+
+tests-transform: tests-transform-port
+tests-transform-port: tests-transform-port-throughput
+
+tests-transform-port-passthrough:
+	@echo "#################################################################"
+	@echo "# Transform port metrics - passthrough"
+	@echo "#################################################################"
+	cat ./test/transform/port_metrics.json | ./otgen transform | diff ./test/transform/port_metrics_passthrough.json -
+	@echo
+
+tests-transform-port-throughput: tests-transform-port-tput tests-transform-port-Kbps tests-transform-port-Mbps tests-transform-port-Gbps tests-transform-port-Tbps
+
+tests-transform-port-tput:
+	@echo "#################################################################"
+	@echo "# Transform port metrics - troughput"
+	@echo "#################################################################"
+	cat ./test/transform/port_metrics.json | ./otgen transform -m port -c tput | diff test/transform/port_metrics_byte_rate.json -
+	@echo
+
+tests-transform-port-Kbps:
+	@echo "#################################################################"
+	@echo "# Transform port metrics - Kbps"
+	@echo "#################################################################"
+	cat ./test/transform/port_metrics.json | ./otgen transform -m port -c Kbps | diff test/transform/port_metrics_Kbps.json -
+	@echo
+
+tests-transform-port-Mbps:
+	@echo "#################################################################"
+	@echo "# Transform port metrics - Mbps"
+	@echo "#################################################################"
+	cat ./test/transform/port_metrics.json | ./otgen transform -m port -c Mbps | diff test/transform/port_metrics_Mbps.json -
+	@echo
+
+tests-transform-port-Gbps:
+	@echo "#################################################################"
+	@echo "# Transform port metrics - Gbps"
+	@echo "#################################################################"
+	cat ./test/transform/port_metrics.json | ./otgen transform -m port -c Gbps | diff test/transform/port_metrics_Gbps.json -
+	@echo
+
+tests-transform-port-Tbps:
+	@echo "#################################################################"
+	@echo "# Transform port metrics - Tbps"
+	@echo "#################################################################"
+	cat ./test/transform/port_metrics.json | ./otgen transform -m port -c Tbps | diff test/transform/port_metrics_Tbps.json -
+	@echo
+
