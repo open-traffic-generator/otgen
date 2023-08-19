@@ -7,7 +7,7 @@
 
 The idea behind `otgen` is to leverage shell pipe capabilities to break OTG API interactions into multiple stages with output of one feeding to the next. This way, each individual stage can be:
 
-* easily parameterized, 
+* easily parameterized,
 * individually re-used,
 * when needed, substituted by a custom implementation
 
@@ -53,7 +53,7 @@ To manually select and download a TAR archive with a precompiled `otgen` binary 
 ### Global options
 
 ```Shell
-otgen 
+otgen
   [--log level]                       # Logging level: err | warn | info | debug (default "err")
 ```
 
@@ -65,10 +65,10 @@ The `add` variant of the command first reads an OTG configuration from stdin.
 ```Shell
 otgen create flow                     # Create a configuration for a Traffic Flow
   [--name string]                     # Flow name (default f1)
-  [--tx string]                       # Test port name for TX (default p1) 
-  [--rx string]                       # Test port name for RX (default p2) 
-  [--txl string]                      # Test port location string for TX (default localhost:5555) 
-  [--rxl string]                      # Test port location string for RX (default localhost:5556) 
+  [--tx string]                       # Test port name for TX (default p1)
+  [--rx string]                       # Test port name for RX (default p2)
+  [--txl string]                      # Test port location string for TX (default localhost:5555)
+  [--rxl string]                      # Test port location string for RX (default localhost:5556)
   [--ipv4 ]                           # IP version 4 (default)
   [--ipv6 ]                           # IP version 6
   [--proto icmp | tcp | udp]          # IP transport protocol
@@ -130,7 +130,7 @@ Requests OTG API endpoint to:
   * run Traffic Flows
 
 ```Shell
-otgen run 
+otgen run
   [--api https://otg-api-endpoint]    # URL of OTG API endpoint. Overrides ENV:OTG_API (default "https://localhost:8443")
   [--insecure]                        # Ignore X.509 certificate validation
   [--file otg.yml | --file otg.json]  # OTG configuration file. If not provided, will use stdin
@@ -148,15 +148,15 @@ otgen run
 Transform raw OTG metrics into a format suitable for further processing. If no parameters is provided, `transform` validates input for a match with OTG MetricsResponse data structure, and if matched, outputs it as is.
 
 ```Shell
-otgen transform 
-  [--metrics port|flow]               # Metrics type to transform: 
+otgen transform
+  [--metrics port|flow]               # Metrics type to transform:
                                       #   "port" for PortMetrics
                                       #   "flow" for FlowMetrics
   [--counters frames|bytes|pps|tput]  # Metric counters to transform:
                                       #   "frames" for frame count (default),
                                       #   "bytes" for byte count,
                                       #   "pps" for frame rate, in packets per second
-                                      #   "tput" for throughput, in bytes per second (PortMetrics only)
+                                      #   "tput" for throughput, in bytes per second (calculated for FlowMetrics)
   [--file template.tmpl]              # Go template file. If not provided, built-in templates will be used based on provided parameters
 ```
 
@@ -188,10 +188,10 @@ otgen version
 
 ## Environmental variables
 
-Values of certain parameters in the OTG configuration depend on specifics of the traffic generator deployment. These values would typically stay the same between multiple `otgen` runs as long as the deployment stays the same. 
+Values of certain parameters in the OTG configuration depend on specifics of the traffic generator deployment. These values would typically stay the same between multiple `otgen` runs as long as the deployment stays the same.
 
 For example:
- 
+
    * `location` string of the OTG `ports` section depends on traffic generator ports available for the test
    * MAC addresses for OTG `flows` change only after re-deployment of containerized traffic generator components, and don't change in hardware setups
 

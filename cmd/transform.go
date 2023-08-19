@@ -106,6 +106,9 @@ For more information, go to https://github.com/open-traffic-generator/otgen
 					template = otgTemplateFlowMetricBytes
 				case COUNTER_PPS:
 					template = otgTemplateFlowMetricFrameRate
+				case COUNTER_TPUT:
+					log.Warning("Flow throughput is a calculated metric which uses average frame size over a duration of the flow transmission.")
+					template = otgTemplateFlowMetricByteRate
 				case "":
 					template = otgTemplateFlowMetricFrames
 				default:
@@ -159,7 +162,7 @@ func init() {
 	transformCmd.Flags().StringVarP(&transformTemplateFile, "file", "f", "", "Go template file for transform")
 	transformCmd.Flags().StringVarP(&transformMetrics, "metrics", "m", "", fmt.Sprintf("Metrics type to transform:\n  \"%s\" for PortMetrics\n  \"%s\" for FlowMetrics\n", METRIC_PORT, METRIC_FLOW))
 	transformCmd.MarkFlagsMutuallyExclusive("metrics", "file") // either use parameters to control transformation, or provide a template file
-	transformCmd.Flags().StringVarP(&transformCounters, "counters", "c", "", fmt.Sprintf("Metric counters to transform:\n  \"%s\" for frame count (default)\n  \"%s\" for byte count\n  \"%s\" for frame rate, in packets per second\n  \"%s\" for throughput, in bytes per second (PortMetrics only)\n  \"%s | %s | %s\" for throughput, in bits per second (PortMetrics only)", COUNTER_FRAMES, COUNTER_BYTES, COUNTER_PPS, COUNTER_TPUT, COUNTER_KBPS, COUNTER_MBPS, COUNTER_GBPS))
+	transformCmd.Flags().StringVarP(&transformCounters, "counters", "c", "", fmt.Sprintf("Metric counters to transform:\n  \"%s\" for frame count (default)\n  \"%s\" for byte count\n  \"%s\" for frame rate, in packets per second\n  \"%s\" for throughput, in bytes per second (calculated for FlowMetrics)\n  \"%s | %s | %s\" for throughput, in bits per second (PortMetrics only)", COUNTER_FRAMES, COUNTER_BYTES, COUNTER_PPS, COUNTER_TPUT, COUNTER_KBPS, COUNTER_MBPS, COUNTER_GBPS))
 	transformCmd.MarkFlagsMutuallyExclusive("counters", "file") // either use parameters to control transformation, or provide a template file
 }
 
@@ -200,6 +203,9 @@ func transformMetricsResponse(mr gosnappi.MetricsResponse, tmpl string) {
 			"byteRateToBits": func(c float32) float32 {
 				return convertByteRateToBps(transformCounters, c)
 			},
+			"frameRateToByteRate": func(frames int64, bytes int64, rate float32) float32 {
+				return convertFrameRateToByteRate(frames, bytes, rate)
+			},
 			"rateMetric": func(d string) string {
 				return rateMetricName(transformCounters, d)
 			},
@@ -232,6 +238,14 @@ func convertByteRateToBps(f string, c float32) float32 {
 		log.Fatalf("Unsupported format string for byteRateToBits: %s", f)
 	}
 	return c
+}
+
+func convertFrameRateToByteRate(frames int64, bytes int64, rate float32) float32 {
+	if frames == 0 || bytes == 0 || rate == 0.0 {
+		return 0
+	}
+	frameAvgSize := float32(bytes / frames)
+	return float32(frameAvgSize) * rate
 }
 
 func rateMetricName(n string, d string) string {
@@ -272,12 +286,14 @@ const (
 `
 	otgTemplatePortMetricByteRate = `[{{range $i, $p := .PortMetrics}}{{if $i}},{{end}}{"name": "{{ $p.Name }}", "bytes_tx_rate": "{{ ratePrintf "%.0f" $p.BytesTxRate }}", "bytes_rx_rate": "{{ ratePrintf "%.0f" $p.BytesRxRate }}"}{{end}}]
 `
+	otgTemplatePortMetricBitRate = `[{{range $i, $p := .PortMetrics}}{{if $i}},{{end}}{"name": "{{ $p.Name }}", "{{ rateMetric "tx" }}": "{{ byteRateToBits $p.BytesTxRate | ratePrintf "%.4f" }}", "{{ rateMetric "rx" }}": "{{ byteRateToBits $p.BytesRxRate | ratePrintf "%.4f" }}"}{{end}}]
+`
 	otgTemplateFlowMetricFrames = `[{{range $i, $f := .FlowMetrics}}{{if $i}},{{end}}{"name": "{{ $f.Name }}", "frames_tx": "{{ $f.FramesTx }}", "frames_rx": "{{ $f.FramesRx }}"}{{end}}]
 `
 	otgTemplateFlowMetricBytes = `[{{range $i, $f := .FlowMetrics}}{{if $i}},{{end}}{"name": "{{ $f.Name }}", "bytes_tx": "{{ $f.BytesTx }}", "bytes_rx": "{{ $f.BytesRx }}"}{{end}}]
 `
 	otgTemplateFlowMetricFrameRate = `[{{range $i, $f := .FlowMetrics}}{{if $i}},{{end}}{"name": "{{ $f.Name }}", "frames_tx_rate": "{{ ratePrintf "%.0f" $f.FramesTxRate }}", "frames_rx_rate": "{{ ratePrintf "%.0f" $f.FramesRxRate }}"}{{end}}]
 `
-	otgTemplatePortMetricBitRate = `[{{range $i, $p := .PortMetrics}}{{if $i}},{{end}}{"name": "{{ $p.Name }}", "{{ rateMetric "tx" }}": "{{ byteRateToBits $p.BytesTxRate | ratePrintf "%.4f" }}", "{{ rateMetric "rx" }}": "{{ byteRateToBits $p.BytesRxRate | ratePrintf "%.4f" }}"}{{end}}]
+	otgTemplateFlowMetricByteRate = `[{{range $i, $f := .FlowMetrics}}{{if $i}},{{end}}{"name": "{{ $f.Name }}", "bytes_tx_rate": "{{ frameRateToByteRate $f.FramesTx $f.BytesTx $f.FramesTxRate }}", "bytes_rx_rate": "{{ frameRateToByteRate $f.FramesRx $f.BytesRx $f.FramesRxRate }}"}{{end}}]
 `
 )

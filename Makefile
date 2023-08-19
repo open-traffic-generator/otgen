@@ -270,3 +270,11 @@ tests-transform-port-Tbps:
 	cat ./test/transform/port_metrics.json | ./otgen transform -m port -c Tbps | diff test/transform/port_metrics_Tbps.json -
 	@echo
 
+
+tests-transform-flow-tput:
+	@echo "#################################################################"
+	@echo "# Transform flow metrics - troughput"
+	@echo "#################################################################"
+	cat ./test/transform/flow_metrics.json | ./otgen transform -m flow -c tput | diff test/transform/flow_metrics_byte_rate.json -
+	@echo
+
