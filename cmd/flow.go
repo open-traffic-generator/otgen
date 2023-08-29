@@ -362,7 +362,7 @@ func newFlow(config gosnappi.Config) {
 	} else {
 		portRx := otgGetOrCreatePort(config, flowRxPort, flowRxLocation)
 		if portRx != nil {
-			flow.TxRx().Port().SetRxName(portRx.Name())
+			flow.TxRx().Port().SetRxNames([]string{portRx.Name()})
 			if flowDstMac == "auto" {
 				log.Fatalf("Flow %s is not associated with an emulated device, therefore it cannot use \"auto\" mode for the destination MAC", flowName)
 			}

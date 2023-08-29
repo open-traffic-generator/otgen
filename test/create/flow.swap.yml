@@ -40,7 +40,8 @@ flows:
   tx_rx:
     choice: port
     port:
-      rx_name: p1
+      rx_names:
+      - p1
       tx_name: p2
 ports:
 - location: localhost:5556
