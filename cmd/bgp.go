@@ -44,7 +44,7 @@ var bgpTypeEnum gosnappi.BgpV4PeerAsTypeEnum // BGP peering type as gosnappi enu
 var bgpPeerIP string                         // Peer IP address
 var bgpRoute string                          // Route to advertise
 var bgpRouteAddress string                   // Address part of the route to advertise
-var bgpRoutePrefix int32                     // Prefix mask part of the route to advertise
+var bgpRoutePrefix uint32                    // Prefix mask part of the route to advertise
 
 // bgpCmd represents the bgp command
 var bgpCmd = &cobra.Command{
@@ -80,7 +80,7 @@ For more information, go to https://github.com/open-traffic-generator/otgen
 					log.Fatalf("Wrong netmask prefix format in the route: %s", bgpRoute)
 				}
 				if 0 <= p && p <= 32 {
-					bgpRoutePrefix = int32(p)
+					bgpRoutePrefix = uint32(p)
 				} else {
 					log.Fatalf("Netmask prefix has to be from 0 to 32 in the route: %s", bgpRoute)
 				}
@@ -164,9 +164,9 @@ func newBgp(config gosnappi.Config) {
 			bgpIPv4Peer = bgpIPv4Interface.Peers().Add().SetName(bgpDeviceIPv4Interface.Name() + ".bgp.peer." + bgpPeerIP)
 		}
 
-		bgpIPv4Peer.SetAsNumber(int32(bgpASN)).SetAsType(bgpTypeEnum) // TODO update as_number_width for longer ASNs
-		bgpIPv4Peer.SetPeerAddress(bgpPeerIP)                         // TODO check if it is IPv6
-		if bgpRoute != "" {                                           // TODO IPv6
+		bgpIPv4Peer.SetAsNumber(bgpASN).SetAsType(bgpTypeEnum)
+		bgpIPv4Peer.SetPeerAddress(bgpPeerIP) // TODO check if it is IPv6
+		if bgpRoute != "" {                   // TODO IPv6
 			var bgpIPv4PeerRouteRange gosnappi.BgpV4RouteRange
 			for _, v := range bgpIPv4Peer.V4Routes().Items() {
 				if v.HasNextHopMode() && v.NextHopMode() == gosnappi.BgpV4RouteRangeNextHopMode.LOCAL_IP {

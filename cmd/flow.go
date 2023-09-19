@@ -57,12 +57,12 @@ var flowIPv6 bool              // IP version 6
 var flowSrc string             // Source IP address
 var flowDst string             // Destination IP address
 var flowProto string           // IP transport protocol
-var flowSrcPort int32          // Source TCP/UDP port
-var flowDstPort int32          // Destination TCP/UDP port
+var flowSrcPort uint32         // Source TCP/UDP port
+var flowDstPort uint32         // Destination TCP/UDP port
 var flowTxRxSwap bool          // Swap default values between Tx and Rx, source and destination
-var flowRate int64             // Packet per second rate
-var flowFixedPackets int32     // Number of packets to transmit
-var flowFixedSize int32        // Frame size in bytes
+var flowRate uint64            // Packet per second rate
+var flowFixedPackets uint32    // Number of packets to transmit
+var flowFixedSize uint32       // Frame size in bytes
 var flowDisableMetrics bool    // Disable flow metrics
 var flowLossMetrics bool       // Enable loss metrics
 var flowLatencyMetrics string  // Enable latency metrics mode
@@ -236,18 +236,18 @@ func init() {
 	// Transport protocol
 	flowCmd.Flags().StringVarP(&flowProto, "proto", "P", PROTO_TCP, "IP transport protocol: \"icmp\" | \"tcp\" | \"udp\"")
 
-	flowCmd.Flags().Int32VarP(&flowSrcPort, "sport", "", SPORT_DEFAULT, "Source TCP/UDP port. If not specified, an incremental set of source ports would be used for each packet")
-	flowCmd.Flags().Int32VarP(&flowDstPort, "dport", "p", DPORT_DEFAULT, "Destination TCP/UDP port")
+	flowCmd.Flags().Uint32VarP(&flowSrcPort, "sport", "", SPORT_DEFAULT, "Source TCP/UDP port. If not specified, an incremental set of source ports would be used for each packet")
+	flowCmd.Flags().Uint32VarP(&flowDstPort, "dport", "p", DPORT_DEFAULT, "Destination TCP/UDP port")
 
 	flowCmd.Flags().BoolVarP(&flowTxRxSwap, "swap", "", false, "Swap default values between Tx and Rx, source and destination")
 
-	flowCmd.Flags().Int64VarP(&flowRate, "rate", "r", 0, "Packet per second rate. If not specified, default rate decision would be left to the traffic engine")
+	flowCmd.Flags().Uint64VarP(&flowRate, "rate", "r", 0, "Packet per second rate. If not specified, default rate decision would be left to the traffic engine")
 
 	// We use 1000 as a default value for packet count instead of continuos mode per OTG spec,
 	// as we want to prevent situations when unsuspecting user end up with non-stopping traffic
 	// if no parameter was specified
-	flowCmd.Flags().Int32VarP(&flowFixedPackets, "count", "c", 1000, "Number of packets to transmit. Use 0 for continuos mode")
-	flowCmd.Flags().Int32VarP(&flowFixedSize, "size", "", 0, "Frame size in bytes. If not specified, the minimum supported by the traffic engine will be used")
+	flowCmd.Flags().Uint32VarP(&flowFixedPackets, "count", "c", 1000, "Number of packets to transmit. Use 0 for continuos mode")
+	flowCmd.Flags().Uint32VarP(&flowFixedSize, "size", "", 0, "Frame size in bytes. If not specified, the minimum supported by the traffic engine will be used")
 
 	// Metrics
 	flowCmd.Flags().BoolVarP(&flowDisableMetrics, "nometrics", "", false, "Disable flow metrics")
