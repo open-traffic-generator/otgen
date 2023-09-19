@@ -35,7 +35,7 @@ var devicePortLocation string // Test port location string
 var deviceMac string          // Device ethernet MAC
 var deviceIPv4 string         // Device IPv4 address
 var deviceGWv4 string         // Device IPv4 default gateway
-var devicePrefixv4 int32      // Device IPv4 network prefix
+var devicePrefixv4 uint32     // Device IPv4 network prefix
 
 // deviceCmd represents the device command
 var deviceCmd = &cobra.Command{
@@ -99,7 +99,7 @@ func init() {
 	deviceCmd.Flags().StringVarP(&deviceMac, "mac", "M", "", fmt.Sprintf("Device MAC address (default \"%s\")", MAC_DEFAULT_SRC))
 	deviceCmd.Flags().StringVarP(&deviceIPv4, "ip", "I", IPV4_DEFAULT_SRC, "Device IP address") // TODO consider IP/prefix format: split(a, "/")
 	deviceCmd.Flags().StringVarP(&deviceGWv4, "gw", "G", IPV4_DEFAULT_GW, "Device default gateway")
-	deviceCmd.Flags().Int32VarP(&devicePrefixv4, "prefix", "P", IPV4_DEFAULT_PREFIX, "Device network prefix")
+	deviceCmd.Flags().Uint32VarP(&devicePrefixv4, "prefix", "P", IPV4_DEFAULT_PREFIX, "Device network prefix")
 
 	var deviceCmdCreateCopy = *deviceCmd
 	var deviceCmdAddCopy = *deviceCmd

@@ -44,7 +44,7 @@ var otgYaml bool                  // Format of OTG input is YAML. Mutually exclu
 var otgJson bool                  // Format of OTG input is JSON. Mutually exclusive with --yaml
 var otgFile string                // OTG configuration file
 var otgRxBgpStr string            // How many BGP routes shall we receive to consider the protocol is up. In routes or multiples of routes advertised
-var otgRxBgpNumber int32          // Parsed number of BGP routes we shall receive
+var otgRxBgpNumber uint64         // Parsed number of BGP routes we shall receive
 var otgRxBgpMultiplier int        // Parsed multiplier of advertised BGP routes we shall receive
 var otgMetrics string             // Metrics types to report as a comma-separated list: "port" for PortMetrics, "flow" for FlowMetrics, "bgp4" for Bgpv4Metrics
 var otgMetricsMap map[string]bool // Metrics to report parsed into a map
@@ -86,7 +86,7 @@ For more information, go to https://github.com/open-traffic-generator/otgen
 			if err != nil {
 				log.Fatalf("Incorrect format for --rxbgp routes number: %s is not an integer", otgRxBgpStr)
 			}
-			otgRxBgpNumber = int32(n)
+			otgRxBgpNumber = uint64(n)
 			log.Debugf("Will use %d for number of expected number of BGP routes to receive", otgRxBgpNumber)
 		} else {
 			log.Fatalf("Incorrect format for --rxbgp parameter: %s has to be an integer or an integer with \"x\" suffix for a multiplier", otgRxBgpStr)
@@ -223,7 +223,7 @@ func startProtocols(api gosnappi.GosnappiApi, config gosnappi.Config) (gosnappi.
 
 		// Detect protocols present in the configuration
 		var configuredProtocols = make(map[string]bool)
-		var routesPerProtocol = make(map[string]int32)
+		var routesPerProtocol = make(map[string]uint64)
 		for _, d := range config.Devices().Items() {
 			if d.Bgp().RouterId() != "" {
 				proto := "bgp4"
@@ -237,7 +237,7 @@ func startProtocols(api gosnappi.GosnappiApi, config gosnappi.Config) (gosnappi.
 						for _, p := range i.Peers().Items() {
 							for _, r := range p.V4Routes().Items() {
 								for _, a := range r.Addresses().Items() {
-									routesPerProtocol[proto] += a.Count()
+									routesPerProtocol[proto] += uint64(a.Count())
 								}
 							}
 						}
@@ -264,8 +264,8 @@ func startProtocols(api gosnappi.GosnappiApi, config gosnappi.Config) (gosnappi.
 				res, err := api.GetMetrics(req)
 				printMetricsResponse(res, err)
 				protocolState[proto] = true
-				advertisedRoutes := int32(0)
-				receivedRoutes := int32(0)
+				advertisedRoutes := uint64(0)
+				receivedRoutes := uint64(0)
 				for _, m := range res.Bgpv4Metrics().Items() {
 					// Check if protocol came up
 					if m.SessionState() != gosnappi.Bgpv4MetricSessionState.UP {
@@ -284,7 +284,7 @@ func startProtocols(api gosnappi.GosnappiApi, config gosnappi.Config) (gosnappi.
 						if otgRxBgpNumber > 0 && receivedRoutes < otgRxBgpNumber {
 							// Not all expected routes were received yet
 							protocolState[proto] = false
-						} else if otgRxBgpMultiplier > 0 && receivedRoutes < advertisedRoutes*int32(otgRxBgpMultiplier) {
+						} else if otgRxBgpMultiplier > 0 && receivedRoutes < advertisedRoutes*uint64(otgRxBgpMultiplier) {
 							// Not all expected routes were received yet
 							protocolState[proto] = false
 						}
@@ -402,18 +402,18 @@ func stopProtocols(api gosnappi.GosnappiApi, config gosnappi.Config) (gosnappi.G
 	return api, config
 }
 
-func calculateTrafficTargets(config gosnappi.Config) (int64, time.Duration) {
+func calculateTrafficTargets(config gosnappi.Config) (uint64, time.Duration) {
 	// Initialize packet counts and rates per flow if they were provided as parameters. Calculate ETA
-	pktCountTotal := int64(0)
+	pktCountTotal := uint64(0)
 	flowETA := time.Duration(0)
 	trafficETA := time.Duration(0)
 	for _, f := range config.Flows().Items() {
 		pktCountFlow := f.Duration().FixedPackets().Packets()
-		pktCountTotal += int64(pktCountFlow)
+		pktCountTotal += uint64(pktCountFlow)
 		ratePPSFlow := f.Rate().Pps()
 		// Calculate ETA it will take to transmit the flow
 		if ratePPSFlow > 0 {
-			flowETA = time.Duration(float64(int64(pktCountFlow)/ratePPSFlow)) * time.Second
+			flowETA = time.Duration(float64(uint64(pktCountFlow)/ratePPSFlow)) * time.Second
 		}
 		if flowETA > trafficETA {
 			trafficETA = flowETA // The longest flow to finish
@@ -422,11 +422,11 @@ func calculateTrafficTargets(config gosnappi.Config) (int64, time.Duration) {
 	return pktCountTotal, trafficETA
 }
 
-func isTrafficRunning(mr gosnappi.MetricsResponse, targetTx int64) bool {
+func isTrafficRunning(mr gosnappi.MetricsResponse, targetTx uint64) bool {
 	trafficRunning := false // we'll check if there are flows still running
 
 	if mr.Choice() == "port_metrics" {
-		total_tx := int64(0)
+		total_tx := uint64(0)
 		for _, pm := range mr.PortMetrics().Items() {
 			total_tx += pm.FramesTx()
 		}
@@ -446,11 +446,11 @@ func isTrafficRunning(mr gosnappi.MetricsResponse, targetTx int64) bool {
 	return trafficRunning
 }
 
-func isTrafficRunningWithETA(mr gosnappi.MetricsResponse, targetTx int64, start time.Time, trafficETA time.Duration) bool {
+func isTrafficRunningWithETA(mr gosnappi.MetricsResponse, targetTx uint64, start time.Time, trafficETA time.Duration) bool {
 	trafficRunning := false // we'll check if there are flows still running
 
 	if mr.Choice() == "port_metrics" {
-		total_tx := int64(0)
+		total_tx := uint64(0)
 		for _, pm := range mr.PortMetrics().Items() {
 			total_tx += pm.FramesTx()
 		}
