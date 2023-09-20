@@ -32,7 +32,7 @@ import (
 
 const (
 	BGP_ASN_MIN     = uint32(0)          // Minimum value for ASN
-	BGP_ASN_MAX     = uint32(2147483647) // Maximin value for ASN (4-byte), should be uint32(4294967294) but gosnappi uses signed int32 and that leads to negative values
+	BGP_ASN_MAX     = uint32(4294967295) // Maximin value for ASN (4-byte)
 	BGP_ASN_DEFAULT = uint32(65534)      // Default ASN value
 )
 
