@@ -35,7 +35,7 @@ jobs:
       - name: Build otgen
         run: cd ../../.. && go get && go mod tidy && go build && sudo mv otgen /usr/local/bin/otgen
       - name: Setup testbed
-        run:  make install network deploy
+        run:  make install network deploy && sleep 5
       - name: Test1 RUN with STDIN YAML
         run:  cat otg.yml | otgen --log debug run -k
       - name: Test2 RUN with --api
