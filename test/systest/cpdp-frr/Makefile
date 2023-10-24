@@ -18,7 +18,7 @@ install: install-clab
 
 install-clab: /usr/bin/containerlab
 /usr/bin/containerlab:
-	bash -c "$$(curl -sL https://get.containerlab.dev)"
+	bash -c "$$(curl -sL https://get.containerlab.dev)" -- -v 0.46.2
 
 install-clean:
 	-sudo apt remove containerlab -y

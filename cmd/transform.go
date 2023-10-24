@@ -172,7 +172,7 @@ func transformMetricsResponse(mr gosnappi.MetricsResponse, tmpl string) {
 				}
 				return string(j)
 			},
-			"counterPrintf": func(f string, c int64) string {
+			"counterPrintf": func(f string, c uint64) string {
 				return fmt.Sprintf(f, c)
 			},
 			"ratePrintf": func(f string, c float32) string {
