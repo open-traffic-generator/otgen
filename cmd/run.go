@@ -225,7 +225,7 @@ func startProtocols(api gosnappi.GosnappiApi, config gosnappi.Config) (gosnappi.
 		var configuredProtocols = make(map[string]bool)
 		var routesPerProtocol = make(map[string]uint64)
 		for _, d := range config.Devices().Items() {
-			if d.Bgp().RouterId() != "" {
+			if d.HasBgp() {
 				proto := "bgp4"
 				if len(d.Bgp().Ipv4Interfaces().Items()) > 0 {
 					if !configuredProtocols[proto] {
