@@ -59,3 +59,35 @@ deploy-lab:
 
 remove-lab:
 	sudo docker-compose down
+
+
+###############################
+# Run tests
+###############################
+
+.PHONY: run
+run: test1 test2 test3 test4 test5 test6
+
+test1:
+	@echo RUN with STDIN YAML
+	cat otg.yml | otgen --log debug run -k
+
+test2:
+	@echo RUN with --api
+	cat otg.yml | otgen --log debug run -k --api https://127.0.0.1:8443
+
+test3:
+	@echo RUN with --file --yaml
+	otgen --log debug run -k --file otg.yml --yaml
+
+test4:
+	@echo RUN with --interval
+	otgen --log debug run -k --file otg.yml --interval 2s
+
+test5:
+	@echo RUN with --metrics flow
+	otgen --log debug run -k --file otg.yml --metrics flow
+
+test6:
+	@echo RUN with --xeta 1.5
+	otgen --log debug run -k --file otg.yml --xeta 1.5
