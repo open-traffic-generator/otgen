@@ -201,7 +201,7 @@ func newBgp(config gosnappi.Config) {
 	}
 
 	// Print the OTG configuration constructed
-	otgYaml, err := config.ToYaml()
+	otgYaml, err := config.Marshal().ToYaml()
 	if err != nil {
 		log.Fatal(err)
 	}

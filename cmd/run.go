@@ -164,7 +164,7 @@ func init() {
 	runCmd.Flags().StringVarP(&protoMode, "protocols", "", "auto", "Protocols control mode:\n  \"auto\" - detect, start and stop\n  \"ignore\" - do not detect, start or stop,\n  \"keep\" - detect, start but do not stop\n ")
 }
 
-func initOTG() (gosnappi.GosnappiApi, gosnappi.Config) {
+func initOTG() (gosnappi.Api, gosnappi.Config) {
 	var otgbytes []byte
 	var err error
 	if otgFile != "" { // Read OTG config from file
@@ -187,12 +187,12 @@ func initOTG() (gosnappi.GosnappiApi, gosnappi.Config) {
 	api.NewHttpTransport().SetLocation(otgURL).SetVerify(!otgIgnoreX509)
 
 	// Create a new traffic configuration that will be set on traffic generator
-	config := api.NewConfig()
+	config := gosnappi.NewConfig()
 	// These are mutually exclusive parameters
 	if otgJson {
-		err = config.FromJson(otg)
+		err = config.Unmarshal().FromJson(otg)
 	} else {
-		err = config.FromYaml(otg) // Thus YAML is assumed by default, and as a superset of JSON, it actually works for JSON format too
+		err = config.Unmarshal().FromYaml(otg) // Thus YAML is assumed by default, and as a superset of JSON, it actually works for JSON format too
 	}
 	if err != nil {
 		log.Fatal(err)
@@ -201,7 +201,7 @@ func initOTG() (gosnappi.GosnappiApi, gosnappi.Config) {
 	return api, config
 }
 
-func applyConfig(api gosnappi.GosnappiApi, config gosnappi.Config) (gosnappi.GosnappiApi, gosnappi.Config) {
+func applyConfig(api gosnappi.Api, config gosnappi.Config) (gosnappi.Api, gosnappi.Config) {
 	log.Info("Applying OTG config...")
 	res, err := api.SetConfig(config)
 	checkResponse(api, res, err)
@@ -209,13 +209,13 @@ func applyConfig(api gosnappi.GosnappiApi, config gosnappi.Config) (gosnappi.Gos
 	return api, config
 }
 
-func startProtocols(api gosnappi.GosnappiApi, config gosnappi.Config) (gosnappi.GosnappiApi, gosnappi.Config) {
+func startProtocols(api gosnappi.Api, config gosnappi.Config) (gosnappi.Api, gosnappi.Config) {
 	if protoMode == "ignore" {
 		return api, config
 	}
 	if len(config.Devices().Items()) > 0 { // TODO also if LAGs are configured
 		log.Info("Starting protocols...")
-		ps := api.NewControlState()
+		ps := gosnappi.NewControlState()
 		ps.Protocol().All().SetState(gosnappi.StateProtocolAllState.START)
 		res, err := api.SetControlState(ps)
 		checkResponse(api, res, err)
@@ -250,7 +250,7 @@ func startProtocols(api gosnappi.GosnappiApi, config gosnappi.Config) (gosnappi.
 		}
 
 		// Wait for configured protocols to come up
-		req := api.NewMetricsRequest()
+		req := gosnappi.NewMetricsRequest()
 		for {
 			var protocolState = make(map[string]bool)
 			for p, c := range configuredProtocols {
@@ -315,11 +315,11 @@ func startProtocols(api gosnappi.GosnappiApi, config gosnappi.Config) (gosnappi.
 	return api, config
 }
 
-func runTraffic(api gosnappi.GosnappiApi, config gosnappi.Config) (gosnappi.GosnappiApi, gosnappi.Config) {
+func runTraffic(api gosnappi.Api, config gosnappi.Config) (gosnappi.Api, gosnappi.Config) {
 	// start transmitting configured flows
 	// TODO check we have traffic flows
 	log.Info("Starting traffic...")
-	ts := api.NewControlState()
+	ts := gosnappi.NewControlState()
 	ts.Traffic().FlowTransmit().SetState(gosnappi.StateTrafficFlowTransmitState.START)
 	res, err := api.SetControlState(ts)
 	checkResponse(api, res, err)
@@ -329,7 +329,7 @@ func runTraffic(api gosnappi.GosnappiApi, config gosnappi.Config) (gosnappi.Gosn
 	log.Infof("Total packets to transmit: %d, ETA is: %s\n", targetTx, trafficETA)
 
 	// use port metrics to initially determine if traffic is running
-	req := api.NewMetricsRequest()
+	req := gosnappi.NewMetricsRequest()
 	req.Port()
 	metrics, err := api.GetMetrics(req)
 	checkResponse(api, metrics, err)
@@ -373,11 +373,11 @@ func runTraffic(api gosnappi.GosnappiApi, config gosnappi.Config) (gosnappi.Gosn
 	return api, config
 }
 
-func stopTraffic(api gosnappi.GosnappiApi, config gosnappi.Config) (gosnappi.GosnappiApi, gosnappi.Config) {
+func stopTraffic(api gosnappi.Api, config gosnappi.Config) (gosnappi.Api, gosnappi.Config) {
 	// stop transmitting traffic
 	// TODO consider defer
 	log.Info("Stopping traffic...")
-	ts := api.NewControlState()
+	ts := gosnappi.NewControlState()
 	ts.Traffic().FlowTransmit().SetState(gosnappi.StateTrafficFlowTransmitState.STOP)
 	res, err := api.SetControlState(ts)
 	checkResponse(api, res, err)
@@ -385,7 +385,7 @@ func stopTraffic(api gosnappi.GosnappiApi, config gosnappi.Config) (gosnappi.Gos
 	return api, config
 }
 
-func stopProtocols(api gosnappi.GosnappiApi, config gosnappi.Config) (gosnappi.GosnappiApi, gosnappi.Config) {
+func stopProtocols(api gosnappi.Api, config gosnappi.Config) (gosnappi.Api, gosnappi.Config) {
 	// stop protocols
 	if protoMode == "ignore" || protoMode == "keep" {
 		return api, config
@@ -393,7 +393,7 @@ func stopProtocols(api gosnappi.GosnappiApi, config gosnappi.Config) (gosnappi.G
 	// TODO consider defer
 	if len(config.Devices().Items()) > 0 { // TODO also if LAGs are configured
 		log.Info("Stopping protocols...")
-		ps := api.NewControlState()
+		ps := gosnappi.NewControlState()
 		ps.Protocol().All().SetState(gosnappi.StateProtocolAllState.STOP)
 		res, err := api.SetControlState(ps)
 		checkResponse(api, res, err)
@@ -479,9 +479,9 @@ func isTrafficRunningWithETA(mr gosnappi.MetricsResponse, targetTx uint64, start
 }
 
 // check for OTG error and print it
-func checkOTGError(api gosnappi.GosnappiApi, err error) {
+func checkOTGError(api gosnappi.Api, err error) {
 	if err != nil {
-		errData, ok := api.FromError(err)
+		errData, ok := gosnappi.FromError(err)
 		// helper function to parse error
 		// returns a bool with err, indicating weather the error was of otg error format
 		if ok {
@@ -502,7 +502,7 @@ func checkOTGError(api gosnappi.GosnappiApi, err error) {
 }
 
 // print otg api response content
-func checkResponse(api gosnappi.GosnappiApi, res interface{}, err error) {
+func checkResponse(api gosnappi.Api, res interface{}, err error) {
 	checkOTGError(api, err)
 	switch v := res.(type) {
 	case gosnappi.MetricsResponse:
@@ -535,7 +535,11 @@ func printMetricsResponse(mr gosnappi.MetricsResponse, err error) {
 }
 
 func printMetricsResponseRawJson(mr gosnappi.MetricsResponse) {
-	j, err := otgMetricsResponseToJson(mr.Msg())
+	p, err := mr.Marshal().ToProto()
+	if err != nil {
+		log.Fatal(err)
+	}
+	j, err := otgMetricsResponseToJson(p)
 	if err == nil {
 		fmt.Println(string(j))
 	} else {

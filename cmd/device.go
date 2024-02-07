@@ -110,11 +110,8 @@ func init() {
 }
 
 func createDevice() {
-	// Create a new API handle
-	api := gosnappi.NewApi()
-
 	// Create a flow
-	newDevice(api.NewConfig())
+	newDevice(gosnappi.NewConfig())
 }
 
 func addDevice() {
@@ -147,7 +144,7 @@ func newDevice(config gosnappi.Config) {
 		SetPrefix(devicePrefixv4)
 
 	// Print the OTG configuration constructed
-	otgYaml, err := config.ToYaml()
+	otgYaml, err := config.Marshal().ToYaml()
 	if err != nil {
 		log.Fatal(err)
 	}

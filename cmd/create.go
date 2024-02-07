@@ -101,15 +101,15 @@ func init() {
 	// createCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
-func readOtgStdin(api gosnappi.GosnappiApi) gosnappi.Config {
+func readOtgStdin(api gosnappi.Api) gosnappi.Config {
 	otgbytes, err := io.ReadAll(os.Stdin)
 	if err != nil {
 		log.Fatal(err)
 	}
 	otg := string(otgbytes)
 
-	config := api.NewConfig()
-	err = config.FromYaml(otg) // Thus YAML is assumed by default, and as a superset of JSON, it works for JSON format too
+	config := gosnappi.NewConfig()
+	err = config.Unmarshal().FromYaml(otg) // Thus YAML is assumed by default, and as a superset of JSON, it works for JSON format too
 	if err != nil {
 		log.Fatal(err)
 	}
