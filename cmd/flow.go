@@ -263,11 +263,8 @@ func init() {
 }
 
 func createFlow() {
-	// Create a new API handle
-	api := gosnappi.NewApi()
-
 	// Create a flow
-	newFlow(api.NewConfig())
+	newFlow(gosnappi.NewConfig())
 }
 
 func addFlow() {
@@ -350,14 +347,12 @@ func newFlow(config gosnappi.Config) {
 		if flowDstMacExplicit {
 			if flowDstMac == "auto" {
 				log.Debugf("Device-bound flow %s will use \"auto\" mode for the destination MAC", flowName)
-				eth.Dst().SetChoice("auto")
 			} else {
 				log.Debugf("Device-bound flow %s will use an explicitly defined destination MAC %s", flowName, flowDstMac)
 				eth.Dst().SetValue(flowDstMac)
 			}
 		} else {
 			log.Debugf("Device-bound flow %s will use \"auto\" mode for the destination MAC by default", flowName)
-			eth.Dst().SetChoice("auto")
 		}
 	} else {
 		portRx := otgGetOrCreatePort(config, flowRxPort, flowRxLocation)
@@ -420,7 +415,7 @@ func newFlow(config gosnappi.Config) {
 	}
 
 	// Print traffic configuration constructed
-	otgYaml, err := config.ToYaml()
+	otgYaml, err := config.Marshal().ToYaml()
 	if err != nil {
 		log.Fatal(err)
 	}

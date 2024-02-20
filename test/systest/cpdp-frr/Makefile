@@ -1,7 +1,7 @@
 SHELL = /bin/bash
 
 .PHONY: all
-all: install deploy
+all: install deploy run
 
 .PHONY: clean
 clean: remove-clab

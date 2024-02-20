@@ -39,9 +39,6 @@ flows:
   packet:
   - choice: ethernet
     ethernet:
-      dst:
-        auto: "00:00:00:00:00:00"
-        choice: auto
       src:
         choice: value
         value: 02:11:11:00:02:aa

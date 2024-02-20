@@ -154,7 +154,7 @@ func transformStdInWithTemplate(t string) {
 		text := scanner.Text()
 
 		mr := gosnappi.NewMetricsResponse()
-		err := mr.FromJson(text)
+		err := mr.Unmarshal().FromJson(text)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -185,7 +185,11 @@ func transformMetricsResponse(mr gosnappi.MetricsResponse, tmpl string) {
 		log.Fatal(err)
 	}
 
-	err = t.Execute(os.Stdout, mr.Msg())
+	msg, err := mr.Marshal().ToProto()
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = t.Execute(os.Stdout, msg)
 	if err != nil {
 		log.Fatal(err)
 	}
