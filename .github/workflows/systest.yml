@@ -27,9 +27,9 @@ jobs:
         working-directory: ./test/systest/dp-b2b
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Set up Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
           go-version: ${{ env.GOVER }}
       - name: Build otgen
@@ -61,9 +61,9 @@ jobs:
         working-directory: ./test/systest/cpdp-frr
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Set up Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
           go-version: ${{ env.GOVER }}
       - name: Build otgen
