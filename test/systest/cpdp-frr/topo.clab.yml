@@ -3,14 +3,14 @@ topology:
   nodes:
     ixc:
       kind: linux
-      image: ghcr.io/open-traffic-generator/keng-controller:1.0.0-7
+      image: ghcr.io/open-traffic-generator/keng-controller:1.5.1-12
       network-mode: host
       cmd: --accept-eula --http-port 8443
       ports:
         - 8443:8443
     te1:
       kind: linux
-      image: ghcr.io/open-traffic-generator/ixia-c-traffic-engine:1.6.0.109
+      image: ghcr.io/open-traffic-generator/ixia-c-traffic-engine:1.8.0.12
       ports:
         - 5555:5555
         - 50071:50071
@@ -22,7 +22,7 @@ topology:
         WAIT_FOR_IFACE: Yes
     pe1:
       kind: linux
-      image: ghcr.io/open-traffic-generator/ixia-c-protocol-engine:1.00.0.358
+      image: ghcr.io/open-traffic-generator/ixia-c-protocol-engine:1.00.0.383
       network-mode: container:te1
       startup-delay: 5
       env:
@@ -31,12 +31,12 @@ topology:
       kind: linux
       image: frrouting/frr:v8.2.2
       binds:
-      - ./frr/daemons:/etc/frr/daemons
-      - ./frr/frr.conf:/etc/frr/frr.conf
-      - ./frr/vtysh.conf:/etc/frr/vtysh.conf
+        - ./frr/daemons:/etc/frr/daemons
+        - ./frr/frr.conf:/etc/frr/frr.conf
+        - ./frr/vtysh.conf:/etc/frr/vtysh.conf
     te2:
       kind: linux
-      image: ghcr.io/open-traffic-generator/ixia-c-traffic-engine:1.6.0.109
+      image: ghcr.io/open-traffic-generator/ixia-c-traffic-engine:1.8.0.12
       ports:
         - 5556:5556
         - 50072:50071
@@ -48,12 +48,36 @@ topology:
         WAIT_FOR_IFACE: Yes
     pe2:
       kind: linux
-      image: ghcr.io/open-traffic-generator/ixia-c-protocol-engine:1.00.0.358
+      image: ghcr.io/open-traffic-generator/ixia-c-protocol-engine:1.00.0.383
       network-mode: container:te2
       startup-delay: 5
       env:
         INTF_LIST: veth2
-
   links:
-    - endpoints: ["te1:veth0","dut:veth1"]
-    - endpoints: ["te2:veth2","dut:veth3"]
+    - endpoints: ["te1:veth0", "dut:veth1"]
+    - endpoints: ["te2:veth2", "dut:veth3"]
+services:
+  controller:
+    image: ghcr.io/open-traffic-generator/keng-controller:1.5.1-12
+  layer23-hw-server:
+    image: ghcr.io/open-traffic-generator/keng-layer23-hw-server:1.5.1-6
+  gnmi-server:
+    image: ghcr.io/open-traffic-generator/otg-gnmi-server:1.14.2
+  traffic_engine_1:
+    image: ghcr.io/open-traffic-generator/ixia-c-traffic-engine:1.8.0.12
+  traffic_engine_2:
+    image: ghcr.io/open-traffic-generator/ixia-c-traffic-engine:1.8.0.12
+  traffic_engine_3:
+    image: ghcr.io/open-traffic-generator/ixia-c-traffic-engine:1.8.0.12
+  traffic_engine_4:
+    image: ghcr.io/open-traffic-generator/ixia-c-traffic-engine:1.8.0.12
+  traffic_engine_5:
+    image: ghcr.io/open-traffic-generator/ixia-c-traffic-engine:1.8.0.12
+  traffic_engine_6:
+    image: ghcr.io/open-traffic-generator/ixia-c-traffic-engine:1.8.0.12
+  protocol_engine_1:
+    image: ghcr.io/open-traffic-generator/ixia-c-protocol-engine:1.00.0.383
+  protocol_engine_2:
+    image: ghcr.io/open-traffic-generator/ixia-c-protocol-engine:1.00.0.383
+  operator:
+    image: ghcr.io/open-traffic-generator/keng-hybrid-operator:0.0.4
