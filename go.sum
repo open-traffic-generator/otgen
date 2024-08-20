@@ -35,8 +35,8 @@ github.com/mum4k/termdash v0.18.0 h1:wpy3FKcVV5s2TOoMTKzqQXwL5VClZIlNrRqZDpeIzBA
 github.com/mum4k/termdash v0.18.0/go.mod h1:VWL18wLZDKVKF/f4TkMRiKZb9Eg8Ax99PtNuGuRAguw=
 github.com/olekukonko/tablewriter v0.0.5 h1:P2Ga83D34wi1o9J6Wh1mRuqd4mF/x/lgBS7N7AbDhec=
 github.com/olekukonko/tablewriter v0.0.5/go.mod h1:hPp6KlRPjbx+hW8ykQs1w3UBbZlj6HuIJcUGPhkA7kY=
-github.com/open-traffic-generator/snappi/gosnappi v1.7.2 h1:uj4ZO/m2g2BQw5pMxivc7yVszfN0yVGK89b4UCemRUI=
-github.com/open-traffic-generator/snappi/gosnappi v1.7.2/go.mod h1:2FoOlkhPRlBJBiGJyi3/Luswu9ihpvzdQXTLIHRy4Is=
+github.com/open-traffic-generator/snappi/gosnappi v1.8.0 h1:zvVBkS8GKjqtpVv3h86uRST3iY8pDoBDvPp6b7XF/Rc=
+github.com/open-traffic-generator/snappi/gosnappi v1.8.0/go.mod h1:3OLmjWsPNyP8MsBTU74p0lHBZ/mewCnQH92lysPB7ic=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/rivo/uniseg v0.2.0 h1:S1pD9weZBuJdFmowNwbpi7BJ8TNftyUImj/0WQi72jY=
