@@ -8,14 +8,14 @@ require (
 	github.com/lucasb-eyer/go-colorful v1.2.0
 	github.com/mum4k/termdash v0.18.0
 	github.com/olekukonko/tablewriter v0.0.5
-	github.com/open-traffic-generator/snappi/gosnappi v1.8.0
+	github.com/open-traffic-generator/snappi/gosnappi v1.12.0
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/cobra v1.8.0
 	google.golang.org/protobuf v1.34.2
 )
 
 require (
-	github.com/Masterminds/semver/v3 v3.2.1 // indirect
+	github.com/Masterminds/semver/v3 v3.3.0 // indirect
 	github.com/gdamore/encoding v1.0.0 // indirect
 	github.com/gdamore/tcell/v2 v2.5.4 // indirect
 	github.com/ghodss/yaml v1.0.0 // indirect
