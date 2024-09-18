@@ -12,7 +12,7 @@ on:
 
 env:
   GOVER: 1.23
-  GORELEASER_VER: v1.6.3
+  GORELEASER_VER: v2.3.2
 
 permissions:
   contents: write
