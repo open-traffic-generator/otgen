@@ -1,10 +1,10 @@
 all: get build tests
 
 prereq:
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.52.2
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $$(go env GOPATH)/bin v2.5.0
 
 lint:
-	golangci-lint run
+	golangci-lint run --timeout=10m
 
 get:
 	go get
