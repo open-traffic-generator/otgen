@@ -16,7 +16,7 @@ on:
   workflow_dispatch:
 
 env:
-  GOVER: 1.23
+  GOVER: 1.24
 
 jobs:
   make-tests:

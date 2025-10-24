@@ -11,7 +11,7 @@ on:
       - '!**.png'
 
 env:
-  GOVER: 1.23
+  GOVER: 1.24
   GORELEASER_VER: v2.3.2
 
 permissions:
