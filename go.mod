@@ -5,7 +5,7 @@ go 1.24.0
 require (
 	github.com/drone/envsubst v1.0.3
 	github.com/gosuri/uilive v0.0.4
-	github.com/lucasb-eyer/go-colorful v1.2.0
+	github.com/lucasb-eyer/go-colorful v1.3.0
 	github.com/mum4k/termdash v0.20.0
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/open-traffic-generator/snappi/gosnappi v1.40.3
