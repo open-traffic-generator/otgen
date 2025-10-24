@@ -6,7 +6,7 @@ require (
 	github.com/drone/envsubst v1.0.3
 	github.com/gosuri/uilive v0.0.4
 	github.com/lucasb-eyer/go-colorful v1.2.0
-	github.com/mum4k/termdash v0.18.0
+	github.com/mum4k/termdash v0.20.0
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/open-traffic-generator/snappi/gosnappi v1.40.3
 	github.com/sirupsen/logrus v1.9.3
@@ -19,7 +19,7 @@ require (
 	github.com/cenkalti/backoff/v5 v5.0.3 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/gdamore/encoding v1.0.0 // indirect
-	github.com/gdamore/tcell/v2 v2.5.4 // indirect
+	github.com/gdamore/tcell/v2 v2.7.4 // indirect
 	github.com/ghodss/yaml v1.0.0 // indirect
 	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
@@ -27,8 +27,8 @@ require (
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.27.2 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/mattn/go-isatty v0.0.19 // indirect
-	github.com/mattn/go-runewidth v0.0.14 // indirect
-	github.com/rivo/uniseg v0.2.0 // indirect
+	github.com/mattn/go-runewidth v0.0.15 // indirect
+	github.com/rivo/uniseg v0.4.3 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.63.0 // indirect
