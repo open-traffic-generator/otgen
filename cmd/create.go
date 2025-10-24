@@ -151,5 +151,5 @@ func envSubstOrDefault(e string, d string) string {
 
 // Produce a string from a "template" by replacing "%placeholder%" with "text"
 func stringFromTemplate(template string, placeholder string, text string) string {
-	return strings.Replace(template, "%"+placeholder+"%", text, -1)
+	return strings.ReplaceAll(template, "%"+placeholder+"%", text)
 }
