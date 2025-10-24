@@ -491,7 +491,7 @@ func checkOTGError(api gosnappi.Api, err error) {
 			}
 			log.Errorf("OTG API error messages:")
 			for _, e := range errData.Errors() {
-				log.Errorf(e)
+				log.Errorf("%s", e)
 			}
 			log.Fatalln("Fatal OTG error, exiting...")
 		} else {

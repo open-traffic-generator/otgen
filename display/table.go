@@ -48,7 +48,9 @@ func (tp *TableProcessor) Process(input []DataPoint) error {
 			tp.data[name][h] = fmt.Sprintf("%v", p[h])
 		}
 	}
-	fmt.Fprintln(tp.terminal, tp.Format())
+	if _, err := fmt.Fprintln(tp.terminal, tp.Format()); err != nil {
+		return err
+	}
 	// without this sleep uilive terminal does not get refreshed correctly
 	time.Sleep(tp.terminal.RefreshInterval)
 	return nil
