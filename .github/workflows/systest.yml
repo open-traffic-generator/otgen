@@ -69,9 +69,9 @@ jobs:
       - name: Build otgen
         run: cd ../../.. && make get build && sudo mv otgen /usr/local/bin/otgen
       - name: Setup testbed
-        run:  make install deploy && sleep 5
+        run:  make install deploy && sleep 10
       - name: Test1 CREATE --dmac auto | RUN
-        run:  otgen create device -n otg1 -p p1 -l localhost:5555+localhost:50071 --ip 192.0.2.1 --gw 192.0.2.2 --prefix 30 | otgen add device -n otg2 -p p2 -l localhost:5556+localhost:50072 --ip 192.0.2.5 --gw 192.0.2.6 --prefix 30 | otgen --log debug add flow --tx otg1 --rx otg2 --dmac auto --src 192.0.2.1 --dst 192.0.2.5 | otgen --log debug run -k --metrics flow,port
+        run:  otgen create device -n otg1 -p p1 --ip 192.0.2.1 --gw 192.0.2.2 --prefix 30 | otgen add device -n otg2 -p p2 --ip 192.0.2.5 --gw 192.0.2.6 --prefix 30 | otgen --log debug add flow --tx otg1 --rx otg2 --dmac auto --src 192.0.2.1 --dst 192.0.2.5 | otgen --log debug run -k --metrics flow,port
       - name: Test2 RUN --rxbgp 2x
         run:  otgen --log debug run -k --file otg.json --json --rxbgp 2x
       - name: Test3 RUN --rxbgp 2x --metrics bgp4
@@ -85,6 +85,6 @@ jobs:
       - name: Test7 RUN --rxbgp 2x --metrics flow,port
         run:  otgen --log debug run -k --file otg.json --json --rxbgp 2x --metrics flow,port
       - name: Test8 CREATE --dmac auto | ADD BGP | RUN --rxbgp 2x --metrics bgp4,flow
-        run:  otgen create device -n otg1 -p p1 -l localhost:5555+localhost:50071 --ip 192.0.2.1 --gw 192.0.2.2 --prefix 30 | otgen add bgp -d otg1 --id 1.1.1.1 --asn 1111 --peer 192.0.2.2 --route 198.51.100.0/24 | otgen add device -n otg2 -p p2 -l localhost:5556+localhost:50072 --ip 192.0.2.5 --gw 192.0.2.6 --prefix 30 | otgen add bgp -d otg2 --id 2.2.2.2 --asn 2222 --peer 192.0.2.6 --route 203.0.113.0/24 | otgen add flow --tx otg1 --rx otg2 --dmac auto --src 198.51.100.1 --dst 203.0.113.1 | otgen --log debug run -k --rxbgp 2x --metrics bgp4,flow
+        run:  otgen create device -n otg1 -p p1 --ip 192.0.2.1 --gw 192.0.2.2 --prefix 30 | otgen add bgp -d otg1 --id 1.1.1.1 --asn 1111 --peer 192.0.2.2 --route 198.51.100.0/24 | otgen add device -n otg2 -p p2 --ip 192.0.2.5 --gw 192.0.2.6 --prefix 30 | otgen add bgp -d otg2 --id 2.2.2.2 --asn 2222 --peer 192.0.2.6 --route 203.0.113.0/24 | otgen add flow --tx otg1 --rx otg2 --dmac auto --src 198.51.100.1 --dst 203.0.113.1 | otgen --log debug run -k --rxbgp 2x --metrics bgp4,flow
       - name: Cleanup
         run:  make clean
