@@ -21,7 +21,7 @@ env:
 jobs:
   b2b-raw-traffic:
     name: B2B raw traffic test
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: ./test/systest/dp-b2b
@@ -52,7 +52,7 @@ jobs:
         run:  make clean
   dut-arp-bgp-traffic:
     name: DUT ARP BGP and traffic test
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     env:
       OTG_LOCATION_P1: "localhost:5555+localhost:50071"
       OTG_LOCATION_P2: "localhost:5556+localhost:50072"
