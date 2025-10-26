@@ -21,15 +21,15 @@ env:
 jobs:
   b2b-raw-traffic:
     name: B2B raw traffic test
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: ./test/systest/dp-b2b
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: ${{ env.GOVER }}
       - name: Build otgen
@@ -52,7 +52,7 @@ jobs:
         run:  make clean
   dut-arp-bgp-traffic:
     name: DUT ARP BGP and traffic test
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     env:
       OTG_LOCATION_P1: "localhost:5555+localhost:50071"
       OTG_LOCATION_P2: "localhost:5556+localhost:50072"
@@ -61,9 +61,9 @@ jobs:
         working-directory: ./test/systest/cpdp-frr
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: ${{ env.GOVER }}
       - name: Build otgen
