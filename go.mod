@@ -8,10 +8,10 @@ require (
 	github.com/lucasb-eyer/go-colorful v1.3.0
 	github.com/mum4k/termdash v0.20.0
 	github.com/olekukonko/tablewriter v0.0.5
-	github.com/open-traffic-generator/snappi/gosnappi v1.42.1
+	github.com/open-traffic-generator/snappi/gosnappi v1.43.0
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/cobra v1.10.1
-	google.golang.org/protobuf v1.36.10
+	google.golang.org/protobuf v1.36.11
 )
 
 require (
@@ -48,7 +48,7 @@ require (
 	golang.org/x/text v0.31.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20251202230838-ff82c1b0f217 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20251202230838-ff82c1b0f217 // indirect
-	google.golang.org/grpc v1.77.0 // indirect
+	google.golang.org/grpc v1.78.0 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
