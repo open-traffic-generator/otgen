@@ -8,7 +8,7 @@ require (
 	github.com/lucasb-eyer/go-colorful v1.3.0
 	github.com/mum4k/termdash v0.20.0
 	github.com/olekukonko/tablewriter v0.0.5
-	github.com/open-traffic-generator/snappi/gosnappi v1.43.0
+	github.com/open-traffic-generator/snappi/gosnappi v1.44.0
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/cobra v1.10.1
 	google.golang.org/protobuf v1.36.11
